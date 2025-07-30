@@ -1,10 +1,22 @@
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { HeaderComponent } from './header/header.component';
+import { SidebarLeftComponent } from './sidebar-left/sidebar-left.component';
+import { SidebarRightComponent } from './sidebar-right/sidebar-right.component';
+import { ViewcubeComponent } from './viewcube/viewcube.component';
+import { CommonModule } from '@angular/common';
+import { MainViewComponent } from './main-view/main-view.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet],
+  imports: [
+    HeaderComponent,
+    MainViewComponent,
+    SidebarLeftComponent,
+    SidebarRightComponent,
+    ViewcubeComponent,
+    CommonModule
+  ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })

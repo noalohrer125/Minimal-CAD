@@ -1,0 +1,60 @@
+* {
+    box-sizing: border-box;
+    --main-padding: 1vw;
+}
+
+.main * {
+    padding: var(--main-padding);
+}
+
+.main {
+    display: grid;
+    grid-template-areas:
+        "header header header"
+        "sidebar-left main-view viewcube"
+        "sidebar-left main-view sidebar-right";
+    background-color: #d9d9d9;
+    height: 100vh;
+    width: 100vw;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.header {
+    grid-area: header;
+    background: #f88;
+    height: 10vh;
+    width: 100%;
+}
+
+.main-view {
+    grid-area: main-view;
+    background: #d9d9d9;
+    width: 80vw;
+    height: 90vh;
+}
+
+.sidebar-left {
+    grid-area: sidebar-left;
+    background: #fff;
+    margin: 0;
+    justify-self: start;
+    width: 10vw;
+    height: 90vh;
+}
+
+.sidebar-right {
+    grid-area: sidebar-right;
+    background: #fff;
+    justify-self: end;
+    width: 10vw;
+    height: 90vh;
+}
+
+.viewcube {
+    background: #d9d9d9;
+    grid-area: viewcube;
+    width: 10vw;
+    height: 10vw;
+}
