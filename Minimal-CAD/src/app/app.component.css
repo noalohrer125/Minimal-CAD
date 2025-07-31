@@ -2,12 +2,11 @@
     box-sizing: border-box;
     --main-padding: 1vw;
 }
-
-.main * {
+.main-app *:not(.main-view) {
     padding: var(--main-padding);
 }
 
-.main {
+.main-app {
     display: grid;
     grid-template-areas:
         "header header header"
