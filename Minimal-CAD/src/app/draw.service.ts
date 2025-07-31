@@ -1,19 +1,17 @@
-import { Injectable } from '@angular/core';
+import { Injectable, model } from '@angular/core';
+import { FormObject } from './interfaces';
+import modelData from './models/model-data.json' assert { type: "json" };
 
 @Injectable({
   providedIn: 'root'
 })
 export class Draw {
-  constructor() { }
-
-  save() {
-    // Logic to save the drawing
-    console.log('Drawing saved');
+  loadObjects(): FormObject[] {
+    return modelData as FormObject[];
   }
 
-  upload() {
-    // Logic to upload the drawing
-    console.log('Drawing uploaded');
+  line() {
+    // Logic to create a line
   }
 
   rectangle() {

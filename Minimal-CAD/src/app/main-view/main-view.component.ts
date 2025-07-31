@@ -1,7 +1,10 @@
 import { Component, ElementRef, AfterViewInit, ViewChild, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { Draw } from '../draw.service';
+import { FormObject } from '../interfaces';
+import { FreeObject } from '../interfaces';
+import * as THREE from 'three';
 
 @Component({
   selector: 'app-main-view',
@@ -11,6 +14,8 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
   styleUrls: ['./main-view.component.css']
 })
 export class MainViewComponent implements AfterViewInit {
+  constructor(private drawservice: Draw) { }
+
   @ViewChild('canvas', { static: true }) canvasRef!: ElementRef;
   // scene, camera, and renderer setup
   private scene = new THREE.Scene();
@@ -20,7 +25,7 @@ export class MainViewComponent implements AfterViewInit {
   init() {
     this.renderer = new THREE.WebGLRenderer({ canvas: this.canvasRef.nativeElement, antialias: true });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.camera.position.z = 5;
+    this.camera.position.z = 10;
     this.scene.background = new THREE.Color(0xd9d9d9);
 
     // add buildplate with custom number of lines
@@ -41,7 +46,45 @@ export class MainViewComponent implements AfterViewInit {
     const controls = new OrbitControls(this.camera, this.renderer.domElement);
     // Damping for smoother controls
     controls.enableDamping = true;
-    controls.dampingFactor = 0.1;
+    controls.dampingFactor = 1;
+  }
+
+  loadModels() {
+    const data = this.drawservice.loadObjects();
+    data.forEach((element: FormObject | FreeObject) => {
+      // Square
+      if (element.type === 'Square') {
+        const geometry = new THREE.BoxGeometry(element.size[0], element.size[1], element.size[2]);
+        const material = new THREE.MeshBasicMaterial({ color: 0x4f90ff });
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.position.set(element.position[0], element.position[1], (element.position[2] || 0 + element.size[2] / 2));
+        this.scene.add(mesh);
+        // Add edge lines (only outer edges)
+        const edges = new THREE.EdgesGeometry(geometry);
+        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0xd3d3d3 }));
+        line.position.copy(mesh.position);
+        this.scene.add(line);
+      }
+      // Circle
+      else if (element.type === 'Circle') {
+        const geometry = new THREE.CylinderGeometry(element.size[0], element.size[0], element.size[1], 64);
+        const material = new THREE.MeshBasicMaterial({ color: 0x4f90ff });
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.position.set(element.position[0], element.position[1], (element.position[2] || 0 + element.size[1] / 2));
+        mesh.rotation.x = Math.PI / 2;
+        this.scene.add(mesh);
+        // Add edge lines (only outer edges)
+        const edges = new THREE.EdgesGeometry(geometry);
+        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0xd3d3d3 }));
+        line.position.copy(mesh.position);
+        line.rotation.copy(mesh.rotation);
+        this.scene.add(line);
+      }
+      // Freeform
+      else if (element.type === 'Freeform') {
+        // Comming soon: Freeform objects will be implemented later
+      }
+    });
   }
 
   animate() {
@@ -51,6 +94,7 @@ export class MainViewComponent implements AfterViewInit {
 
   ngAfterViewInit(): void {
     this.init();
+    this.loadModels();
     this.animate();
   }
 
