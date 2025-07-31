@@ -1,4 +1,14 @@
 .main {
     display: flex;
     flex-direction: row;
+    margin-left: 3%;
+    gap: 1%;
+}
+
+hr {
+    border: #d9d9d9 solid 1px;
+}
+
+mat-icon {
+    color: rgba(0, 0, 0, 0.5);
 }

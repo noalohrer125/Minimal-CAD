@@ -1,27 +1,48 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { Draw } from '../draw.service';
 
 @Component({
   selector: 'app-header',
   standalone: true,
   imports: [
     CommonModule,
-    MatIconModule
+    MatIconModule,
+    MatButtonModule
   ],
   templateUrl: './header.component.html',
-  styleUrl: './header.component.css'
+  styleUrls: ['./header.component.css']
 })
 export class HeaderComponent {
+  constructor(private drawService: Draw) { }
+
   ngOnInit() {
     // Initialization logic here
   }
 
   save() {
-    // Save logic here
+    this.drawService.save();
   }
 
   upload() {
-    // Upload logic here
+    this.drawService.upload();
+  }
+
+  rectangle() {
+    this.drawService.rectangle();
+  }
+
+  triangle() {
+    this.drawService.triangle();
+  }
+
+  circle() {
+    this.drawService.circle();
+  }
+
+  extrusion() {
+    this.drawService.extrusion();
   }
 }

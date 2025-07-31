@@ -25,6 +25,7 @@
     grid-area: header;
     background: #f88;
     height: 10vh;
+    min-height: 80px;
     width: 100%;
 }
 
@@ -56,5 +57,7 @@
     background: #d9d9d9;
     grid-area: viewcube;
     width: 10vw;
+    min-width: 100px;
+    min-height: 100px;
     height: 10vw;
 }
