@@ -12,3 +12,8 @@ hr {
 mat-icon {
     color: rgba(0, 0, 0, 0.5);
 }
+
+h1 {
+    text-shadow: #fff 2px 1px 5px;
+    margin-left: auto;
+}
