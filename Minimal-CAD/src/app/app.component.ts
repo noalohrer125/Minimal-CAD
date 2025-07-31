@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { HeaderComponent } from './header/header.component';
 import { SidebarLeftComponent } from './sidebar-left/sidebar-left.component';
 import { SidebarRightComponent } from './sidebar-right/sidebar-right.component';
@@ -15,11 +15,16 @@ import { MainViewComponent } from './main-view/main-view.component';
     SidebarLeftComponent,
     SidebarRightComponent,
     ViewcubeComponent,
-    CommonModule
+    CommonModule,
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
 export class AppComponent {
   title = 'Minimal-CAD';
+
+  @HostListener('contextmenu', ['$event'])
+  onRightClick(event: MouseEvent) {
+    event.preventDefault(); // blockiert das Browser-Kontextmenü
+  }
 }
