@@ -23,19 +23,19 @@ export class HeaderComponent {
   }
 
   save() {
-    this.drawService.save();
+    // this.drawService.save();
   }
 
   upload() {
-    this.drawService.upload();
+    // this.drawService.upload();
+  }
+
+  line() {
+    this.drawService.line();
   }
 
   rectangle() {
     this.drawService.rectangle();
-  }
-
-  triangle() {
-    this.drawService.triangle();
   }
 
   circle() {
