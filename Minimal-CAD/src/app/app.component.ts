@@ -1,7 +1,6 @@
 import { Component, HostListener } from '@angular/core';
 import { HeaderComponent } from './header/header.component';
 import { SidebarLeftComponent } from './sidebar-left/sidebar-left.component';
-import { SidebarRightComponent } from './sidebar-right/sidebar-right.component';
 import { ViewcubeComponent } from './viewcube/viewcube.component';
 import { CommonModule } from '@angular/common';
 import { MainViewComponent } from './main-view/main-view.component';
@@ -13,7 +12,6 @@ import { MainViewComponent } from './main-view/main-view.component';
     HeaderComponent,
     MainViewComponent,
     SidebarLeftComponent,
-    SidebarRightComponent,
     ViewcubeComponent,
     CommonModule,
   ],
