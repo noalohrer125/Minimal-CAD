@@ -1,5 +1,11 @@
 [
   {
+      "name": "Square 1",
+      "type": "Square",
+      "size": [2, 0.01, 0],
+      "position": [0, 0, 1]
+  },
+  {
     "name": "Square 1",
     "type": "Square",
     "size": [2, 1, 0],

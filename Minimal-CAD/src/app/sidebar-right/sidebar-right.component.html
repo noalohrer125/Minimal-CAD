@@ -1,1 +1,4 @@
-<p>sidebar-right works!</p>
+<div *ngIf="selectedObject" class="sidebar-content" (mousedown)="onMouseDown($event)">
+    <h1>Square Parameters</h1>
+    <p>Drag me around!</p>
+</div>

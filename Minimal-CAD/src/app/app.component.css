@@ -43,6 +43,12 @@
     width: 10vw;
     height: 92vh;
 }
+.sidebar-right {
+    background: #afafaf;
+    position: absolute;
+    top: 30vh;
+    right: 1vw;
+}
 
 .viewcube {
     background: #afafaf;/* background: transparent;  */
