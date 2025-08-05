@@ -1,13 +1,17 @@
 import { Component, Input, Output, EventEmitter, HostListener, ElementRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { FormObject, FreeObject } from '../interfaces';
 import { FormGroup, FormControl } from '@angular/forms';
 
 @Component({
   selector: 'app-sidebar-right',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule
+  ],
   templateUrl: './sidebar-right.component.html',
   styleUrl: './sidebar-right.component.css'
 })
@@ -34,9 +38,9 @@ export class SidebarRightComponent implements OnInit {
       radius: new FormControl(0)
     }),
     position: new FormGroup({
-      x: new FormControl(this.position[0]),
-      y: new FormControl(this.position[1]),
-      z: new FormControl(this.position[2])
+      x: new FormControl(0),
+      y: new FormControl(0),
+      z: new FormControl(0)
     })
   });
 
@@ -65,6 +69,22 @@ export class SidebarRightComponent implements OnInit {
     this.form.get('position')?.valueChanges.subscribe((pos: any) => {
       this.positionChange.emit([pos.x, pos.y, pos.z]);
     });
+  }
+
+  onSubmit() {
+    if (this.selectedObject) {
+      // Update selected object with new values from form
+      this.selectedObject.size = [
+        this.form.value.size.length,
+        this.form.value.size.height,
+        this.form.value.size.width
+      ];
+      this.selectedObject.position = [
+        this.form.value.position.x,
+        this.form.value.position.y,
+        this.form.value.position.z
+      ];
+    }
   }
 
   onMouseDown(event: MouseEvent) {

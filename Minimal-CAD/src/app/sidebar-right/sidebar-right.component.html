@@ -1,4 +1,40 @@
 <div *ngIf="selectedObject" class="sidebar-content" (mousedown)="onMouseDown($event)">
-    <h1>Square Parameters</h1>
-    <p>Drag me around!</p>
+    <h1>{{ selectedObject.name }}'s Parameters</h1>
+    <form [formGroup]="form">
+        <fieldset>
+            <legend>Size</legend>
+            <label *ngIf="selectedObject.type !== 'Circle'">
+                Length:
+                <input type="number" formControlName="length">
+            </label>
+            <label>
+                Height:
+                <input type="number" formControlName="height">
+            </label>
+            <label *ngIf="selectedObject.type !== 'Circle'">
+                Width:
+                <input type="number" formControlName="width">
+            </label>
+            <label *ngIf="selectedObject.type === 'Circle'">
+                Radius:
+                <input type="number" formControlName="radius">
+            </label>
+        </fieldset>
+        <fieldset>
+            <legend>Position</legend>
+            <label>
+                X:
+                <input type="number" formControlName="x">
+            </label>
+            <label>
+                Y:
+                <input type="number" formControlName="y">
+            </label>
+            <label>
+                Z:
+                <input type="number" formControlName="z">
+            </label>
+        </fieldset>
+        <button type="submit" (click)="onSubmit()">Apply</button>
+    </form>
 </div>
