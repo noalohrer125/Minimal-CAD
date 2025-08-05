@@ -27,11 +27,12 @@ export class MainViewComponent implements AfterViewInit {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.camera.position.z = 10;
     this.scene.background = new THREE.Color(0xd9d9d9);
-
-    // add buildplate with custom number of lines
+    // add buildplate with custom number of lines and color
     const size = 10; // size of the grid
     const divisions = 10; // number of lines (divisions)
-    const gridHelper = new THREE.GridHelper(size, divisions);
+    const gridColor = 0xf5f8fa;
+    const gridCenterLineColor = 0xb9cee4;
+    const gridHelper = new THREE.GridHelper(size, divisions, gridCenterLineColor, gridColor);
     // Position grid at origin and rotate so it's flat in XY plane
     gridHelper.position.set(0, 0, 0);
     gridHelper.rotation.x = Math.PI / 2;
@@ -51,31 +52,33 @@ export class MainViewComponent implements AfterViewInit {
 
   loadModels() {
     const data = this.drawservice.loadObjects();
+    const objectColor = 0x8cb9d4; // Color for the objects
+    const edgeColor = 0x253238;
     data.forEach((element: FormObject | FreeObject) => {
       // Square
       if (element.type === 'Square') {
         const geometry = new THREE.BoxGeometry(element.size[0], element.size[1], element.size[2]);
-        const material = new THREE.MeshBasicMaterial({ color: 0x4f90ff });
+        const material = new THREE.MeshBasicMaterial({ color: objectColor });
         const mesh = new THREE.Mesh(geometry, material);
         mesh.position.set(element.position[0], element.position[1], (element.position[2] || 0 + element.size[2] / 2));
         this.scene.add(mesh);
         // Add edge lines (only outer edges)
         const edges = new THREE.EdgesGeometry(geometry);
-        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0xd3d3d3 }));
+        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: edgeColor }));
         line.position.copy(mesh.position);
         this.scene.add(line);
       }
       // Circle
       else if (element.type === 'Circle') {
         const geometry = new THREE.CylinderGeometry(element.size[0], element.size[0], element.size[1], 64);
-        const material = new THREE.MeshBasicMaterial({ color: 0x4f90ff });
+        const material = new THREE.MeshBasicMaterial({ color: objectColor });
         const mesh = new THREE.Mesh(geometry, material);
         mesh.position.set(element.position[0], element.position[1], (element.position[2] || 0 + element.size[1] / 2));
         mesh.rotation.x = Math.PI / 2;
         this.scene.add(mesh);
         // Add edge lines (only outer edges)
         const edges = new THREE.EdgesGeometry(geometry);
-        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0xd3d3d3 }));
+        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: edgeColor }));
         line.position.copy(mesh.position);
         line.rotation.copy(mesh.rotation);
         this.scene.add(line);
