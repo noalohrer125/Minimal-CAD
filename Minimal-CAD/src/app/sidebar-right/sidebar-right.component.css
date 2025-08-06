@@ -1,3 +1,7 @@
+* {
+  user-select: all;
+}
+
 :host {
   position: absolute;
   background: #afafaf;
@@ -19,4 +23,17 @@
 
 h1 {
     cursor: move;
+}
+
+.fieldset {
+  display: flex;
+  flex-direction: column;
+}
+
+button {
+  margin-top: 10px;
+  padding: 5px;
+  background-color: #e0e0e0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }

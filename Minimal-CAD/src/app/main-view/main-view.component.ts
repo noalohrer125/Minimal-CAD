@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { Draw } from '../draw.service';
 import { FormObject } from '../interfaces';
-import { FreeObject } from '../interfaces';
 import * as THREE from 'three';
 
 @Component({
@@ -54,13 +53,13 @@ export class MainViewComponent implements AfterViewInit {
     const data = this.drawservice.loadObjects();
     const objectColor = 0x8cb9d4; // Color for the objects
     const edgeColor = 0x253238;
-    data.forEach((element: FormObject | FreeObject) => {
+    data.forEach((element: FormObject) => {
       // Square
       if (element.type === 'Square') {
-        const geometry = new THREE.BoxGeometry(element.size[0], element.size[1], element.size[2]);
+        const geometry = new THREE.BoxGeometry(element.l, element.w, element.h);
         const material = new THREE.MeshBasicMaterial({ color: objectColor });
         const mesh = new THREE.Mesh(geometry, material);
-        mesh.position.set(element.position[0], element.position[1], (element.position[2] || 0 + element.size[2] / 2));
+        mesh.position.set(element.position[0], element.position[1], ((element.position[2] || 0) + element.h / 2));
         this.scene.add(mesh);
         // Add edge lines (only outer edges)
         const edges = new THREE.EdgesGeometry(geometry);
@@ -70,10 +69,10 @@ export class MainViewComponent implements AfterViewInit {
       }
       // Circle
       else if (element.type === 'Circle') {
-        const geometry = new THREE.CylinderGeometry(element.size[0], element.size[0], element.size[1], 64);
+        const geometry = new THREE.CylinderGeometry(element.r, element.r, element.h, 64);
         const material = new THREE.MeshBasicMaterial({ color: objectColor });
         const mesh = new THREE.Mesh(geometry, material);
-        mesh.position.set(element.position[0], element.position[1], (element.position[2] || 0 + element.size[1] / 2));
+        mesh.position.set(element.position[0], element.position[1], (element.position[2] || 0 + element.h / 2));
         mesh.rotation.x = Math.PI / 2;
         this.scene.add(mesh);
         // Add edge lines (only outer edges)
@@ -84,9 +83,9 @@ export class MainViewComponent implements AfterViewInit {
         this.scene.add(line);
       }
       // Freeform
-      else if (element.type === 'Freeform') {
+      // else if (element.type === 'Freeform') {
         // Comming soon: Freeform objects will be implemented later
-      }
+      // }
     });
   }
 

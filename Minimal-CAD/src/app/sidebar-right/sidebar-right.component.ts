@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter, HostListener, ElementRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { FormObject, FreeObject } from '../interfaces';
+import { FormObject } from '../interfaces';
 import { FormGroup, FormControl } from '@angular/forms';
 
 @Component({
@@ -17,6 +17,7 @@ import { FormGroup, FormControl } from '@angular/forms';
 })
 export class SidebarRightComponent implements OnInit {
   @Input() position: [number, number, number] = [0, 0, 0];
+  @Input() selectedObjectInput: FormObject | null = null;
   @Output() positionChange = new EventEmitter<[number, number, number]>();
 
   private isDragging = false;
@@ -25,8 +26,8 @@ export class SidebarRightComponent implements OnInit {
   private initialX = 0;
   private initialY = 0;
 
-  public selectedObject: FormObject | FreeObject | null = null;
-  public selectedObjectType!: 'Square' | 'Circle' | 'Freeform';
+  public selectedObject: FormObject | null = null;
+  public selectedObjectType!: 'Square' | 'Circle' | 'Line';
 
   constructor(public elementRef: ElementRef) {}
 
@@ -52,15 +53,15 @@ export class SidebarRightComponent implements OnInit {
     if (this.selectedObject) {
       this.form.patchValue({
         size: {
-          length: this.selectedObject.size[0] ?? 0,
-          height: this.selectedObject.size?.[1] ?? 0,
-          width: this.selectedObject.size?.[2] ? this.selectedObject.size[2] : this.selectedObject.size[1] ?? 0,
-          radius: this.selectedObject.size?.[0] ?? 0
+          length: this.selectedObject.l ?? 0,
+          width: this.selectedObject.w ?? 0,
+          height: this.selectedObject.h ?? 0,
+          radius: this.selectedObject.r ?? 0
         },
         position: {
-          x: this.selectedObject.position?.[0] ?? this.position[0],
-          y: this.selectedObject.position?.[1] ?? this.position[1],
-          z: this.selectedObject.position?.[2] ?? this.position[2]
+          x: this.selectedObject.position[0] ?? 0,
+          y: this.selectedObject.position[1] ?? 0,
+          z: this.selectedObject.position[2] ?? 0
         }
       });
     }
@@ -73,17 +74,26 @@ export class SidebarRightComponent implements OnInit {
 
   onSubmit() {
     if (this.selectedObject) {
-      // Update selected object with new values from form
-      this.selectedObject.size = [
-        this.form.value.size.length,
-        this.form.value.size.height,
-        this.form.value.size.width
-      ];
+      if (this.selectedObject.type === 'Line') {
+        // Comming soon: Handle line properties
+      }
+      else if (this.selectedObject.type === 'Square') {
+        this.selectedObject.l = this.form.value.size.length;
+        this.selectedObject.w = this.form.value.size.width;
+        this.selectedObject.h = this.form.value.size.height;
+        delete this.selectedObject.r;
+      } else if (this.selectedObject.type === 'Circle') {
+        this.selectedObject.r = this.form.value.size.radius;
+        this.selectedObject.h = this.form.value.size.height;
+        delete this.selectedObject.l;
+        delete this.selectedObject.w;
+      }
       this.selectedObject.position = [
         this.form.value.position.x,
         this.form.value.position.y,
         this.form.value.position.z
       ];
+      localStorage.setItem('selectedObject', JSON.stringify(this.selectedObject));
     }
   }
 

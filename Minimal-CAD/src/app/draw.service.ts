@@ -1,17 +1,17 @@
 import { Injectable } from '@angular/core';
-import { FormObject, FreeObject } from './interfaces';
+import { FormObject } from './interfaces';
 
 
 @Injectable({
   providedIn: 'root'
 })
 export class Draw {
-  loadObjects(): (FormObject | FreeObject)[] {
+  loadObjects(): (FormObject)[] {
     const modelDataString = localStorage.getItem('model-data');
-    const data = modelDataString ? JSON.parse(modelDataString) as (FormObject | FreeObject)[] : [];
+    const data = modelDataString ? JSON.parse(modelDataString) as FormObject[] : [];
     const selectedObject = localStorage.getItem('selectedObject');
     if (selectedObject) {
-      data.push(JSON.parse(selectedObject) as (FormObject | FreeObject));
+      data.push(JSON.parse(selectedObject) as FormObject);
       if (data) {
         return data;
       }
@@ -22,7 +22,7 @@ export class Draw {
     return [];
   }
 
-  saveObject(object: FormObject | FreeObject): void {
+  saveObject(object: FormObject): void {
     const modelData = this.loadObjects();
     if (object) {
       modelData.push(object);
@@ -31,7 +31,7 @@ export class Draw {
     const objects = localStorage.getItem('selectedObject');
     if (objects) {
       try {
-        const arr = JSON.parse(objects) as (FormObject | FreeObject)[];
+        const arr = JSON.parse(objects) as FormObject[];
         modelData.push(...arr);
       } catch {}
     }
@@ -46,14 +46,23 @@ export class Draw {
     const newObject: FormObject = {
       name: 'New Rectangle',
       type: 'Square',
-      size: [1, 1, 0],
+      l: 1,
+      w: 1,
+      h: 0,
       position: [0, 0, 0]
     };
     localStorage.setItem('selectedObject', JSON.stringify(newObject));
   }
 
   circle() {
-    // Comming soon: Circle objects will be implemented later
+    const newObject: FormObject = {
+      name: 'New Circle',
+      type: 'Circle',
+      r: 1,
+      h: 0,
+      position: [0, 0, 0]
+    };
+    localStorage.setItem('selectedObject', JSON.stringify(newObject));
   }
 
   extrusion() {

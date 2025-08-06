@@ -1,26 +1,26 @@
-<div *ngIf="selectedObject" class="sidebar-content" (mousedown)="onMouseDown($event)">
-    <h1>{{ selectedObject.name }}'s Parameters</h1>
+<div class="sidebar-content" (mousedown)="onMouseDown($event)">
+    <h1>{{ selectedObjectInput?.name }}</h1>
     <form [formGroup]="form">
-        <fieldset>
+        <fieldset class="fieldset" formGroupName="size">
             <legend>Size</legend>
-            <label *ngIf="selectedObject.type !== 'Circle'">
+            <label *ngIf="selectedObject?.type !== 'Circle'">
                 Length:
                 <input type="number" formControlName="length">
+            </label>
+            <label *ngIf="selectedObject?.type !== 'Circle'">
+                Width:
+                <input type="number" formControlName="width">
             </label>
             <label>
                 Height:
                 <input type="number" formControlName="height">
             </label>
-            <label *ngIf="selectedObject.type !== 'Circle'">
-                Width:
-                <input type="number" formControlName="width">
-            </label>
-            <label *ngIf="selectedObject.type === 'Circle'">
+            <label *ngIf="selectedObject?.type === 'Circle'">
                 Radius:
                 <input type="number" formControlName="radius">
             </label>
         </fieldset>
-        <fieldset>
+        <fieldset class="fieldset" formGroupName="position">
             <legend>Position</legend>
             <label>
                 X:
