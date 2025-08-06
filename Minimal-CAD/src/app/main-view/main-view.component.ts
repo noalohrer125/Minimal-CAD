@@ -16,66 +16,68 @@ export class MainViewComponent implements AfterViewInit {
   constructor(private drawservice: Draw) { }
 
   @ViewChild('canvas', { static: true }) canvasRef!: ElementRef;
-  // scene, camera, and renderer setup
+
   private scene = new THREE.Scene();
   private camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
   private renderer = new THREE.WebGLRenderer({ antialias: true });
+
+  private raycaster = new THREE.Raycaster();
+  private mouse = new THREE.Vector2();
+  private objects: THREE.Object3D[] = [];
 
   init() {
     this.renderer = new THREE.WebGLRenderer({ canvas: this.canvasRef.nativeElement, antialias: true });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.camera.position.z = 10;
     this.scene.background = new THREE.Color(0xd9d9d9);
-    // add buildplate with custom number of lines and color
-    const size = 10; // size of the grid
-    const divisions = 10; // number of lines (divisions)
+
+    const size = 10;
+    const divisions = 10;
     const gridColor = 0xf5f8fa;
     const gridCenterLineColor = 0xb9cee4;
     const gridHelper = new THREE.GridHelper(size, divisions, gridCenterLineColor, gridColor);
-    // Position grid at origin and rotate so it's flat in XY plane
     gridHelper.position.set(0, 0, 0);
     gridHelper.rotation.x = Math.PI / 2;
     this.scene.add(gridHelper);
 
-    // Position camera to look straight down at the grid from above
-    this.camera.position.set(0, 0, 10); // 10 units above the grid
-    this.camera.up.set(0, 1, 0); // Y axis is up
+    this.camera.position.set(0, 0, 10);
+    this.camera.up.set(0, 1, 0);
     this.camera.lookAt(0, 0, 0);
 
-    // Add orbit controls
     const controls = new OrbitControls(this.camera, this.renderer.domElement);
-    // Damping for smoother controls
     controls.enableDamping = true;
     controls.dampingFactor = 1;
   }
 
   loadModels() {
     const data = this.drawservice.loadObjects();
-    const objectColor = 0x8cb9d4; // Color for the objects
+    const objectColor = 0x8cb9d4;
     const edgeColor = 0x253238;
+
     data.forEach((element: FormObject) => {
-      // Square
       if (element.type === 'Square') {
         const geometry = new THREE.BoxGeometry(element.l, element.w, element.h);
         const material = new THREE.MeshBasicMaterial({ color: objectColor });
         const mesh = new THREE.Mesh(geometry, material);
-        mesh.position.set(element.position[0], element.position[1], ((element.position[2] || 0) + element.h / 2));
+        mesh.position.set(element.position[0], element.position[1], (element.position[2] || 0) + element.h / 2);
+        mesh.userData = element;
         this.scene.add(mesh);
-        // Add edge lines (only outer edges)
+        this.objects.push(mesh);
+
         const edges = new THREE.EdgesGeometry(geometry);
         const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: edgeColor }));
         line.position.copy(mesh.position);
         this.scene.add(line);
-      }
-      // Circle
-      else if (element.type === 'Circle') {
+      } else if (element.type === 'Circle') {
         const geometry = new THREE.CylinderGeometry(element.r, element.r, element.h, 64);
         const material = new THREE.MeshBasicMaterial({ color: objectColor });
         const mesh = new THREE.Mesh(geometry, material);
-        mesh.position.set(element.position[0], element.position[1], (element.position[2] || 0 + element.h / 2));
+        mesh.position.set(element.position[0], element.position[1], (element.position[2] || 0) + element.h / 2);
         mesh.rotation.x = Math.PI / 2;
+        mesh.userData = element;
         this.scene.add(mesh);
-        // Add edge lines (only outer edges)
+        this.objects.push(mesh);
+
         const edges = new THREE.EdgesGeometry(geometry);
         const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: edgeColor }));
         line.position.copy(mesh.position);
@@ -98,6 +100,25 @@ export class MainViewComponent implements AfterViewInit {
     this.init();
     this.loadModels();
     this.animate();
+
+    // Add click listener to canvas
+    this.canvasRef.nativeElement.addEventListener('click', this.onClick.bind(this));
+  }
+
+  onClick(event: MouseEvent) {
+    const rect = this.canvasRef.nativeElement.getBoundingClientRect();
+    this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+    this.raycaster.setFromCamera(this.mouse, this.camera);
+    const intersects = this.raycaster.intersectObjects(this.objects);
+
+    if (intersects.length > 0) {
+      const selected = intersects[0].object;
+      const originalData = selected.userData as FormObject;
+      localStorage.setItem('selectedObject', JSON.stringify(originalData));
+      location.reload();
+    }
   }
 
   @HostListener('window:resize')
