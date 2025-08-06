@@ -48,5 +48,22 @@ input {
   font-weight: bold;
   border: none;
   background: transparent;
-  width: 100%;
+  width: 80%;
+  max-width: 360px;
+}
+
+.formheader {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+
+  .mat-icon {
+    margin-left: auto;
+    align-self: center;
+  }
+  .mat-icon:hover {
+    background-color: #eaeaea;
+    border-radius: 10px;
+    cursor: pointer;
+  }
 }

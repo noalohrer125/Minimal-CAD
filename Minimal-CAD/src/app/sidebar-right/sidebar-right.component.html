@@ -1,6 +1,9 @@
 <div class="sidebar-content">
     <form [formGroup]="form">
-        <input class="name-input" type="text" formControlName="name"/>
+        <div class="formheader">
+            <input class="name-input" type="text" formControlName="name"/>
+            <mat-icon (mousedown)="onMouseDown($event)">open_with</mat-icon>
+        </div>
         <fieldset class="fieldset" formGroupName="size">
             <legend>Size</legend>
             <label *ngIf="selectedObject?.type !== 'Circle'">
