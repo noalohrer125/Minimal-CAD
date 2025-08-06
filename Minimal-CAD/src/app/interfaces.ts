@@ -1,6 +1,6 @@
 export interface FormObject {
     name: string;
-    type: 'Square' | 'Circle' | 'Freeform';
+    type: 'Square' | 'Circle' | 'Line';
     size: number[]; // [x, y, z] for squares and lines / [radius, z] for circles
     position: [number, number, number]; // [x, y, z]
 }

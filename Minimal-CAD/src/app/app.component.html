@@ -2,6 +2,12 @@
   <app-header class="header"></app-header>
   <app-main-view class="main-view"></app-main-view>
   <app-sidebar-left class="sidebar-left"></app-sidebar-left>
-  <app-sidebar-right class="sidebar-right" *ngIf="selectedObject" [position]="sidebarRightPosition" (positionChange)="sidebarRightPosition = $event"></app-sidebar-right>
+  <app-sidebar-right
+    class="sidebar-right"
+    *ngIf="selectedObject"
+    [position]="sidebarRightPosition"
+    [selectedObjectInput]="selectedObject"
+    (positionChange)="sidebarRightPosition = $event">
+  </app-sidebar-right>
   <app-viewcube class="viewcube"></app-viewcube>
 </main>
