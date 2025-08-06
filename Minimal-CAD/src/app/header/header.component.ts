@@ -3,6 +3,7 @@ import { Component } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { Draw } from '../draw.service';
+import { File  as FileService } from '../file.service';
 
 @Component({
   selector: 'app-header',
@@ -16,18 +17,14 @@ import { Draw } from '../draw.service';
   styleUrls: ['./header.component.css']
 })
 export class HeaderComponent {
-  constructor(private drawService: Draw) { }
-
-  ngOnInit() {
-    // Initialization logic here
-  }
+  constructor(private drawService: Draw, private fileService: FileService) { }
 
   save() {
-    // this.drawService.save();
+    this.fileService.save();
   }
 
   upload() {
-    // this.drawService.upload();
+    this.fileService.upload();
   }
 
   line() {
