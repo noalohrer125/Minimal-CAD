@@ -167,6 +167,7 @@ onClick(event: MouseEvent) {
     this.clearScene();
     this.loadModels();
   }
+  location.reload();
 }
 
 clearScene() {
