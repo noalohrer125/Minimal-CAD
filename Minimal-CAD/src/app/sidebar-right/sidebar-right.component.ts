@@ -20,7 +20,7 @@ import { debounceTime } from 'rxjs';
 })
 export class SidebarRightComponent implements OnInit {
   @Input() position: [number, number, number] = [0, 0, 0];
-  @Input() selectedObjectInput: FormObject | null = null;
+  @Input() selectedObjectInput: FormObject[] = [];
   @Output() positionChange = new EventEmitter<[number, number, number]>();
 
   private isDragging = false;
@@ -29,7 +29,7 @@ export class SidebarRightComponent implements OnInit {
   private initialX = 0;
   private initialY = 0;
 
-  public selectedObject: FormObject | null = null;
+  public selectedObjects: FormObject[] = [];
   public selectedObjectType!: 'Square' | 'Circle' | 'Line';
 
   constructor(public elementRef: ElementRef) {}
@@ -51,7 +51,6 @@ export class SidebarRightComponent implements OnInit {
 
   ngOnInit(): void {
     this.initForm();
-    // Listen for position changes in the form
     this.form.get('position')?.valueChanges.subscribe((pos: any) => {
       this.positionChange.emit([pos.x, pos.y, pos.z]);
     });
@@ -74,66 +73,66 @@ export class SidebarRightComponent implements OnInit {
           h: this.form.value.size.height
         };
       }
-      localStorageData.id = this.selectedObject!.id;
+      localStorageData.id = this.selectedObjects[0].id;
       localStorageData.position = [
         this.form.value.position.x,
         this.form.value.position.y,
         this.form.value.position.z
       ];
-      localStorage.setItem('selectedObject', JSON.stringify(localStorageData));
+      localStorage.setItem('selectedObject', JSON.stringify([localStorageData]));
       location.reload();
     });
   }
 
   initForm(): void {
-    this.selectedObject = localStorage.getItem('selectedObject') ? JSON.parse(localStorage.getItem('selectedObject')!) : null;
-    this.selectedObjectType = this.selectedObject?.type!;
+    this.selectedObjects[0] = localStorage.getItem('selectedObject') ? JSON.parse(localStorage.getItem('selectedObject')!) : null;
+    this.selectedObjectType = this.selectedObjects[0]?.type!;
 
     // Initialize form values if selectedObject exists
-    if (this.selectedObject) {
+    if (this.selectedObjects[0]) {
       this.form.patchValue({
-        name: this.selectedObject.name,
+        name: this.selectedObjects[0].name,
         size: {
-          length: this.selectedObject.l ?? 0,
-          width: this.selectedObject.w ?? 0,
-          height: this.selectedObject.h ?? 0,
-          radius: this.selectedObject.r ?? 0
+          length: this.selectedObjects[0].l ?? 0,
+          width: this.selectedObjects[0].w ?? 0,
+          height: this.selectedObjects[0].h ?? 0,
+          radius: this.selectedObjects[0].r ?? 0
         },
         position: {
-          x: this.selectedObject.position[0] ?? 0,
-          y: this.selectedObject.position[1] ?? 0,
-          z: this.selectedObject.position[2] ?? 0
+          x: this.selectedObjects[0].position[0] ?? 0,
+          y: this.selectedObjects[0].position[1] ?? 0,
+          z: this.selectedObjects[0].position[2] ?? 0
         }
       });
     }
   }
 
   onSubmit() {
-    if (this.selectedObject) {
-      if (this.selectedObject.type === 'Line') {
+    if (this.selectedObjects[0]) {
+      if (this.selectedObjects[0].type === 'Line') {
         // Comming soon: Handle line properties
       }
-      else if (this.selectedObject.type === 'Square') {
-        this.selectedObject.l = this.form.value.size.length;
-        this.selectedObject.w = this.form.value.size.width;
-        this.selectedObject.h = this.form.value.size.height;
-        delete this.selectedObject.r;
-      } else if (this.selectedObject.type === 'Circle') {
-        this.selectedObject.r = this.form.value.size.radius;
-        this.selectedObject.h = this.form.value.size.height;
-        delete this.selectedObject.l;
-        delete this.selectedObject.w;
+      else if (this.selectedObjects[0].type === 'Square') {
+        this.selectedObjects[0].l = this.form.value.size.length;
+        this.selectedObjects[0].w = this.form.value.size.width;
+        this.selectedObjects[0].h = this.form.value.size.height;
+        delete this.selectedObjects[0].r;
+      } else if (this.selectedObjects[0].type === 'Circle') {
+        this.selectedObjects[0].r = this.form.value.size.radius;
+        this.selectedObjects[0].h = this.form.value.size.height;
+        delete this.selectedObjects[0].l;
+        delete this.selectedObjects[0].w;
       }
-      this.selectedObject.id = this.selectedObject.id;
-      this.selectedObject.name = this.form.value.name;
-      this.selectedObject.type = this.selectedObjectType;
-      this.selectedObject.position = [
+      this.selectedObjects[0].id = this.selectedObjects[0].id;
+      this.selectedObjects[0].name = this.form.value.name;
+      this.selectedObjects[0].type = this.selectedObjectType;
+      this.selectedObjects[0].position = [
         this.form.value.position.x,
         this.form.value.position.y,
         this.form.value.position.z
       ];
       const data = JSON.parse(localStorage.getItem('model-data') || '[]');
-      data ? (data.push(this.selectedObject), localStorage.setItem('model-data', JSON.stringify(data))) : localStorage.setItem('model-data', JSON.stringify([this.selectedObject]));
+      data ? (data.push(this.selectedObjects[0]), localStorage.setItem('model-data', JSON.stringify(data))) : localStorage.setItem('model-data', JSON.stringify([this.selectedObjects[0]]));
       localStorage.removeItem('selectedObject');
       window.location.reload();
     }
