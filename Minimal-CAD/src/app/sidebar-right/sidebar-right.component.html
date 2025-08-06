@@ -6,11 +6,11 @@
         </div>
         <fieldset class="fieldset" formGroupName="size">
             <legend>Size</legend>
-            <label *ngIf="selectedObject?.type !== 'Circle'">
+            <label *ngIf="selectedObjects[0].type !== 'Circle'">
                 Length:
                 <input type="number" formControlName="length">
             </label>
-            <label *ngIf="selectedObject?.type !== 'Circle'">
+            <label *ngIf="selectedObjects[0].type !== 'Circle'">
                 Width:
                 <input type="number" formControlName="width">
             </label>
@@ -18,7 +18,7 @@
                 Height:
                 <input type="number" formControlName="height">
             </label>
-            <label *ngIf="selectedObject?.type === 'Circle'">
+            <label *ngIf="selectedObjects[0].type === 'Circle'">
                 Radius:
                 <input type="number" formControlName="radius">
             </label>
