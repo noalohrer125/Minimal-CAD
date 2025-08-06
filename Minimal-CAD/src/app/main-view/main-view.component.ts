@@ -154,20 +154,24 @@ export class MainViewComponent implements AfterViewInit {
   }
 
 onClick(event: MouseEvent) {
-    const rect = this.canvasRef.nativeElement.getBoundingClientRect();
-    this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+  const rect = this.canvasRef.nativeElement.getBoundingClientRect();
+  this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
   this.raycaster.setFromCamera(this.mouse, this.camera);
   const intersects = this.raycaster.intersectObjects(this.objects);
   if (intersects.length > 0) {
     const selected = intersects[0].object;
     const originalData = selected.userData as FormObject;
+    const selectedObject = JSON.parse(localStorage.getItem('selectedObject') || '[]') as FormObject[];
+    if (selectedObject.length > 0 && selectedObject[0].id === originalData.id) {
+      // Already selected, do nothing
+      return;
+    }
     localStorage.setItem('selectedObject', JSON.stringify([originalData]));
     this.clearScene();
     this.loadModels();
   }
-  location.reload();
 }
 
 clearScene() {
