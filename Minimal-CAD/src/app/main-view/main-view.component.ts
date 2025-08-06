@@ -123,7 +123,7 @@ export class MainViewComponent implements AfterViewInit {
     data.forEach(el => {
       let isSelected = false;
       for (let i = 0; i < selectedObject.length; i++) {
-        if (selectedObject[i].name === el.name) {
+        if (selectedObject[i].id === el.id) {
           isSelected = true;
           break;
         }
