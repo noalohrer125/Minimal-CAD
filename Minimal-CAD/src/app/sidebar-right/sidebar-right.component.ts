@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { FormObject } from '../interfaces';
 import { FormGroup, FormControl } from '@angular/forms';
+import { MatIconModule } from '@angular/material/icon';
+import { debounceTime } from 'rxjs';
 
 @Component({
   selector: 'app-sidebar-right',
@@ -10,7 +12,8 @@ import { FormGroup, FormControl } from '@angular/forms';
   imports: [
     CommonModule,
     FormsModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    MatIconModule
   ],
   templateUrl: './sidebar-right.component.html',
   styleUrl: './sidebar-right.component.css'
@@ -32,6 +35,7 @@ export class SidebarRightComponent implements OnInit {
   constructor(public elementRef: ElementRef) {}
 
   public form: FormGroup = new FormGroup({
+    name: new FormControl('New Object'),
     size: new FormGroup({
       length: new FormControl(0),
       height: new FormControl(0),
@@ -46,12 +50,48 @@ export class SidebarRightComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.initForm();
+    // Listen for position changes in the form
+    this.form.get('position')?.valueChanges.subscribe((pos: any) => {
+      this.positionChange.emit([pos.x, pos.y, pos.z]);
+    });
+
+    this.form.valueChanges.pipe(debounceTime(1000)).subscribe(() => {
+      let localStorageData: any = {};
+      if (this.selectedObjectType === 'Square' || this.selectedObjectType === 'Line') {
+        localStorageData = {
+          name: this.form.value.name,
+          type: this.selectedObjectType,
+          l: this.form.value.size.length,
+          w: this.form.value.size.width,
+          h: this.form.value.size.height
+        };
+      } else if (this.selectedObjectType === 'Circle') {
+        localStorageData = {
+          name: this.form.value.name,
+          type: this.selectedObjectType,
+          r: this.form.value.size.radius,
+          h: this.form.value.size.height
+        };
+      }
+      localStorageData.position = [
+        this.form.value.position.x,
+        this.form.value.position.y,
+        this.form.value.position.z
+      ];
+      localStorage.setItem('selectedObject', JSON.stringify(localStorageData));
+      location.reload();
+    });
+  }
+
+  initForm(): void {
     this.selectedObject = localStorage.getItem('selectedObject') ? JSON.parse(localStorage.getItem('selectedObject')!) : null;
     this.selectedObjectType = this.selectedObject?.type!;
 
     // Initialize form values if selectedObject exists
     if (this.selectedObject) {
       this.form.patchValue({
+        name: this.selectedObject.name,
         size: {
           length: this.selectedObject.l ?? 0,
           width: this.selectedObject.w ?? 0,
@@ -65,11 +105,6 @@ export class SidebarRightComponent implements OnInit {
         }
       });
     }
-
-    // Listen for position changes in the form
-    this.form.get('position')?.valueChanges.subscribe((pos: any) => {
-      this.positionChange.emit([pos.x, pos.y, pos.z]);
-    });
   }
 
   onSubmit() {
@@ -93,7 +128,10 @@ export class SidebarRightComponent implements OnInit {
         this.form.value.position.y,
         this.form.value.position.z
       ];
-      localStorage.setItem('selectedObject', JSON.stringify(this.selectedObject));
+      const data = JSON.parse(localStorage.getItem('model-data') || '[]');
+      data ? (data.push(this.selectedObject), localStorage.setItem('model-data', JSON.stringify(data))) : localStorage.setItem('model-data', JSON.stringify([this.selectedObject]));
+      localStorage.removeItem('selectedObject');
+      window.location.reload();
     }
   }
 

@@ -1,6 +1,6 @@
-<div class="sidebar-content" (mousedown)="onMouseDown($event)">
-    <h1>{{ selectedObjectInput?.name }}</h1>
+<div class="sidebar-content">
     <form [formGroup]="form">
+        <input class="name-input" type="text" formControlName="name"/>
         <fieldset class="fieldset" formGroupName="size">
             <legend>Size</legend>
             <label *ngIf="selectedObject?.type !== 'Circle'">
