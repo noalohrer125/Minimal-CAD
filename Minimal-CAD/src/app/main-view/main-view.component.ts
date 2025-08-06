@@ -21,12 +21,17 @@ export class MainViewComponent implements AfterViewInit {
   private camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
   private renderer = new THREE.WebGLRenderer({ antialias: true });
 
+  private controls!: OrbitControls;
+
   private raycaster = new THREE.Raycaster();
   private mouse = new THREE.Vector2();
   private objects: THREE.Object3D[] = [];
 
   init() {
-    this.renderer = new THREE.WebGLRenderer({ canvas: this.canvasRef.nativeElement, antialias: true });
+    this.renderer = new THREE.WebGLRenderer({
+      canvas: this.canvasRef.nativeElement,
+      antialias: true,
+    });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.camera.position.z = 10;
     this.scene.background = new THREE.Color(0xd9d9d9);
@@ -35,7 +40,12 @@ export class MainViewComponent implements AfterViewInit {
     const divisions = 10;
     const gridColor = 0xf5f8fa;
     const gridCenterLineColor = 0xb9cee4;
-    const gridHelper = new THREE.GridHelper(size, divisions, gridCenterLineColor, gridColor);
+    const gridHelper = new THREE.GridHelper(
+      size,
+      divisions,
+      gridCenterLineColor,
+      gridColor
+    );
     gridHelper.position.set(0, 0, 0);
     gridHelper.rotation.x = Math.PI / 2;
     this.scene.add(gridHelper);
@@ -44,55 +54,92 @@ export class MainViewComponent implements AfterViewInit {
     this.camera.up.set(0, 1, 0);
     this.camera.lookAt(0, 0, 0);
 
-    const controls = new OrbitControls(this.camera, this.renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 1;
+    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+    this.controls.enableDamping = true;
+    this.controls.dampingFactor = 1;
   }
 
   loadModels() {
     const data = this.drawservice.loadObjects();
+    const selectedObject = JSON.parse(
+      localStorage.getItem('selectedObject') || '[]'
+    ) as FormObject[];
+
     const objectColor = 0x8cb9d4;
     const edgeColor = 0x253238;
+    const selectedObjectColor = 0xffb347;
 
-    data.forEach((element: FormObject) => {
+    const renderObject = (element: FormObject, isSelected: boolean) => {
       if (element.type === 'Square') {
         const geometry = new THREE.BoxGeometry(element.l, element.w, element.h);
         const material = new THREE.MeshBasicMaterial({ color: objectColor });
         const mesh = new THREE.Mesh(geometry, material);
-        mesh.position.set(element.position[0], element.position[1], (element.position[2] || 0) + element.h / 2);
+        mesh.position.set(
+          element.position[0],
+          element.position[1],
+          (element.position[2] || 0) + element.h / 2
+        );
         mesh.userData = element;
         this.scene.add(mesh);
         this.objects.push(mesh);
 
         const edges = new THREE.EdgesGeometry(geometry);
-        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: edgeColor }));
+        const line = new THREE.LineSegments(
+          edges,
+          new THREE.LineBasicMaterial({ color: isSelected ? selectedObjectColor : edgeColor })
+        );
         line.position.copy(mesh.position);
         this.scene.add(line);
       } else if (element.type === 'Circle') {
-        const geometry = new THREE.CylinderGeometry(element.r, element.r, element.h, 64);
+        const geometry = new THREE.CylinderGeometry(
+          element.r,
+          element.r,
+          element.h,
+          64
+        );
         const material = new THREE.MeshBasicMaterial({ color: objectColor });
         const mesh = new THREE.Mesh(geometry, material);
-        mesh.position.set(element.position[0], element.position[1], (element.position[2] || 0) + element.h / 2);
+        mesh.position.set(
+          element.position[0],
+          element.position[1],
+          (element.position[2] || 0) + element.h / 2
+        );
         mesh.rotation.x = Math.PI / 2;
         mesh.userData = element;
         this.scene.add(mesh);
         this.objects.push(mesh);
 
         const edges = new THREE.EdgesGeometry(geometry);
-        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: edgeColor }));
+        const line = new THREE.LineSegments(
+          edges,
+          new THREE.LineBasicMaterial({ color: isSelected ? selectedObjectColor : edgeColor })
+        );
         line.position.copy(mesh.position);
         line.rotation.copy(mesh.rotation);
         this.scene.add(line);
       }
-      // Freeform
-      // else if (element.type === 'Freeform') {
-        // Comming soon: Freeform objects will be implemented later
-      // }
+    };
+
+    data.forEach(el => {
+      let isSelected = false;
+      for (let i = 0; i < selectedObject.length; i++) {
+        if (selectedObject[i].name === el.name) {
+          isSelected = true;
+          break;
+        }
+      }
+      renderObject(el, isSelected);
     });
+
+    // Freeform
+    // else if (element.type === 'Freeform') {
+      // Comming soon: Freeform objects will be implemented later
+    // }
   }
 
   animate() {
     requestAnimationFrame(() => this.animate());
+    this.controls.update();
     this.renderer.render(this.scene, this.camera);
   }
 
@@ -100,26 +147,50 @@ export class MainViewComponent implements AfterViewInit {
     this.init();
     this.loadModels();
     this.animate();
-
-    // Add click listener to canvas
-    this.canvasRef.nativeElement.addEventListener('click', this.onClick.bind(this));
+    this.canvasRef.nativeElement.addEventListener(
+      'click',
+      this.onClick.bind(this)
+    );
   }
+
+  // onClick(event: MouseEvent) {
+  //   const rect = this.canvasRef.nativeElement.getBoundingClientRect();
+  //   this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  //   this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+  //   this.raycaster.setFromCamera(this.mouse, this.camera);
+  //   const intersects = this.raycaster.intersectObjects(this.objects);
+
+  //   if (intersects.length > 0) {
+  //     const selected = intersects[0].object;
+  //     const originalData = selected.userData as FormObject;
+  //     localStorage.setItem('selectedObject', JSON.stringify([originalData]));
+  //     location.reload();
+  //   }
+  // }
 
   onClick(event: MouseEvent) {
-    const rect = this.canvasRef.nativeElement.getBoundingClientRect();
-    this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+  const rect = this.canvasRef.nativeElement.getBoundingClientRect();
+  this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-    this.raycaster.setFromCamera(this.mouse, this.camera);
-    const intersects = this.raycaster.intersectObjects(this.objects);
-
-    if (intersects.length > 0) {
-      const selected = intersects[0].object;
-      const originalData = selected.userData as FormObject;
-      localStorage.setItem('selectedObject', JSON.stringify(originalData));
-      location.reload();
-    }
+  this.raycaster.setFromCamera(this.mouse, this.camera);
+  const intersects = this.raycaster.intersectObjects(this.objects);
+  if (intersects.length > 0) {
+    const selected = intersects[0].object;
+    const originalData = selected.userData as FormObject;
+    localStorage.setItem('selectedObject', JSON.stringify([originalData]));
+    this.clearScene();
+    this.loadModels();
   }
+}
+
+clearScene() {
+  // Remove all objects from the scene except gridHelper
+  this.objects.forEach(obj => this.scene.remove(obj));
+  this.objects = [];
+  // Optionally remove edge lines if you store them
+}
 
   @HostListener('window:resize')
   onResize() {
