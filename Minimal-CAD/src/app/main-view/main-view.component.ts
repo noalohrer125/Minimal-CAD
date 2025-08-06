@@ -153,26 +153,10 @@ export class MainViewComponent implements AfterViewInit {
     );
   }
 
-  // onClick(event: MouseEvent) {
-  //   const rect = this.canvasRef.nativeElement.getBoundingClientRect();
-  //   this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-  //   this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-  //   this.raycaster.setFromCamera(this.mouse, this.camera);
-  //   const intersects = this.raycaster.intersectObjects(this.objects);
-
-  //   if (intersects.length > 0) {
-  //     const selected = intersects[0].object;
-  //     const originalData = selected.userData as FormObject;
-  //     localStorage.setItem('selectedObject', JSON.stringify([originalData]));
-  //     location.reload();
-  //   }
-  // }
-
-  onClick(event: MouseEvent) {
-  const rect = this.canvasRef.nativeElement.getBoundingClientRect();
-  this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-  this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+onClick(event: MouseEvent) {
+    const rect = this.canvasRef.nativeElement.getBoundingClientRect();
+    this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
   this.raycaster.setFromCamera(this.mouse, this.camera);
   const intersects = this.raycaster.intersectObjects(this.objects);

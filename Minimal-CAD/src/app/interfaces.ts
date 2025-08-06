@@ -1,4 +1,5 @@
 export interface FormObject {
+    id: string;
     name: string;
     type: 'Square' | 'Circle' | 'Line';
     l?: number; // Length for squares and lines

@@ -38,12 +38,17 @@ export class Draw {
     localStorage.setItem('model-data', JSON.stringify(modelData));
   }
 
+  generateId(): string {
+    return Date.now().toString() + Math.random().toString(36).substr(2, 9);
+  }
+
   line() {
     // Comming soon: Line objects will be implemented later
   }
 
   rectangle() {
     const newObject: FormObject = {
+      id: this.generateId(),
       name: 'New Rectangle',
       type: 'Square',
       l: 1,
@@ -57,6 +62,7 @@ export class Draw {
 
   circle() {
     const newObject: FormObject = {
+      id: this.generateId(),
       name: 'New Circle',
       type: 'Circle',
       r: 1,

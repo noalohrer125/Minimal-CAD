@@ -74,6 +74,7 @@ export class SidebarRightComponent implements OnInit {
           h: this.form.value.size.height
         };
       }
+      localStorageData.id = this.selectedObject!.id;
       localStorageData.position = [
         this.form.value.position.x,
         this.form.value.position.y,
@@ -123,6 +124,9 @@ export class SidebarRightComponent implements OnInit {
         delete this.selectedObject.l;
         delete this.selectedObject.w;
       }
+      this.selectedObject.id = this.selectedObject.id;
+      this.selectedObject.name = this.form.value.name;
+      this.selectedObject.type = this.selectedObjectType;
       this.selectedObject.position = [
         this.form.value.position.x,
         this.form.value.position.y,
