@@ -154,9 +154,9 @@ export class MainViewComponent implements AfterViewInit {
   }
 
 onClick(event: MouseEvent) {
-    const rect = this.canvasRef.nativeElement.getBoundingClientRect();
-    this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+  const rect = this.canvasRef.nativeElement.getBoundingClientRect();
+  this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
   this.raycaster.setFromCamera(this.mouse, this.camera);
   const intersects = this.raycaster.intersectObjects(this.objects);
@@ -167,7 +167,6 @@ onClick(event: MouseEvent) {
     this.clearScene();
     this.loadModels();
   }
-  location.reload();
 }
 
 clearScene() {
