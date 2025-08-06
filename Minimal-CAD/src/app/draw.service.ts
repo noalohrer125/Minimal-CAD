@@ -52,6 +52,7 @@ export class Draw {
       position: [0, 0, 0]
     };
     localStorage.setItem('selectedObject', JSON.stringify(newObject));
+    location.reload();
   }
 
   circle() {
@@ -63,6 +64,7 @@ export class Draw {
       position: [0, 0, 0]
     };
     localStorage.setItem('selectedObject', JSON.stringify(newObject));
+    location.reload();
   }
 
   extrusion() {
