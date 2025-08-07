@@ -62,8 +62,8 @@ export class MainViewComponent implements AfterViewInit {
   loadModels() {
     const data = this.drawservice.loadObjects();
     const selectedObject = JSON.parse(
-      localStorage.getItem('selectedObject') || '[]'
-    ) as FormObject[];
+      localStorage.getItem('selectedObject') || '{}'
+    ) as FormObject;
 
     const objectColor = 0x8cb9d4;
     const edgeColor = 0x253238;
@@ -121,13 +121,7 @@ export class MainViewComponent implements AfterViewInit {
     };
 
     data.forEach(el => {
-      let isSelected = false;
-      for (let i = 0; i < selectedObject.length; i++) {
-        if (selectedObject[i].id === el.id) {
-          isSelected = true;
-          break;
-        }
-      }
+      const isSelected = selectedObject && selectedObject.id === el.id;
       renderObject(el, isSelected);
     });
 
@@ -163,14 +157,15 @@ onClick(event: MouseEvent) {
   if (intersects.length > 0) {
     const selected = intersects[0].object;
     const originalData = selected.userData as FormObject;
-    const selectedObject = JSON.parse(localStorage.getItem('selectedObject') || '[]') as FormObject[];
-    if (selectedObject.length > 0 && selectedObject[0].id === originalData.id) {
+    const selectedObject = JSON.parse(localStorage.getItem('selectedObject') || '{}') as FormObject;
+    if (selectedObject && selectedObject.id === originalData.id) {
       // Already selected, do nothing
       return;
     }
-    localStorage.setItem('selectedObject', JSON.stringify([originalData]));
+    localStorage.setItem('selectedObject', JSON.stringify(originalData));
     this.clearScene();
     this.loadModels();
+    location.reload();
   }
 }
 
