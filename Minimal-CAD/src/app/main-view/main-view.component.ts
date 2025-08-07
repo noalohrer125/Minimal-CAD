@@ -66,13 +66,14 @@ export class MainViewComponent implements AfterViewInit {
     ) as FormObject;
 
     const objectColor = 0x8cb9d4;
+    const selectedObjectColor = 0x7ec8e3;
     const edgeColor = 0x253238;
-    const selectedObjectColor = 0xffb347;
+    const selectedEdgeColor = 0xffb347;
 
     const renderObject = (element: FormObject, isSelected: boolean) => {
       if (element.type === 'Square') {
         const geometry = new THREE.BoxGeometry(element.l, element.w, element.h);
-        const material = new THREE.MeshBasicMaterial({ color: objectColor });
+        const material = new THREE.MeshBasicMaterial({ color: isSelected ? selectedObjectColor : objectColor });
         const mesh = new THREE.Mesh(geometry, material);
         mesh.position.set(
           element.position[0],
@@ -86,7 +87,7 @@ export class MainViewComponent implements AfterViewInit {
         const edges = new THREE.EdgesGeometry(geometry);
         const line = new THREE.LineSegments(
           edges,
-          new THREE.LineBasicMaterial({ color: isSelected ? selectedObjectColor : edgeColor })
+          new THREE.LineBasicMaterial({ color: isSelected ? selectedEdgeColor : edgeColor })
         );
         line.position.copy(mesh.position);
         this.scene.add(line);
@@ -97,7 +98,7 @@ export class MainViewComponent implements AfterViewInit {
           element.h,
           64
         );
-        const material = new THREE.MeshBasicMaterial({ color: objectColor });
+        const material = new THREE.MeshBasicMaterial({ color: isSelected ? selectedObjectColor : objectColor });
         const mesh = new THREE.Mesh(geometry, material);
         mesh.position.set(
           element.position[0],
@@ -112,7 +113,7 @@ export class MainViewComponent implements AfterViewInit {
         const edges = new THREE.EdgesGeometry(geometry);
         const line = new THREE.LineSegments(
           edges,
-          new THREE.LineBasicMaterial({ color: isSelected ? selectedObjectColor : edgeColor })
+          new THREE.LineBasicMaterial({ color: isSelected ? selectedEdgeColor : edgeColor })
         );
         line.position.copy(mesh.position);
         line.rotation.copy(mesh.rotation);
@@ -159,7 +160,6 @@ onClick(event: MouseEvent) {
     const originalData = selected.userData as FormObject;
     const selectedObject = JSON.parse(localStorage.getItem('selectedObject') || '{}') as FormObject;
     if (selectedObject && selectedObject.id === originalData.id) {
-      // Already selected, do nothing
       return;
     }
     localStorage.setItem('selectedObject', JSON.stringify(originalData));
