@@ -23,23 +23,19 @@ export class Draw {
   }
 
   saveObject(object: FormObject): void {
-    const modelData = this.loadObjects();
-    if (object) {
+    const modelData = JSON.parse(localStorage.getItem('model-data') || '[]');
+    const isNewObject = modelData.findIndex((obj: FormObject) => obj.id === object.id);
+    if (isNewObject === -1) {
       modelData.push(object);
-    }
-    // Optional: Wenn selectedObject ein Array ist, wie bisher
-    const objects = localStorage.getItem('selectedObject');
-    if (objects) {
-      try {
-        const arr = JSON.parse(objects) as FormObject[];
-        modelData.push(...arr);
-      } catch {}
+    } else {
+      modelData[isNewObject] = object;
     }
     localStorage.setItem('model-data', JSON.stringify(modelData));
+    localStorage.removeItem('selectedObject');
   }
 
   generateId(): string {
-    return Date.now().toString() + Math.random().toString(36).substr(2, 9);
+    return Date.now().toString() + Math.random().toString(36);
   }
 
   line() {

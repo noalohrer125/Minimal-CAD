@@ -5,6 +5,7 @@ import { FormObject } from '../interfaces';
 import { FormGroup, FormControl } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { debounceTime } from 'rxjs';
+import { Draw } from '../draw.service';
 
 @Component({
   selector: 'app-sidebar-right',
@@ -32,7 +33,7 @@ export class SidebarRightComponent implements OnInit {
   public selectedObject: FormObject | any = {};
   public selectedObjectType!: 'Square' | 'Circle' | 'Line';
 
-  constructor(public elementRef: ElementRef) {}
+  constructor(public elementRef: ElementRef, private drawService: Draw) {}
 
   public form: FormGroup = new FormGroup({
     name: new FormControl('New Object'),
@@ -132,9 +133,7 @@ export class SidebarRightComponent implements OnInit {
         this.form.value.position.y,
         this.form.value.position.z
       ];
-      const data = JSON.parse(localStorage.getItem('model-data') || '[]');
-      data ? (data.push(this.selectedObject), localStorage.setItem('model-data', JSON.stringify(data))) : localStorage.setItem('model-data', JSON.stringify([this.selectedObject]));
-      localStorage.removeItem('selectedObject');
+      this.drawService.saveObject(this.selectedObject);
       window.location.reload();
     }
   }
