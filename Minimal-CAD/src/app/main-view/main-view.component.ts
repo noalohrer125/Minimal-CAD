@@ -24,6 +24,9 @@ export class MainViewComponent implements AfterViewInit {
   private mouse = new THREE.Vector2();
   private objects: THREE.Object3D[] = [];
 
+  private rightClick = false;
+  private middleClick = false;
+
   init() {
     this.renderer = new THREE.WebGLRenderer({
       canvas: this.canvasRef.nativeElement,
@@ -159,24 +162,68 @@ export class MainViewComponent implements AfterViewInit {
       'click',
       this.onClick.bind(this)
     );
-    this.canvasRef.nativeElement.addEventListener('contextmenu', (event: MouseEvent) => {
-      event.preventDefault();
-      this.onRightClick(event);
-    });
     this.canvasRef.nativeElement.addEventListener('mousedown', (event: MouseEvent) => {
-      if (event.button === 1) { // 1 is the middle mouse button (wheel click)
-        this.onMouseWheelClick(event);
+      if (event.button === 2) { // 2 is the right mouse button
+      event.preventDefault();
+      this.rightClick = true;
+      } else if (event.button === 1) { // 1 is the middle mouse button (wheel click)
+      this.middleClick = true;
+      }
+    });
+    this.canvasRef.nativeElement.addEventListener('mouseup', (event: MouseEvent) => {
+      if (event.button === 2) {
+        this.rightClick = false;
+      } else if (event.button === 1) {
+        this.middleClick = false;
+      }
+    });
+    this.canvasRef.nativeElement.addEventListener('mousemove', (event: MouseEvent) => {
+      if (this.rightClick) {
+        this.onMouseMove(event, 'right');
+      } else if (this.middleClick) {
+        this.onMouseMove(event, 'middle');
       }
     });
   }
 
-  onRightClick(event: MouseEvent) {
-    console.log('testRightClickEvent: ', event);
-  }
+onMouseMove(event: MouseEvent, button: string) {
+  if (button === 'right') {
+    // Calculate the target point in front of the camera at the same distance as the camera to the origin
+    const center = new THREE.Vector3(0, 0, 0);
+    const cameraDirection = new THREE.Vector3();
+    this.camera.getWorldDirection(cameraDirection);
 
-  onMouseWheelClick(event: MouseEvent) {
-    console.log('testMouseWheelClickEvent: ', event);
+    // Distance from camera to center
+    const distance = this.camera.position.distanceTo(center);
+
+    // Target point in front of camera at same distance from camera as to center
+    const target = new THREE.Vector3().copy(this.camera.position).add(cameraDirection.multiplyScalar(distance));
+
+    // Orbit horizontally (Y axis)
+    const theta = event.movementX * 0.01;
+    // Orbit vertically (X axis)
+    const phi = event.movementY * 0.01;
+
+    // Move camera around target point
+    const offset = new THREE.Vector3().subVectors(this.camera.position, target);
+
+    // Spherical coordinates
+    const spherical = new THREE.Spherical();
+    spherical.setFromVector3(offset);
+
+    spherical.theta -= theta;
+    spherical.phi -= phi;
+    // Clamp phi to avoid upside down
+    spherical.phi = Math.max(0.01, Math.min(Math.PI - 0.01, spherical.phi));
+
+    offset.setFromSpherical(spherical);
+    this.camera.position.copy(target).add(offset);
+    this.camera.lookAt(target);
+  } else if (button === 'middle') {
+    this.camera.position.x -= event.movementX * 0.01;
+    this.camera.position.y += event.movementY * 0.01;
   }
+}
 
 onClick(event: MouseEvent) {
   const rect = this.canvasRef.nativeElement.getBoundingClientRect();
