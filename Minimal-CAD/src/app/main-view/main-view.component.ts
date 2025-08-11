@@ -188,37 +188,23 @@ export class MainViewComponent implements AfterViewInit {
 
 onMouseMove(event: MouseEvent, button: string) {
   if (button === 'right') {
-    // Calculate the target point in front of the camera at the same distance as the camera to the origin
+    // Simple CAD-like orbit: rotate around origin (0,0,0)
     const center = new THREE.Vector3(0, 0, 0);
-    const cameraDirection = new THREE.Vector3();
-    this.camera.getWorldDirection(cameraDirection);
+    const offset = new THREE.Vector3().subVectors(this.camera.position, center);
 
-    // Distance from camera to center
-    const distance = this.camera.position.distanceTo(center);
-
-    // Target point in front of camera at same distance from camera as to center
-    const target = new THREE.Vector3().copy(this.camera.position).add(cameraDirection.multiplyScalar(distance));
-
-    // Orbit horizontally (Y axis)
-    const theta = event.movementX * 0.01;
-    // Orbit vertically (X axis)
-    const phi = event.movementY * 0.01;
-
-    // Move camera around target point
-    const offset = new THREE.Vector3().subVectors(this.camera.position, target);
-
-    // Spherical coordinates
+    // Convert to spherical coordinates
     const spherical = new THREE.Spherical();
     spherical.setFromVector3(offset);
 
-    spherical.theta -= theta;
-    spherical.phi -= phi;
-    // Clamp phi to avoid upside down
-    spherical.phi = Math.max(0.01, Math.min(Math.PI - 0.01, spherical.phi));
+    // Adjust theta (horizontal) and phi (vertical) based on mouse movement
+    spherical.theta -= event.movementX * 0.01;
+    spherical.phi -= event.movementY * 0.01;
+    spherical.phi = Math.max(0.01, Math.min(Math.PI - 0.01, spherical.phi)); // Clamp
 
+    // Convert back to Cartesian and update camera
     offset.setFromSpherical(spherical);
-    this.camera.position.copy(target).add(offset);
-    this.camera.lookAt(target);
+    this.camera.position.copy(center).add(offset);
+    this.camera.lookAt(center);
   } else if (button === 'middle') {
     this.camera.position.x -= event.movementX * 0.01;
     this.camera.position.y += event.movementY * 0.01;
