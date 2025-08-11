@@ -1,6 +1,5 @@
 import { Component, ElementRef, AfterViewInit, ViewChild, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { Draw } from '../draw.service';
 import { FormObject, LineObject } from '../interfaces';
 import * as THREE from 'three';
@@ -21,7 +20,6 @@ export class MainViewComponent implements AfterViewInit {
   private camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
   private renderer = new THREE.WebGLRenderer({ antialias: true });
 
-  private controls!: OrbitControls;
 
   private raycaster = new THREE.Raycaster();
   private mouse = new THREE.Vector2();
@@ -53,10 +51,6 @@ export class MainViewComponent implements AfterViewInit {
     this.camera.position.set(0, 0, 10);
     this.camera.up.set(0, 1, 0);
     this.camera.lookAt(0, 0, 0);
-
-    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-    this.controls.enableDamping = true;
-    this.controls.dampingFactor = 1;
   }
 
   loadModels() {
@@ -155,7 +149,6 @@ export class MainViewComponent implements AfterViewInit {
 
   animate() {
     requestAnimationFrame(() => this.animate());
-    this.controls.update();
     this.renderer.render(this.scene, this.camera);
   }
 
@@ -163,7 +156,7 @@ export class MainViewComponent implements AfterViewInit {
     this.init();
     this.loadModels();
     this.animate();
-    this.canvasRef.nativeElement.addEventListener(
+    this.renderer.domElement.addEventListener(
       'click',
       this.onClick.bind(this)
     );
