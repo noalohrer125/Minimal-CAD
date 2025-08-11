@@ -20,7 +20,6 @@ export class MainViewComponent implements AfterViewInit {
   private camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
   private renderer = new THREE.WebGLRenderer({ antialias: true });
 
-
   private raycaster = new THREE.Raycaster();
   private mouse = new THREE.Vector2();
   private objects: THREE.Object3D[] = [];
@@ -156,10 +155,27 @@ export class MainViewComponent implements AfterViewInit {
     this.init();
     this.loadModels();
     this.animate();
-    this.renderer.domElement.addEventListener(
+    this.canvasRef.nativeElement.addEventListener(
       'click',
       this.onClick.bind(this)
     );
+    this.canvasRef.nativeElement.addEventListener('contextmenu', (event: MouseEvent) => {
+      event.preventDefault();
+      this.onRightClick(event);
+    });
+    this.canvasRef.nativeElement.addEventListener('mousedown', (event: MouseEvent) => {
+      if (event.button === 1) { // 1 is the middle mouse button (wheel click)
+        this.onMouseWheelClick(event);
+      }
+    });
+  }
+
+  onRightClick(event: MouseEvent) {
+    console.log('testRightClickEvent: ', event);
+  }
+
+  onMouseWheelClick(event: MouseEvent) {
+    console.log('testMouseWheelClickEvent: ', event);
   }
 
 onClick(event: MouseEvent) {
