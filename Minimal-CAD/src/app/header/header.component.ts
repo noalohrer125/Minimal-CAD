@@ -39,6 +39,10 @@ export class HeaderComponent {
     this.drawService.circle();
   }
 
+  shape_lines() {
+    this.drawService.shape_lines();
+  }
+
   extrusion() {
     this.drawService.extrusion();
   }

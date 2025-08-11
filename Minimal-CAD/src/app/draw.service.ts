@@ -77,6 +77,10 @@ export class Draw {
     location.reload();
   }
 
+  shape_lines() {
+    // Coming soon: Shape lines will be implemented later
+  }
+
   extrusion() {
     // Coming soon: Extrusion objects will be implemented later
   }
