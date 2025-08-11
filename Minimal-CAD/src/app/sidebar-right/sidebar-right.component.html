@@ -4,44 +4,77 @@
             <input class="name-input" type="text" formControlName="name"/>
             <mat-icon (mousedown)="onMouseDown($event)">open_with</mat-icon>
         </div>
-        <fieldset class="fieldset" formGroupName="size">
-            <legend>Size</legend>
-            @if (selectedObject.type !== 'Circle') {
+        @if (selectedObject.type === 'Line') {
+            <fieldset class="fieldset" formGroupName="start">
+                <legend>Start Point</legend>
                 <label>
-                    Length:
-                    <input type="number" formControlName="length">
+                    X:
+                    <input type="number" formControlName="x">
                 </label>
                 <label>
-                    Width:
-                    <input type="number" formControlName="width">
+                    Y:
+                    <input type="number" formControlName="y">
                 </label>
-            }
-            <label>
-                Height:
-                <input type="number" formControlName="height">
-            </label>
-            @if (selectedObject.type === 'Circle') {
                 <label>
-                    Radius:
-                    <input type="number" formControlName="radius">
+                    Z:
+                    <input type="number" formControlName="z">
                 </label>
-            }
-        </fieldset>
-        <fieldset class="fieldset" formGroupName="position">
-            <legend>Position</legend>
-            <label>
-                X:
-                <input type="number" formControlName="x">
-            </label>
-            <label>
-                Y:
-                <input type="number" formControlName="y">
-            </label>
-            <label>
-                Z:
-                <input type="number" formControlName="z">
-            </label>
-        </fieldset>
+            </fieldset>
+            <fieldset class="fieldset" formGroupName="end">
+                <legend>End Point</legend>
+                <label>
+                    X:
+                    <input type="number" formControlName="x">
+                </label>
+                <label>
+                    Y:
+                    <input type="number" formControlName="y">
+                </label>
+                <label>
+                    Z:
+                    <input type="number" formControlName="z">
+                </label>
+            </fieldset>
+        } @else {
+            <fieldset class="fieldset" formGroupName="size">
+                <legend>Size</legend>
+                @if (selectedObject.type !== 'Circle') {
+                    <label>
+                        Length:
+                        <input type="number" formControlName="length">
+                    </label>
+                    <label>
+                        Width:
+                        <input type="number" formControlName="width">
+                    </label>
+                }
+                <label>
+                    Height:
+                    <input type="number" formControlName="height">
+                </label>
+                @if (selectedObject.type === 'Circle') {
+                    <label>
+                        Radius:
+                        <input type="number" formControlName="radius">
+                    </label>
+                }
+            </fieldset>
+            <fieldset class="fieldset" formGroupName="position">
+                <legend>Position</legend>
+                <label>
+                    X:
+                    <input type="number" formControlName="x">
+                </label>
+                <label>
+                    Y:
+                    <input type="number" formControlName="y">
+                </label>
+                <label>
+                    Z:
+                    <input type="number" formControlName="z">
+                </label>
+            </fieldset>
+        }
         <button type="submit" (click)="onSubmit()">Apply</button>
     </form>
 </div>

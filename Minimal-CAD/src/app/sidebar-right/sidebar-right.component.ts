@@ -36,18 +36,29 @@ export class SidebarRightComponent implements OnInit {
   constructor(public elementRef: ElementRef, private drawService: Draw) {}
 
   public form: FormGroup = new FormGroup({
-    name: new FormControl('New Object'),
-    size: new FormGroup({
-      length: new FormControl(0),
-      height: new FormControl(0),
-      width: new FormControl(0),
-      radius: new FormControl(0)
-    }),
-    position: new FormGroup({
-      x: new FormControl(0),
-      y: new FormControl(0),
-      z: new FormControl(0)
-    })
+      name: new FormControl('New Object'),
+      size: new FormGroup({
+        length: new FormControl(0),
+        height: new FormControl(0),
+        width: new FormControl(0),
+        radius: new FormControl(0)
+      }),
+      position: new FormGroup({
+        x: new FormControl(0),
+        y: new FormControl(0),
+        z: new FormControl(0)
+      }),
+      // For Line objects
+      start: new FormGroup({
+        x: new FormControl(0),
+        y: new FormControl(0),
+        z: new FormControl(0)
+      }),
+      end: new FormGroup({
+        x: new FormControl(0),
+        y: new FormControl(0),
+        z: new FormControl(0)
+      })
   });
 
   ngOnInit(): void {
@@ -58,7 +69,7 @@ export class SidebarRightComponent implements OnInit {
 
     this.form.valueChanges.pipe(debounceTime(1000)).subscribe(() => {
       let localStorageData: any = {};
-      if (this.selectedObjectType === 'Square' || this.selectedObjectType === 'Line') {
+      if (this.selectedObjectType === 'Square') {
         localStorageData = {
           name: this.form.value.name,
           type: this.selectedObjectType,
@@ -66,6 +77,11 @@ export class SidebarRightComponent implements OnInit {
           w: this.form.value.size.width,
           h: this.form.value.size.height
         };
+        localStorageData.position = [
+          this.form.value.position.x,
+          this.form.value.position.y,
+          this.form.value.position.z
+        ];
       } else if (this.selectedObjectType === 'Circle') {
         localStorageData = {
           name: this.form.value.name,
@@ -73,13 +89,28 @@ export class SidebarRightComponent implements OnInit {
           r: this.form.value.size.radius,
           h: this.form.value.size.height
         };
+        localStorageData.position = [
+          this.form.value.position.x,
+          this.form.value.position.y,
+          this.form.value.position.z
+        ];
+      } else if (this.selectedObjectType === 'Line') {
+        localStorageData = {
+          name: this.form.value.name,
+          type: this.selectedObjectType,
+          start: [
+            this.form.value.start.x,
+            this.form.value.start.y,
+            this.form.value.start.z
+          ],
+          end: [
+            this.form.value.end.x,
+            this.form.value.end.y,
+            this.form.value.end.z
+          ]
+        };
       }
       localStorageData.id = this.selectedObject.id;
-      localStorageData.position = [
-        this.form.value.position.x,
-        this.form.value.position.y,
-        this.form.value.position.z
-      ];
       this.selectedObject = localStorageData;
       localStorage.setItem('selectedObject', JSON.stringify(this.selectedObject));
       location.reload();
@@ -92,47 +123,75 @@ export class SidebarRightComponent implements OnInit {
 
     // Initialize form values if selectedObject exists
     if (this.selectedObject) {
-      this.form.patchValue({
-        name: this.selectedObject.name,
-        size: {
+      const patch: any = {
+        name: this.selectedObject.name
+      };
+      if (this.selectedObject.type === 'Line') {
+        patch.start = {
+          x: this.selectedObject.start?.[0] ?? 0,
+          y: this.selectedObject.start?.[1] ?? 0,
+          z: this.selectedObject.start?.[2] ?? 0
+        };
+        patch.end = {
+          x: this.selectedObject.end?.[0] ?? 0,
+          y: this.selectedObject.end?.[1] ?? 0,
+          z: this.selectedObject.end?.[2] ?? 0
+        };
+      } else {
+        patch.size = {
           length: this.selectedObject.l ?? 0,
           width: this.selectedObject.w ?? 0,
           height: this.selectedObject.h ?? 0,
           radius: this.selectedObject.r ?? 0
-        },
-        position: {
-          x: this.selectedObject.position[0] ?? 0,
-          y: this.selectedObject.position[1] ?? 0,
-          z: this.selectedObject.position[2] ?? 0
-        }
-      });
+        };
+        patch.position = {
+          x: this.selectedObject.position?.[0] ?? 0,
+          y: this.selectedObject.position?.[1] ?? 0,
+          z: this.selectedObject.position?.[2] ?? 0
+        };
+      }
+      this.form.patchValue(patch);
     }
   }
 
   onSubmit() {
     if (this.selectedObject) {
       if (this.selectedObject.type === 'Line') {
-        // Comming soon: Handle line properties
+        this.selectedObject.start = [
+          this.form.value.start.x,
+          this.form.value.start.y,
+          this.form.value.start.z
+        ];
+        this.selectedObject.end = [
+          this.form.value.end.x,
+          this.form.value.end.y,
+          this.form.value.end.z
+        ];
       }
       else if (this.selectedObject.type === 'Square') {
         this.selectedObject.l = this.form.value.size.length;
         this.selectedObject.w = this.form.value.size.width;
         this.selectedObject.h = this.form.value.size.height;
         delete this.selectedObject.r;
+        this.selectedObject.position = [
+          this.form.value.position.x,
+          this.form.value.position.y,
+          this.form.value.position.z
+        ];
       } else if (this.selectedObject.type === 'Circle') {
         this.selectedObject.r = this.form.value.size.radius;
         this.selectedObject.h = this.form.value.size.height;
         delete this.selectedObject.l;
         delete this.selectedObject.w;
+        this.selectedObject.position = [
+          this.form.value.position.x,
+          this.form.value.position.y,
+          this.form.value.position.z
+        ];
       }
       this.selectedObject.id = this.selectedObject.id;
       this.selectedObject.name = this.form.value.name;
       this.selectedObject.type = this.selectedObjectType;
-      this.selectedObject.position = [
-        this.form.value.position.x,
-        this.form.value.position.y,
-        this.form.value.position.z
-      ];
       this.drawService.saveObject(this.selectedObject);
       window.location.reload();
     }
