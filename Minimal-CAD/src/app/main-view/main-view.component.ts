@@ -184,10 +184,12 @@ onClick(event: MouseEvent) {
       return;
     }
     localStorage.setItem('selectedObject', JSON.stringify(originalData));
-    this.clearScene();
-    this.loadModels();
-    location.reload();
+  } else {
+    localStorage.removeItem('selectedObject');
   }
+  this.clearScene();
+  this.loadModels();
+  location.reload();
 }
 
 clearScene() {
