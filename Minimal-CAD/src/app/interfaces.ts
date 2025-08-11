@@ -1,12 +1,20 @@
 export interface FormObject {
     id: string;
     name: string;
-    type: 'Square' | 'Circle' | 'Line';
-    l?: number; // Length for squares and lines
-    w?: number; // Width for squares and lines
-    h: number; // Height for squares and lines
+    type: 'Square' | 'Circle';
+    l?: number; // Length for squares
+    w?: number; // Width for squares
+    h: number; // Height for squares
     r?: number; // Radius for circles
     position: [number, number, number]; // [x, y, z]
+}
+
+export interface LineObject {
+    id: string;
+    name: string;
+    type: 'Line';
+    start: [number, number, number]; // [x, y, z]
+    end: [number, number, number]; // [x, y, z]
 }
 
 // export interface FreeObject {

@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter, HostListener, ElementRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { FormObject } from '../interfaces';
+import { FormObject, LineObject } from '../interfaces';
 import { FormGroup, FormControl } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { debounceTime } from 'rxjs';
@@ -21,7 +21,7 @@ import { Draw } from '../draw.service';
 })
 export class SidebarRightComponent implements OnInit {
   @Input() position: [number, number, number] = [0, 0, 0];
-  @Input() selectedObjectInput: FormObject[] = [];
+  @Input() selectedObjectInput: (FormObject | LineObject)[] = [];
   @Output() positionChange = new EventEmitter<[number, number, number]>();
 
   private isDragging = false;
@@ -30,7 +30,7 @@ export class SidebarRightComponent implements OnInit {
   private initialX = 0;
   private initialY = 0;
 
-  public selectedObject: FormObject | any = {};
+  public selectedObject: FormObject | LineObject | any = {};
   public selectedObjectType!: 'Square' | 'Circle' | 'Line';
 
   constructor(public elementRef: ElementRef, private drawService: Draw) {}

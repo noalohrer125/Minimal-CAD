@@ -5,7 +5,7 @@ import { SidebarRightComponent } from './sidebar-right/sidebar-right.component';
 import { ViewcubeComponent } from './viewcube/viewcube.component';
 import { CommonModule } from '@angular/common';
 import { MainViewComponent } from './main-view/main-view.component';
-import { FormObject } from './interfaces';
+import { FormObject, LineObject } from './interfaces';
 import { OnInit } from '@angular/core';
 
 @Component({
@@ -25,7 +25,7 @@ import { OnInit } from '@angular/core';
 export class AppComponent implements OnInit {
   title = 'Minimal-CAD';
   sidebarRightPosition: [number, number, number] = [0, 0, 0];
-  public selectedObject: FormObject | null = null;
+  public selectedObject: FormObject | LineObject | null = null;
 
   ngOnInit(): void {
     this.selectedObject = localStorage.getItem('selectedObject') ? JSON.parse(localStorage.getItem('selectedObject')!) : null;

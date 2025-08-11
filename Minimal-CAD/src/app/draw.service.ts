@@ -1,17 +1,17 @@
 import { Injectable } from '@angular/core';
-import { FormObject } from './interfaces';
+import { FormObject, LineObject } from './interfaces';
 
 
 @Injectable({
   providedIn: 'root'
 })
 export class Draw {
-  loadObjects(): (FormObject)[] {
+  loadObjects(): (FormObject | LineObject)[] {
     const modelDataString = localStorage.getItem('model-data');
-    const data = modelDataString ? JSON.parse(modelDataString) as FormObject[] : [];
+    const data = modelDataString ? JSON.parse(modelDataString) as (FormObject | LineObject)[] : [];
     const selectedObject = localStorage.getItem('selectedObject');
     if (selectedObject) {
-      data.push(JSON.parse(selectedObject) as FormObject);
+      data.push(JSON.parse(selectedObject) as FormObject | LineObject);
       if (data) {
         return data;
       }
@@ -22,9 +22,9 @@ export class Draw {
     return [];
   }
 
-  saveObject(object: FormObject): void {
+  saveObject(object: FormObject | LineObject): void {
     const modelData = JSON.parse(localStorage.getItem('model-data') || '[]');
-    const isNewObject = modelData.findIndex((obj: FormObject) => obj.id === object.id);
+    const isNewObject = modelData.findIndex((obj: FormObject | LineObject) => obj.id === object.id);
     if (isNewObject === -1) {
       modelData.push(object);
     } else {
@@ -39,7 +39,15 @@ export class Draw {
   }
 
   line() {
-    // Comming soon: Line objects will be implemented later
+    const newObject: LineObject = {
+      id: this.generateId(),
+      name: 'New Line',
+      type: 'Line',
+      start: [0, 0, 0],
+      end: [1, 1, 0]
+    };
+    localStorage.setItem('selectedObject', JSON.stringify(newObject));
+    location.reload();
   }
 
   rectangle() {

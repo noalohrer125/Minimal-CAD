@@ -2,7 +2,7 @@ import { Component, ElementRef, AfterViewInit, ViewChild, HostListener } from '@
 import { CommonModule } from '@angular/common';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { Draw } from '../draw.service';
-import { FormObject } from '../interfaces';
+import { FormObject, LineObject } from '../interfaces';
 import * as THREE from 'three';
 
 @Component({
@@ -63,14 +63,14 @@ export class MainViewComponent implements AfterViewInit {
     const data = this.drawservice.loadObjects();
     const selectedObject = JSON.parse(
       localStorage.getItem('selectedObject') || '{}'
-    ) as FormObject;
+    ) as FormObject | LineObject;
 
     const objectColor = 0x8cb9d4;
     const selectedObjectColor = 0x7ec8e3;
     const edgeColor = 0x253238;
     const selectedEdgeColor = 0xffb347;
 
-    const renderObject = (element: FormObject, isSelected: boolean) => {
+    const renderFormObject = (element: FormObject, isSelected: boolean) => {
       if (element.type === 'Square') {
         const geometry = new THREE.BoxGeometry(element.l, element.w, element.h);
         const material = new THREE.MeshBasicMaterial({ color: isSelected ? selectedObjectColor : objectColor });
@@ -120,10 +120,31 @@ export class MainViewComponent implements AfterViewInit {
         this.scene.add(line);
       }
     };
+    const renderLineObject = (element: LineObject, isSelected: boolean) => {
+      const geometry = new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(element.start[0], element.start[1], element.start[2]),
+      new THREE.Vector3(element.end[0], element.end[1], element.end[2])
+      ]);
+      const material = new THREE.LineBasicMaterial({ color: isSelected ? selectedObjectColor : objectColor });
+      const line = new THREE.Line(geometry, material);
+      line.userData = element;
+      this.scene.add(line);
+      this.objects.push(line);
+
+      // Edgelines are just the line itself, but for consistency:
+      const edgeMaterial = new THREE.LineBasicMaterial({ color: isSelected ? selectedEdgeColor : edgeColor });
+      const edgeLine = new THREE.Line(geometry, edgeMaterial);
+      edgeLine.position.copy(line.position);
+      this.scene.add(edgeLine);
+    };
 
     data.forEach(el => {
       const isSelected = selectedObject && selectedObject.id === el.id;
-      renderObject(el, isSelected);
+      if (el.type === 'Line') {
+        renderLineObject(el, isSelected);
+      } else {
+        renderFormObject(el, isSelected);
+      }
     });
 
     // Freeform
@@ -157,8 +178,8 @@ onClick(event: MouseEvent) {
   const intersects = this.raycaster.intersectObjects(this.objects);
   if (intersects.length > 0) {
     const selected = intersects[0].object;
-    const originalData = selected.userData as FormObject;
-    const selectedObject = JSON.parse(localStorage.getItem('selectedObject') || '{}') as FormObject;
+    const originalData = selected.userData as FormObject | LineObject;
+    const selectedObject = JSON.parse(localStorage.getItem('selectedObject') || '{}') as FormObject | LineObject;
     if (selectedObject && selectedObject.id === originalData.id) {
       return;
     }
