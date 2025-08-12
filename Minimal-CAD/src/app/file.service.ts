@@ -9,8 +9,10 @@ const modelData: (FormObject | LineObject)[] = modelDataJson as (FormObject | Li
 })
 export class File {
     save() {
+        const modelDataString = localStorage.getItem('model-data');
+        const jsonToSave = modelDataString ? modelDataString : JSON.stringify([]);
         const a = Object.assign(document.createElement('a'), {
-            href: URL.createObjectURL(new Blob([JSON.stringify(model)], { type: 'application/json' })),
+            href: URL.createObjectURL(new Blob([jsonToSave], { type: 'application/json' })),
             download: 'model-data.json'
         });
         a.click();
@@ -35,6 +37,7 @@ export class File {
                 // Save uploaded file content to localStorage under 'model-data'
                 localStorage.setItem('model-data', text);
                 alert('File uploaded and data saved to localStorage as "model-data".');
+                location.reload();
             } catch (e) {
                 alert('Invalid JSON file.');
             }
