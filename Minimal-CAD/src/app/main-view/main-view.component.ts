@@ -19,6 +19,7 @@ export class MainViewComponent implements AfterViewInit {
   private scene = new THREE.Scene();
   private camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
   private renderer = new THREE.WebGLRenderer({ antialias: true });
+  private rootGroup = new THREE.Group();
 
   private raycaster = new THREE.Raycaster();
   private mouse = new THREE.Vector2();
@@ -48,11 +49,12 @@ export class MainViewComponent implements AfterViewInit {
     );
     gridHelper.position.set(0, 0, 0);
     gridHelper.rotation.x = Math.PI / 2;
-    this.scene.add(gridHelper);
-
+    this.rootGroup.add(gridHelper);
+    
     this.camera.position.set(0, 0, 10);
     this.camera.up.set(0, 1, 0);
     this.camera.lookAt(0, 0, 0);
+    this.scene.add(this.rootGroup);
   }
 
   loadModels() {
@@ -77,7 +79,7 @@ export class MainViewComponent implements AfterViewInit {
           (element.position[2] || 0) + element.h / 2
         );
         mesh.userData = element;
-        this.scene.add(mesh);
+        this.rootGroup.add(mesh);
         this.objects.push(mesh);
 
         const edges = new THREE.EdgesGeometry(geometry);
@@ -86,7 +88,7 @@ export class MainViewComponent implements AfterViewInit {
           new THREE.LineBasicMaterial({ color: isSelected ? selectedEdgeColor : edgeColor })
         );
         line.position.copy(mesh.position);
-        this.scene.add(line);
+        this.rootGroup.add(line);
       } else if (element.type === 'Circle') {
         const geometry = new THREE.CylinderGeometry(
           element.r,
@@ -103,7 +105,7 @@ export class MainViewComponent implements AfterViewInit {
         );
         mesh.rotation.x = Math.PI / 2;
         mesh.userData = element;
-        this.scene.add(mesh);
+        this.rootGroup.add(mesh);
         this.objects.push(mesh);
 
         const edges = new THREE.EdgesGeometry(geometry);
@@ -113,7 +115,7 @@ export class MainViewComponent implements AfterViewInit {
         );
         line.position.copy(mesh.position);
         line.rotation.copy(mesh.rotation);
-        this.scene.add(line);
+        this.rootGroup.add(line);
       }
     };
     const renderLineObject = (element: LineObject, isSelected: boolean) => {
@@ -124,14 +126,14 @@ export class MainViewComponent implements AfterViewInit {
       const material = new THREE.LineBasicMaterial({ color: isSelected ? selectedObjectColor : objectColor });
       const line = new THREE.Line(geometry, material);
       line.userData = element;
-      this.scene.add(line);
+      this.rootGroup.add(line);
       this.objects.push(line);
 
       // Edgelines are just the line itself, but for consistency:
       const edgeMaterial = new THREE.LineBasicMaterial({ color: isSelected ? selectedEdgeColor : edgeColor });
       const edgeLine = new THREE.Line(geometry, edgeMaterial);
       edgeLine.position.copy(line.position);
-      this.scene.add(edgeLine);
+      this.rootGroup.add(edgeLine);
     };
 
     data.forEach(el => {
@@ -163,51 +165,26 @@ export class MainViewComponent implements AfterViewInit {
       this.onClick.bind(this)
     );
     this.canvasRef.nativeElement.addEventListener('mousedown', (event: MouseEvent) => {
-      if (event.button === 2) { // 2 is the right mouse button
-      event.preventDefault();
-      this.rightClick = true;
-      } else if (event.button === 1) { // 1 is the middle mouse button (wheel click)
-      this.middleClick = true;
-      }
+      if (event.button === 2) { event.preventDefault(); this.rightClick = true; }
+      if (event.button === 1) { this.middleClick = true; }
     });
     this.canvasRef.nativeElement.addEventListener('mouseup', (event: MouseEvent) => {
-      if (event.button === 2) {
-        this.rightClick = false;
-      } else if (event.button === 1) {
-        this.middleClick = false;
-      }
+      if (event.button === 2) { this.rightClick = false; }
+      if (event.button === 1) { this.middleClick = false; }
     });
     this.canvasRef.nativeElement.addEventListener('mousemove', (event: MouseEvent) => {
-      if (this.rightClick) {
-        this.onMouseMove(event, 'right');
-      } else if (this.middleClick) {
-        this.onMouseMove(event, 'middle');
-      }
+      if (this.rightClick) { this.onMouseMove(event, 'right'); }
+      if (this.middleClick) { this.onMouseMove(event, 'middle'); }
     });
   }
 
 onMouseMove(event: MouseEvent, button: string) {
   if (button === 'right') {
-    // Simple CAD-like orbit: rotate around origin (0,0,0)
-    const center = new THREE.Vector3(0, 0, 0);
-    const offset = new THREE.Vector3().subVectors(this.camera.position, center);
-
-    // Convert to spherical coordinates
-    const spherical = new THREE.Spherical();
-    spherical.setFromVector3(offset);
-
-    // Adjust theta (horizontal) and phi (vertical) based on mouse movement
-    spherical.theta -= event.movementX * 0.01;
-    spherical.phi -= event.movementY * 0.01;
-    spherical.phi = Math.max(0.01, Math.min(Math.PI - 0.01, spherical.phi)); // Clamp
-
-    // Convert back to Cartesian and update camera
-    offset.setFromSpherical(spherical);
-    this.camera.position.copy(center).add(offset);
-    this.camera.lookAt(center);
+    this.rootGroup.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), event.movementX * 0.01);
+    this.rootGroup.rotation.x += event.movementY * 0.01;
   } else if (button === 'middle') {
-    this.camera.position.x -= event.movementX * 0.01;
-    this.camera.position.y += event.movementY * 0.01;
+    this.rootGroup.position.y -= event.movementY * 0.01;
+    this.rootGroup.position.x += event.movementX * 0.01;
   }
 }
 
