@@ -16,6 +16,7 @@ export class ViewcubeComponent implements AfterViewInit {
   private camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
   private renderer!: THREE.WebGLRenderer;
   private cube!: THREE.Mesh;
+  private cornerSpheres: THREE.Mesh[] = [];
   private raycaster = new THREE.Raycaster();
   private mouse = new THREE.Vector2();
 
@@ -47,9 +48,35 @@ export class ViewcubeComponent implements AfterViewInit {
     this.cube = new THREE.Mesh(geometry, materials);
     this.scene.add(this.cube);
 
+    this.addCornerSpheres(); // Spheres an Cube hängen
+
     this.canvasRef.nativeElement.addEventListener('click', (event: MouseEvent) => this.onClick(event));
 
     this.animate();
+  }
+
+  private addCornerSpheres() {
+    const sphereGeom = new THREE.SphereGeometry(0.1, 16, 16);
+    const sphereMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+
+    const offsets = [
+      [+0.5, +0.5, +0.5],
+      [+0.5, +0.5, -0.5],
+      [+0.5, -0.5, +0.5],
+      [+0.5, -0.5, -0.5],
+      [-0.5, +0.5, +0.5],
+      [-0.5, +0.5, -0.5],
+      [-0.5, -0.5, +0.5],
+      [-0.5, -0.5, -0.5],
+    ];
+
+    offsets.forEach((pos, index) => {
+      const sphere = new THREE.Mesh(sphereGeom, sphereMat.clone());
+      sphere.position.set(pos[0], pos[1], pos[2]);
+      sphere.userData['cornerIndex'] = index;
+      this.cube.add(sphere); // 🔹 Sphere an den Cube hängen
+      this.cornerSpheres.push(sphere);
+    });
   }
 
   animate() {
@@ -72,25 +99,66 @@ export class ViewcubeComponent implements AfterViewInit {
     this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
     this.raycaster.setFromCamera(this.mouse, this.camera);
-    const intersects = this.raycaster.intersectObject(this.cube, false);
+    const intersects = this.raycaster.intersectObjects([this.cube, ...this.cornerSpheres], true);
 
     if (intersects.length > 0) {
-      const faceIndex = Math.floor(intersects[0].faceIndex! / 2); // 2 triangles = 1 face
-      const newRot = new THREE.Euler();
+      const clickedObj = intersects[0].object as THREE.Mesh;
 
-      switch (faceIndex) {
-        case 0: newRot.set(-Math.PI / 2, 0, -Math.PI / 2); console.log('1'); break; // right!
-        case 1: newRot.set(-Math.PI / 2, 0, Math.PI / 2); console.log('2'); break;  // left!
-        case 2: newRot.set(Math.PI / 2, Math.PI, 0); console.log('3'); break;       // back!
-        case 3: newRot.set(-Math.PI / 2, 0, 0); console.log('4'); break;            // front!
-        case 4: newRot.set(0, 0, 0); console.log('5'); break;                       // top!
-        case 5: newRot.set(0, Math.PI, Math.PI); console.log('6'); break;           // bottom
+      // Sphere-Klick → isometrische Ansicht
+      if (this.cornerSpheres.includes(clickedObj)) {
+        const index = clickedObj.userData['cornerIndex'];
+        const newRot = this.getIsometricRotation(index);
+        this.targetQuat.setFromEuler(newRot);
+        this.animating = true;
+        this.rotationChange.emit(newRot);
+        return;
       }
 
-      this.targetQuat.setFromEuler(newRot);
-      this.animating = true;
-      this.rotationChange.emit(newRot);
+      // Würfelfläche → Standardansicht
+      if (clickedObj === this.cube) {
+        const faceIndex = Math.floor(intersects[0].faceIndex! / 2);
+        const newRot = new THREE.Euler();
+
+        switch (faceIndex) {
+          case 0: newRot.set(-Math.PI / 2, 0, -Math.PI / 2); break; // right
+          case 1: newRot.set(-Math.PI / 2, 0, Math.PI / 2); break;  // left
+          case 2: newRot.set(Math.PI / 2, Math.PI, 0); break;       // back
+          case 3: newRot.set(-Math.PI / 2, 0, 0); break;            // front
+          case 4: newRot.set(0, 0, 0); break;                       // top
+          case 5: newRot.set(0, Math.PI, Math.PI); break;           // bottom
+        }
+
+        this.targetQuat.setFromEuler(newRot);
+        this.animating = true;
+        this.rotationChange.emit(newRot);
+      }
     }
+  }
+
+  private getIsometricRotation(index: number): THREE.Euler {
+    const tilts = Math.PI / 5; // 36°
+    const angle = Math.PI / 4; // 45°
+    const tilt = Math.PI / 2; // 90°
+    const pi = Math.PI;
+
+    switch (index) {
+      case 0: console.log('1'); return new THREE.Euler(+tilts, -angle, -angle*3, 'ZYX'); // t,l,b!
+      case 1: console.log('2'); return new THREE.Euler(0, 0, 0); // b,l,b
+      case 2: console.log('3'); return new THREE.Euler(-tilts, -angle, -angle, 'ZYX'); // t,r,f!
+      case 3: console.log('4'); return new THREE.Euler(0, 0, 0, 'ZYX'); // b,r,f
+      case 4: console.log('5'); return new THREE.Euler(+tilts, +angle, +angle*3, 'ZYX'); // t,r,b!
+      case 5: console.log('6'); return new THREE.Euler(0, 0, 0, 'ZYX'); // b,r,b
+      case 6: console.log('7'); return new THREE.Euler(-tilts, +angle, +angle, 'ZYX'); // t,l,f!
+      case 7: console.log('8'); return new THREE.Euler(0, 0, 0); // b,l,f
+      default: return new THREE.Euler();
+    }
+
+    //       (-Math.PI / 2, 0, -Math.PI / 2) // right
+    //       (-Math.PI / 2, 0, Math.PI / 2)  // left
+    //       (Math.PI / 2, Math.PI, 0)       // back
+    //       (-Math.PI / 2, 0, 0)            // front
+    //       (0, 0, 0)                       // top
+    //       (0, Math.PI, Math.PI)           // bottom
   }
 
   @HostListener('window:resize')
