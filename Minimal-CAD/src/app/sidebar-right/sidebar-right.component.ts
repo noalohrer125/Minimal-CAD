@@ -154,6 +154,14 @@ export class SidebarRightComponent implements OnInit {
     }
   }
 
+  onClose() {
+    if (window.confirm("You have unsaved changes. Are you sure you want to close the Editor?")) {
+      this.selectedObject = null;
+      localStorage.removeItem('selectedObject');
+      location.reload();
+    }
+  }
+
   onSubmit() {
     if (this.selectedObject) {
       if (this.selectedObject.type === 'Line') {
