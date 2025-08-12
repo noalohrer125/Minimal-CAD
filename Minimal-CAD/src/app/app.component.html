@@ -1,6 +1,6 @@
 <main class="main-app">
   <app-header class="header"></app-header>
-  <app-main-view class="main-view"></app-main-view>
+  <app-main-view class="main-view" (rotationChange)="onRotationChanged($event)"></app-main-view>
   <app-sidebar-left class="sidebar-left"></app-sidebar-left>
   <app-sidebar-right
     class="sidebar-right"
@@ -9,5 +9,5 @@
     [selectedObjectInput]="[selectedObject]"
     (positionChange)="sidebarRightPosition = $event">
   </app-sidebar-right>
-  <app-viewcube class="viewcube"></app-viewcube>
+  <app-viewcube class="viewcube" [rotation]="currentRotation"></app-viewcube>
 </main>

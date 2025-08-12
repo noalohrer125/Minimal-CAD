@@ -1,4 +1,4 @@
-import { Component, ElementRef, AfterViewInit, ViewChild, HostListener } from '@angular/core';
+import { Component, ElementRef, AfterViewInit, ViewChild, HostListener, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Draw } from '../draw.service';
 import { FormObject, LineObject } from '../interfaces';
@@ -12,6 +12,8 @@ import * as THREE from 'three';
   styleUrls: ['./main-view.component.css']
 })
 export class MainViewComponent implements AfterViewInit {
+  @Output() rotationChange = new EventEmitter<THREE.Euler>();
+
   constructor(private drawservice: Draw) { }
 
   @ViewChild('canvas', { static: true }) canvasRef!: ElementRef;
@@ -186,6 +188,7 @@ onMouseMove(event: MouseEvent, button: string) {
   if (button === 'right') {
     this.rootGroup.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), event.movementX * 0.01);
     this.rootGroup.rotation.x += event.movementY * 0.01;
+    this.rotationChange.emit(this.rootGroup.rotation.clone());
   } else if (button === 'middle') {
     this.rootGroup.position.y -= event.movementY * 0.01;
     this.rootGroup.position.x += event.movementX * 0.01;
@@ -227,10 +230,8 @@ onClick(event: MouseEvent) {
 }
 
 clearScene() {
-  // Remove all objects from the scene except gridHelper
   this.objects.forEach(obj => this.scene.remove(obj));
   this.objects = [];
-  // Optionally remove edge lines if you store them
 }
 
   @HostListener('window:resize')

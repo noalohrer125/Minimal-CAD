@@ -7,6 +7,7 @@ import { CommonModule } from '@angular/common';
 import { MainViewComponent } from './main-view/main-view.component';
 import { FormObject, LineObject } from './interfaces';
 import { OnInit } from '@angular/core';
+import * as THREE from 'three';
 
 @Component({
   selector: 'app-root',
@@ -26,9 +27,14 @@ export class AppComponent implements OnInit {
   title = 'Minimal-CAD';
   sidebarRightPosition: [number, number, number] = [0, 0, 0];
   public selectedObject: FormObject | LineObject | null = null;
+  public currentRotation = new THREE.Euler();
 
   ngOnInit(): void {
     this.selectedObject = localStorage.getItem('selectedObject') ? JSON.parse(localStorage.getItem('selectedObject')!) : null;
+  }
+
+  onRotationChanged(rot: THREE.Euler) {
+    this.currentRotation = rot;
   }
 
   @HostListener('contextmenu', ['$event'])
