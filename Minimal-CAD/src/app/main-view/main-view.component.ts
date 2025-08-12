@@ -172,6 +172,10 @@ export class MainViewComponent implements AfterViewInit {
       if (event.button === 2) { this.rightClick = false; }
       if (event.button === 1) { this.middleClick = false; }
     });
+    this.canvasRef.nativeElement.addEventListener('wheel', (event: WheelEvent) => {
+      event.preventDefault();
+      this.onMouseWheel(event);
+    });
     this.canvasRef.nativeElement.addEventListener('mousemove', (event: MouseEvent) => {
       if (this.rightClick) { this.onMouseMove(event, 'right'); }
       if (this.middleClick) { this.onMouseMove(event, 'middle'); }
@@ -185,6 +189,17 @@ onMouseMove(event: MouseEvent, button: string) {
   } else if (button === 'middle') {
     this.rootGroup.position.y -= event.movementY * 0.01;
     this.rootGroup.position.x += event.movementX * 0.01;
+  }
+}
+
+onMouseWheel(event: WheelEvent) {
+  const zoomFactor = 1.1;
+  if (event.deltaY < 0) {
+    // Zoom in
+    this.rootGroup.scale.multiplyScalar(zoomFactor);
+  } else if (event.deltaY > 0) {
+    // Zoom out
+    this.rootGroup.scale.multiplyScalar(1 / zoomFactor);
   }
 }
 
