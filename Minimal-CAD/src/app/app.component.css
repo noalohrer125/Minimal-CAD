@@ -42,7 +42,9 @@
     justify-self: start;
     width: 10vw;
     height: 92vh;
+    padding: 0 !important;
 }
+
 .sidebar-right {
     background: #afafaf;
     position: absolute;
