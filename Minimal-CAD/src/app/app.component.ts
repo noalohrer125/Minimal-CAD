@@ -1,4 +1,4 @@
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, ViewChild } from '@angular/core';
 import { HeaderComponent } from './header/header.component';
 import { SidebarLeftComponent } from './sidebar-left/sidebar-left.component';
 import { SidebarRightComponent } from './sidebar-right/sidebar-right.component';
@@ -24,6 +24,8 @@ import * as THREE from 'three';
   styleUrl: './app.component.css'
 })
 export class AppComponent implements OnInit {
+  @ViewChild(MainViewComponent) mainView!: MainViewComponent; // Zugriff auf MainView
+
   title = 'Minimal-CAD';
   sidebarRightPosition: [number, number, number] = [0, 0, 0];
   public selectedObject: FormObject | LineObject | null = null;
@@ -33,12 +35,20 @@ export class AppComponent implements OnInit {
     this.selectedObject = localStorage.getItem('selectedObject') ? JSON.parse(localStorage.getItem('selectedObject')!) : null;
   }
 
+  // Drehen in MainView → Viewcube updaten
   onRotationChanged(rot: THREE.Euler) {
     this.currentRotation = rot;
   }
 
+  // Drehen im Viewcube → MainView updaten
+  onViewcubeRotation(rot: THREE.Euler) {
+    if (this.mainView) {
+      this.mainView.setRotation(rot);
+    }
+  }
+
   @HostListener('contextmenu', ['$event'])
   onRightClick(event: MouseEvent) {
-    event.preventDefault(); // blockiert das Browser-Kontextmenü
+    event.preventDefault();
   }
 }

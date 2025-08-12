@@ -30,6 +30,11 @@ export class MainViewComponent implements AfterViewInit {
   private rightClick = false;
   private middleClick = false;
 
+  public setRotation(rot: THREE.Euler) {
+    this.rootGroup.rotation.copy(rot);
+    this.rotationChange.emit(this.rootGroup.rotation.clone()); // optional, falls nötig
+  }
+
   init() {
     this.renderer = new THREE.WebGLRenderer({
       canvas: this.canvasRef.nativeElement,
