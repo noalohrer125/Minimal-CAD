@@ -1,5 +1,6 @@
 import { Component, ElementRef, AfterViewInit, ViewChild, HostListener, Input, Output, EventEmitter, SimpleChanges } from '@angular/core';
 import * as THREE from 'three';
+import { Draw } from '../draw.service';
 
 @Component({
   selector: 'app-viewcube',
@@ -11,6 +12,8 @@ export class ViewcubeComponent implements AfterViewInit {
   @Output() rotationChange = new EventEmitter<THREE.Euler>();
 
   @ViewChild('canvas', { static: true }) canvasRef!: ElementRef;
+
+  constructor(private drawservice: Draw) { }
 
   private scene = new THREE.Scene();
   private camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
@@ -51,6 +54,12 @@ export class ViewcubeComponent implements AfterViewInit {
     this.addCornerSpheres(); // Spheres an Cube hängen
 
     this.canvasRef.nativeElement.addEventListener('click', (event: MouseEvent) => this.onClick(event));
+
+    this.camera.up.set(0, 1, 0);
+    const view = this.drawservice.getView();
+    this.cube.rotation.x = view.rootGroup.rotation.x;
+    this.cube.rotation.y = view.rootGroup.rotation.y;
+    this.cube.rotation.z = view.rootGroup.rotation.z;
 
     this.animate();
   }
@@ -151,13 +160,6 @@ export class ViewcubeComponent implements AfterViewInit {
       case 7: console.log('8'); return new THREE.Euler(-tilt135, 0, +angle, 'XYZ');   // b,l,f
       default: return new THREE.Euler();
     }
-
-    //       (-Math.PI / 2, 0, -Math.PI / 2) // right
-    //       (-Math.PI / 2, 0, Math.PI / 2)  // left
-    //       (Math.PI / 2, Math.PI, 0)       // back
-    //       (-Math.PI / 2, 0, 0)            // front
-    //       (0, 0, 0)                       // top
-    //       (0, Math.PI, Math.PI)           // bottom
   }
 
   @HostListener('window:resize')

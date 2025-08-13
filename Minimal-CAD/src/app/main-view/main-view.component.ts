@@ -41,7 +41,6 @@ export class MainViewComponent implements AfterViewInit {
       antialias: true,
     });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.camera.position.z = 10;
     this.scene.background = new THREE.Color(0xd9d9d9);
 
     const size = 10;
@@ -57,8 +56,12 @@ export class MainViewComponent implements AfterViewInit {
     gridHelper.position.set(0, 0, 0);
     gridHelper.rotation.x = Math.PI / 2;
     this.rootGroup.add(gridHelper);
-    
-    this.camera.position.set(0, 0, 10);
+
+    const view = this.drawservice.getView();
+    this.camera.position.set(view.camera.position.x, view.camera.position.y, view.camera.position.z);
+    this.camera.rotation.set(view.camera.rotation.x, view.camera.rotation.y, view.camera.rotation.z);
+    this.rootGroup.position.set(view.rootGroup.position.x, view.rootGroup.position.y, view.rootGroup.position.z);
+    this.rootGroup.rotation.set(view.rootGroup.rotation.x, view.rootGroup.rotation.y, view.rootGroup.rotation.z);
     this.camera.up.set(0, 1, 0);
     this.camera.lookAt(0, 0, 0);
     this.scene.add(this.rootGroup);

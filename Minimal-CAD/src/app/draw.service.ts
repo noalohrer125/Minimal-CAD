@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { FormObject, LineObject } from './interfaces';
+import { DEFAULT_VIEW, FormObject, LineObject, view } from './interfaces';
 
 
 @Injectable({
@@ -20,6 +20,15 @@ export class Draw {
       return data;
     }
     return [];
+  }
+
+  setView(position: view): void {
+    localStorage.setItem('view', position ? JSON.stringify(position) : '');
+  }
+
+  getView(): view {
+    const viewString = localStorage.getItem('view');
+    return viewString ? JSON.parse(viewString) as view : DEFAULT_VIEW;
   }
 
   saveObject(object: FormObject | LineObject): void {
