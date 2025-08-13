@@ -35,21 +35,34 @@ export class ViewcubeComponent implements AfterViewInit {
   ngAfterViewInit() {
     this.renderer = new THREE.WebGLRenderer({ canvas: this.canvasRef.nativeElement, alpha: true, antialias: true });
     this.renderer.setSize(150, 150);
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
     this.camera.position.set(0, 0, 3);
     this.camera.lookAt(0, 0, 0);
 
     const geometry = new THREE.BoxGeometry(1, 1, 1);
     const materials = [
-      new THREE.MeshBasicMaterial({ color: 0xff0000 }), // right
-      new THREE.MeshBasicMaterial({ color: 0x00ff00 }), // left
-      new THREE.MeshBasicMaterial({ color: 0x0000ff }), // top
-      new THREE.MeshBasicMaterial({ color: 0xffff00 }), // bottom
-      new THREE.MeshBasicMaterial({ color: 0xff00ff }), // front
-      new THREE.MeshBasicMaterial({ color: 0x00ffff })  // back
+      new THREE.MeshStandardMaterial({ color: 0xff5555, roughness: 0.5, metalness: 0.2 }), // right
+      new THREE.MeshStandardMaterial({ color: 0xff5555, roughness: 0.5, metalness: 0.2 }), // left
+      new THREE.MeshStandardMaterial({ color: 0x55ff55, roughness: 0.5, metalness: 0.2 }), // front
+      new THREE.MeshStandardMaterial({ color: 0x55ff55, roughness: 0.5, metalness: 0.2 }), // back
+      new THREE.MeshStandardMaterial({ color: 0x5555ff, roughness: 0.5, metalness: 0.2 }), // top
+      new THREE.MeshStandardMaterial({ color: 0x5555ff, roughness: 0.5, metalness: 0.2 })  // bottom
     ];
 
     this.cube = new THREE.Mesh(geometry, materials);
+    this.cube.castShadow = true;
+    this.cube.receiveShadow = true;
     this.scene.add(this.cube);
+
+    const light = new THREE.DirectionalLight(0xffffff, 5);
+    light.position.set(5, 5, 0);
+    light.castShadow = true;
+    this.scene.add(light);
+
+    const ambient = new THREE.AmbientLight(0xffffff, 0.4);
+    this.scene.add(ambient);
 
     this.addCornerSpheres(); // Spheres an Cube hängen
 
@@ -66,7 +79,7 @@ export class ViewcubeComponent implements AfterViewInit {
 
   private addCornerSpheres() {
     const sphereGeom = new THREE.SphereGeometry(0.1, 16, 16);
-    const sphereMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    const sphereMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5, metalness: 2 });
 
     const offsets = [
       [+0.5, +0.5, +0.5],
@@ -83,7 +96,9 @@ export class ViewcubeComponent implements AfterViewInit {
       const sphere = new THREE.Mesh(sphereGeom, sphereMat.clone());
       sphere.position.set(pos[0], pos[1], pos[2]);
       sphere.userData['cornerIndex'] = index;
-      this.cube.add(sphere); // 🔹 Sphere an den Cube hängen
+      sphere.castShadow = true;
+      sphere.receiveShadow = true;
+      this.cube.add(sphere);
       this.cornerSpheres.push(sphere);
     });
   }
@@ -113,7 +128,6 @@ export class ViewcubeComponent implements AfterViewInit {
     if (intersects.length > 0) {
       const clickedObj = intersects[0].object as THREE.Mesh;
 
-      // Sphere-Klick → isometrische Ansicht
       if (this.cornerSpheres.includes(clickedObj)) {
         const index = clickedObj.userData['cornerIndex'];
         const newRot = this.getIsometricRotation(index);
@@ -123,7 +137,6 @@ export class ViewcubeComponent implements AfterViewInit {
         return;
       }
 
-      // Würfelfläche → Standardansicht
       if (clickedObj === this.cube) {
         const faceIndex = Math.floor(intersects[0].faceIndex! / 2);
         const newRot = new THREE.Euler();
@@ -145,8 +158,8 @@ export class ViewcubeComponent implements AfterViewInit {
   }
 
   private getIsometricRotation(index: number): THREE.Euler {
-    const angle = Math.PI / 4; // 45°
-    const tilt60 = Math.PI / 3; // 60°
+    const angle = Math.PI / 4;       // 45°
+    const tilt60 = Math.PI / 3;      // 60°
     const tilt135 = Math.PI * 3 / 4; // 135°
 
     switch (index) {
