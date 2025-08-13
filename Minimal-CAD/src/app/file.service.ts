@@ -1,8 +1,5 @@
 import { Injectable, model } from '@angular/core';
-import modelDataJson from './models/model-data.json' assert { type: "json" };
 import { FormObject, LineObject } from './interfaces';
-
-const modelData: (FormObject | LineObject)[] = modelDataJson as (FormObject | LineObject)[];
 
 @Injectable({
     providedIn: 'root'

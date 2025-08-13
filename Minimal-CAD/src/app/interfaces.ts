@@ -71,9 +71,9 @@ export const DEFAULT_VIEW: view = {
             z: 0
         },
         rotation: {
-            x: 60,
+            x: -Math.PI / 3, // 60 degrees down
             y: 0,
-            z: -45
+            z: -Math.PI / 5 // 36 degrees down
         }
     }
 };
