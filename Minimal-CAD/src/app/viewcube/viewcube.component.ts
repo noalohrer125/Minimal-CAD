@@ -43,12 +43,12 @@ export class ViewcubeComponent implements AfterViewInit {
 
     const geometry = new THREE.BoxGeometry(1, 1, 1);
     const materials = [
-      new THREE.MeshStandardMaterial({ color: 0xff5555, roughness: 0.5, metalness: 0.2 }), // right
-      new THREE.MeshStandardMaterial({ color: 0xff5555, roughness: 0.5, metalness: 0.2 }), // left
-      new THREE.MeshStandardMaterial({ color: 0x55ff55, roughness: 0.5, metalness: 0.2 }), // front
-      new THREE.MeshStandardMaterial({ color: 0x55ff55, roughness: 0.5, metalness: 0.2 }), // back
-      new THREE.MeshStandardMaterial({ color: 0x5555ff, roughness: 0.5, metalness: 0.2 }), // top
-      new THREE.MeshStandardMaterial({ color: 0x5555ff, roughness: 0.5, metalness: 0.2 })  // bottom
+      new THREE.MeshStandardMaterial({ color: 0xff5555, roughness: 0.5, metalness: 1 }), // right
+      new THREE.MeshStandardMaterial({ color: 0xff5555, roughness: 0.5, metalness: 1 }), // left
+      new THREE.MeshStandardMaterial({ color: 0x55ff55, roughness: 0.5, metalness: 1 }), // front
+      new THREE.MeshStandardMaterial({ color: 0x55ff55, roughness: 0.5, metalness: 1 }), // back
+      new THREE.MeshStandardMaterial({ color: 0x5555ff, roughness: 0.5, metalness: 1 }), // top
+      new THREE.MeshStandardMaterial({ color: 0x5555ff, roughness: 0.5, metalness: 1 })  // bottom
     ];
 
     this.cube = new THREE.Mesh(geometry, materials);
@@ -56,13 +56,15 @@ export class ViewcubeComponent implements AfterViewInit {
     this.cube.receiveShadow = true;
     this.scene.add(this.cube);
 
-    const light = new THREE.DirectionalLight(0xffffff, 5);
-    light.position.set(5, 5, 0);
+    const light = new THREE.DirectionalLight(0xffffff, 10);
+    light.position.set(5, 5, 2);
     light.castShadow = true;
     this.scene.add(light);
 
-    const ambient = new THREE.AmbientLight(0xffffff, 0.4);
-    this.scene.add(ambient);
+    const light2 = new THREE.DirectionalLight(0xffffff, 1);
+    light2.position.set(-5, -5, -2);
+    light2.castShadow = true;
+    this.scene.add(light2);
 
     this.addCornerSpheres(); // Spheres an Cube hängen
 
