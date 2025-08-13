@@ -54,7 +54,7 @@
 }
 
 .viewcube {
-    background: #afafaf;/* background: transparent;  */
+    background: transparent;
     position: absolute;
     top: 12vh;
     right: 1vw;
