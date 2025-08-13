@@ -193,14 +193,22 @@ export class MainViewComponent implements AfterViewInit {
   }
 
 onMouseMove(event: MouseEvent, button: string) {
+  const view = this.drawservice.getView();
   if (button === 'right') {
     this.rootGroup.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), event.movementX * 0.01);
     this.rootGroup.rotation.x += event.movementY * 0.01;
     this.rotationChange.emit(this.rootGroup.rotation.clone());
+    view.rootGroup.rotation.x = this.rootGroup.rotation.x;
+    view.rootGroup.rotation.y = this.rootGroup.rotation.y;
+    view.rootGroup.rotation.z = this.rootGroup.rotation.z;
   } else if (button === 'middle') {
     this.rootGroup.position.y -= event.movementY * 0.01;
     this.rootGroup.position.x += event.movementX * 0.01;
+    view.rootGroup.position.x = this.rootGroup.position.x;
+    view.rootGroup.position.y = this.rootGroup.position.y;
+    view.rootGroup.position.z = this.rootGroup.position.z;
   }
+  this.drawservice.setView(view);
 }
 
 onMouseWheel(event: WheelEvent) {
