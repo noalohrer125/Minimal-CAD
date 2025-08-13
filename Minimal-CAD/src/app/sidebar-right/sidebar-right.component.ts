@@ -203,6 +203,16 @@ export class SidebarRightComponent implements OnInit {
     }
   }
 
+  onDelete() {
+    if (window.confirm("You have unsaved changes. Are you sure you want to close the Editor?")) {
+      localStorage.removeItem('selectedObject');
+      let models: (FormObject | LineObject)[] = localStorage.getItem('model-data') ? JSON.parse(localStorage.getItem('model-data')!) : [];
+      models = models.filter(model => model.id !== this.selectedObject.id);
+      localStorage.setItem('model-data', JSON.stringify(models));
+      location.reload();
+    }
+  }
+
   onMouseDown(event: MouseEvent) {
     this.isDragging = true;
     this.startX = event.clientX;
