@@ -23,3 +23,57 @@ export interface LineObject {
 //     size: [[number, number]]; // Array of number pairs for positions of endpoints
 //     position: [number, number, number]; // [x, y, z]
 // }
+
+export interface view {
+    camera: {
+        position: {
+            x: number,
+            y: number,
+            z: number
+        },
+        rotation: {
+            x: number,
+            y: number,
+            z: number
+        }
+    },
+    rootGroup: {
+        position: {
+            x: number,
+            y: number,
+            z: number
+        },
+        rotation: {
+            x: number,
+            y: number,
+            z: number
+        }
+    }
+}
+
+export const DEFAULT_VIEW: view = {
+    camera: {
+        position: {
+            x: 0,
+            y: 0,
+            z: 10
+        },
+        rotation: {
+            x: 0,
+            y: 0,
+            z: 0
+        }
+    },
+    rootGroup: {
+        position: {
+            x: 0,
+            y: 0,
+            z: 0
+        },
+        rotation: {
+            x: 60,
+            y: 0,
+            z: -45
+        }
+    }
+};
