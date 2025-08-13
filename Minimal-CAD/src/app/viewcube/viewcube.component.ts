@@ -136,20 +136,19 @@ export class ViewcubeComponent implements AfterViewInit {
   }
 
   private getIsometricRotation(index: number): THREE.Euler {
-    const tilts = Math.PI / 5; // 36°
     const angle = Math.PI / 4; // 45°
-    const tilt = Math.PI / 2; // 90°
-    const pi = Math.PI;
+    const tilt60 = Math.PI / 3; // 60°
+    const tilt135 = Math.PI * 3 / 4; // 135°
 
     switch (index) {
-      case 0: console.log('1'); return new THREE.Euler(+tilts, -angle, -angle*3, 'ZYX'); // t,l,b!
-      case 1: console.log('2'); return new THREE.Euler(0, 0, 0); // b,l,b
-      case 2: console.log('3'); return new THREE.Euler(-tilts, -angle, -angle, 'ZYX'); // t,r,f!
-      case 3: console.log('4'); return new THREE.Euler(0, 0, 0, 'ZYX'); // b,r,f
-      case 4: console.log('5'); return new THREE.Euler(+tilts, +angle, +angle*3, 'ZYX'); // t,r,b!
-      case 5: console.log('6'); return new THREE.Euler(0, 0, 0, 'ZYX'); // b,r,b
-      case 6: console.log('7'); return new THREE.Euler(-tilts, +angle, +angle, 'ZYX'); // t,l,f!
-      case 7: console.log('8'); return new THREE.Euler(0, 0, 0); // b,l,f
+      case 0: console.log('1'); return new THREE.Euler(-tilt60, 0, -tilt135, 'XYZ');  // t,l,b
+      case 1: console.log('2'); return new THREE.Euler(-tilt135, 0, -tilt135, 'XYZ'); // b,l,b
+      case 2: console.log('3'); return new THREE.Euler(-tilt60, 0, -angle, 'XYZ');    // t,r,f
+      case 3: console.log('4'); return new THREE.Euler(-tilt135, 0, -angle, 'XYZ');   // b,r,f
+      case 4: console.log('5'); return new THREE.Euler(-tilt60, 0, +tilt135, 'XYZ');  // t,r,b
+      case 5: console.log('6'); return new THREE.Euler(-tilt135, 0, +tilt135, 'XYZ'); // b,r,b
+      case 6: console.log('7'); return new THREE.Euler(-tilt60, 0, +angle, 'XYZ');    // t,l,f
+      case 7: console.log('8'); return new THREE.Euler(-tilt135, 0, +angle, 'XYZ');   // b,l,f
       default: return new THREE.Euler();
     }
 
