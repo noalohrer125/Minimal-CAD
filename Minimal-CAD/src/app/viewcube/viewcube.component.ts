@@ -66,8 +66,8 @@ export class ViewcubeComponent implements AfterViewInit {
     light2.castShadow = true;
     this.scene.add(light2);
 
-    this.addCornerSpheres(); // Spheres an Cube hängen
-
+    this.addAxesArrows();
+    this.addCornerSpheres();
     this.canvasRef.nativeElement.addEventListener('click', (event: MouseEvent) => this.onClick(event));
 
     this.camera.up.set(0, 1, 0);
@@ -80,7 +80,7 @@ export class ViewcubeComponent implements AfterViewInit {
   }
 
   private addCornerSpheres() {
-    const sphereGeom = new THREE.SphereGeometry(0.1, 16, 16);
+    const sphereGeom = new THREE.SphereGeometry(0.1, 50, 50);
     const sphereMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5, metalness: 2 });
 
     const offsets = [
@@ -105,6 +105,49 @@ export class ViewcubeComponent implements AfterViewInit {
     });
   }
 
+  private addAxesArrows() {
+    const length = 1.5; // Pfeillänge
+    const headLength = 0.2;
+    const headWidth = 0.2;
+
+    const arrowX = new THREE.ArrowHelper(
+      new THREE.Vector3(1, 0, 0), // Richtung X
+      new THREE.Vector3(-0.6, -0.6, -0.6), // Ursprung
+      length,
+      0xff0000, // Rot
+      headLength,
+      headWidth
+    );
+
+    const arrowY = new THREE.ArrowHelper(
+      new THREE.Vector3(0, 1, 0),
+      new THREE.Vector3(-0.6, -0.6, -0.6),
+      length,
+      0x00ff00, // Grün
+      headLength,
+      headWidth
+    );
+
+    const arrowZ = new THREE.ArrowHelper(
+      new THREE.Vector3(0, 0, 1),
+      new THREE.Vector3(-0.6, -0.6, -0.6),
+      length,
+      0x0000ff, // Blau
+      headLength,
+      headWidth
+    );
+
+    // Prevent arrows from interfering with raycasting
+    (arrowX as any).raycast = () => {};
+    (arrowY as any).raycast = () => {};
+    (arrowZ as any).raycast = () => {};
+
+    // An den Cube hängen, damit sie sich mitdrehen
+    this.cube.add(arrowX);
+    this.cube.add(arrowY);
+    this.cube.add(arrowZ);
+  }
+
   animate() {
     requestAnimationFrame(() => this.animate());
 
@@ -125,12 +168,13 @@ export class ViewcubeComponent implements AfterViewInit {
     this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
     this.raycaster.setFromCamera(this.mouse, this.camera);
-    const intersects = this.raycaster.intersectObjects([this.cube, ...this.cornerSpheres], true);
+    const intersects = this.raycaster.intersectObjects([this.cube], true);
 
     if (intersects.length > 0) {
-      const clickedObj = intersects[0].object as THREE.Mesh;
-
-      if (this.cornerSpheres.includes(clickedObj)) {
+      // Find the first intersected object that is a corner sphere
+      const sphereIntersect = intersects.find(i => this.cornerSpheres.includes(i.object as THREE.Mesh));
+      if (sphereIntersect) {
+        const clickedObj = sphereIntersect.object as THREE.Mesh;
         const index = clickedObj.userData['cornerIndex'];
         const newRot = this.getIsometricRotation(index);
         this.targetQuat.setFromEuler(newRot);
@@ -139,8 +183,10 @@ export class ViewcubeComponent implements AfterViewInit {
         return;
       }
 
-      if (clickedObj === this.cube) {
-        const faceIndex = Math.floor(intersects[0].faceIndex! / 2);
+      // Otherwise, check if the cube itself was clicked
+      const cubeIntersect = intersects.find(i => i.object === this.cube);
+      if (cubeIntersect) {
+        const faceIndex = Math.floor(cubeIntersect.faceIndex! / 2);
         const newRot = new THREE.Euler();
 
         switch (faceIndex) {
