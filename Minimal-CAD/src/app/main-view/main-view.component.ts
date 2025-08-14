@@ -52,12 +52,7 @@ export class MainViewComponent implements AfterViewInit {
     const divisions = 10;
     const gridColor = 0xf5f8fa;
     const gridCenterLineColor = 0xb9cee4;
-    const gridHelper = new THREE.GridHelper(
-      size,
-      divisions,
-      gridCenterLineColor,
-      gridColor
-    );
+    const gridHelper = new THREE.GridHelper(size, divisions, gridCenterLineColor, gridColor);
     gridHelper.position.set(0, 0, 0);
     gridHelper.rotation.x = Math.PI / 2;
     this.rootGroup.add(gridHelper);
@@ -69,6 +64,25 @@ export class MainViewComponent implements AfterViewInit {
     this.rootGroup.rotation.set(view.rootGroup.rotation.x, view.rootGroup.rotation.y, view.rootGroup.rotation.z);
     this.camera.up.set(0, 1, 0);
     this.camera.lookAt(0, 0, 0);
+
+    // Ambient light for general illumination
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+
+    // Directional light to simulate sunlight
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 5);
+    directionalLight.position.set(10, 15, 5);
+    directionalLight.castShadow = true;
+    directionalLight.shadow.mapSize.width = 1024;
+    directionalLight.shadow.mapSize.height = 1024;
+
+    // Soft fill light from the opposite side
+    const fillLight = new THREE.PointLight(0xffffff, 100);
+    fillLight.position.set(-10, -10, 5);
+
+    this.scene.add(ambientLight);
+    this.scene.add(directionalLight);
+    this.scene.add(fillLight);
+
     this.scene.add(this.rootGroup);
   }
 
@@ -78,15 +92,20 @@ export class MainViewComponent implements AfterViewInit {
       localStorage.getItem('selectedObject') || '{}'
     ) as FormObject | LineObject;
 
-    const objectColor = 0x8cb9d4;
-    const selectedObjectColor = 0x7ec8e3;
+    const objectColor = { color: 0x8cb9d4, roughness: 0.5, metalness: 0.5, flatShading: true };
+    const selectedObjectColor = { color: 0x7ec8e3, roughness: 0.5, metalness: 0.1, flatShading: true };
     const edgeColor = 0x253238;
     const selectedEdgeColor = 0xffb347;
 
     const renderFormObject = (element: FormObject, isSelected: boolean) => {
       if (element.type === 'Square') {
         const geometry = new THREE.BoxGeometry(element.l, element.w, element.h);
-        const material = new THREE.MeshBasicMaterial({ color: isSelected ? selectedObjectColor : objectColor });
+        let material: THREE.MeshStandardMaterial;
+        if (isSelected) {
+          material = new THREE.MeshStandardMaterial(selectedObjectColor);
+        } else {
+          material = new THREE.MeshStandardMaterial(objectColor);
+        }
         const mesh = new THREE.Mesh(geometry, material);
         mesh.position.set(
           element.position[0],
@@ -96,7 +115,7 @@ export class MainViewComponent implements AfterViewInit {
         mesh.userData = element;
         this.rootGroup.add(mesh);
         this.objects.push(mesh);
-
+        
         const edges = new THREE.EdgesGeometry(geometry);
         const line = new THREE.LineSegments(
           edges,
@@ -111,7 +130,12 @@ export class MainViewComponent implements AfterViewInit {
           element.h,
           64
         );
-        const material = new THREE.MeshBasicMaterial({ color: isSelected ? selectedObjectColor : objectColor });
+        let material: THREE.MeshStandardMaterial;
+        if (isSelected) {
+          material = new THREE.MeshStandardMaterial(selectedObjectColor);
+        } else {
+          material = new THREE.MeshStandardMaterial(objectColor);
+        }
         const mesh = new THREE.Mesh(geometry, material);
         mesh.position.set(
           element.position[0],
@@ -135,34 +159,30 @@ export class MainViewComponent implements AfterViewInit {
     };
     const renderLineObject = (element: LineObject, isSelected: boolean) => {
       const geometry = new THREE.BufferGeometry().setFromPoints([
-      new THREE.Vector3(element.start[0], element.start[1], element.start[2]),
-      new THREE.Vector3(element.end[0], element.end[1], element.end[2])
+        new THREE.Vector3(element.start[0], element.start[1], element.start[2]),
+        new THREE.Vector3(element.end[0], element.end[1], element.end[2])
       ]);
-      const material = new THREE.LineBasicMaterial({ color: isSelected ? selectedObjectColor : objectColor });
+      const material = new THREE.LineBasicMaterial({ color: isSelected ? selectedObjectColor.color : edgeColor });
       const line = new THREE.Line(geometry, material);
       line.userData = element;
       this.rootGroup.add(line);
       this.objects.push(line);
-
-      // Edgelines are just the line itself, but for consistency:
-      const edgeMaterial = new THREE.LineBasicMaterial({ color: isSelected ? selectedEdgeColor : edgeColor });
-      const edgeLine = new THREE.Line(geometry, edgeMaterial);
-      edgeLine.position.copy(line.position);
-      this.rootGroup.add(edgeLine);
     };
 
     data.forEach(el => {
-      const isSelected = selectedObject && selectedObject.id === el.id;
+      const isSelected = selectedObject && (selectedObject.id === el.id);
       if (el.type === 'Line') {
         renderLineObject(el, isSelected);
-      } else {
+      } else if (el.type === 'Square') {
+        renderFormObject(el, isSelected);
+      } else if (el.type === 'Circle') {
         renderFormObject(el, isSelected);
       }
     });
 
     // Freeform
     // else if (element.type === 'Freeform') {
-      // Comming soon: Freeform objects will be implemented later
+    //   Comming soon: Freeform objects will be implemented later
     // }
   }
 
