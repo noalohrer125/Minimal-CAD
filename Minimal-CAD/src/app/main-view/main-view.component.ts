@@ -41,6 +41,8 @@ export class MainViewComponent implements AfterViewInit {
       antialias: true,
     });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.scene.background = new THREE.Color(0xd9d9d9);
 
     // const loader = new THREE.TextureLoader();
@@ -52,10 +54,13 @@ export class MainViewComponent implements AfterViewInit {
     const divisions = 10;
     const gridColor = 0xf5f8fa;
     const gridCenterLineColor = 0xb9cee4;
-    const gridHelper = new THREE.GridHelper(size, divisions, gridCenterLineColor, gridColor);
-    gridHelper.position.set(0, 0, 0);
-    gridHelper.rotation.x = Math.PI / 2;
-    this.rootGroup.add(gridHelper);
+  const gridHelper = new THREE.GridHelper(size, divisions, gridCenterLineColor, gridColor);
+  gridHelper.position.set(0, 0, 0);
+  gridHelper.rotation.x = Math.PI / 2;
+  // Grid casts and receives shadows
+  (gridHelper as any).castShadow = true;
+  (gridHelper as any).receiveShadow = true;
+  this.rootGroup.add(gridHelper);
 
     const view = this.drawservice.getView();
     this.camera.position.set(view.camera.position.x, view.camera.position.y, view.camera.position.z);
@@ -113,6 +118,8 @@ export class MainViewComponent implements AfterViewInit {
           (element.position[2] || 0) + element.h / 2
         );
         mesh.userData = element;
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
         this.rootGroup.add(mesh);
         this.objects.push(mesh);
         
@@ -144,6 +151,8 @@ export class MainViewComponent implements AfterViewInit {
         );
         mesh.rotation.x = Math.PI / 2;
         mesh.userData = element;
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
         this.rootGroup.add(mesh);
         this.objects.push(mesh);
 
