@@ -43,12 +43,12 @@ export class MainViewComponent implements AfterViewInit {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    this.scene.background = new THREE.Color(0xd9d9d9);
+    // this.scene.background = new THREE.Color(0xd9d9d9);
 
-    // const loader = new THREE.TextureLoader();
-    // loader.load('/blue-bg.jpg', (texture) => {
-    //   this.scene.background = texture;
-    // });
+    const loader = new THREE.TextureLoader();
+    loader.load('/bg-image.jpg', (texture) => {
+      this.scene.background = texture;
+    });
 
     const size = 10;
     const divisions = 10;
