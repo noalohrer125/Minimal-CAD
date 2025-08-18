@@ -214,7 +214,7 @@ export class ViewcubeComponent implements AfterViewInit {
 
   @HostListener('window:resize')
   onResize() {
-    this.renderer.setSize(150, 150);
+    this.renderer.setSize(this.size, this.size);
     this.camera.updateProjectionMatrix();
   }
 }
