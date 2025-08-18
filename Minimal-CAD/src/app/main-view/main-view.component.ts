@@ -180,22 +180,42 @@ export class MainViewComponent implements AfterViewInit {
       edgeLine.position.copy(line.position);
       this.rootGroup.add(edgeLine);
     };
-    // const renderFreeFormObject = (isSelected: boolean) => {
-    //   // Freeform mit THREE.Shape erstellen
-    //   const shape = new THREE.Shape();
-    //   shape.moveTo(0, 0);
-    //   shape.lineTo(1, 0.2);
-    //   shape.quadraticCurveTo(1.5, 1, 0.8, 1.5);
-    //   shape.bezierCurveTo(0.5, 2, -0.5, 1.5, -0.8, 1.2);
-    //   shape.lineTo(-1, 0.5);
-    //   shape.lineTo(-0.5, -0.2);
-    //   shape.quadraticCurveTo(0, -0.5, 0, 0);
+    const renderFreeFormObject = (element: FreeObject, isSelected: boolean) => {
+      const shape = new THREE.Shape();
 
-    //   const geometry = new THREE.ShapeGeometry(shape);
-    //   const material = new THREE.MeshStandardMaterial({ color: isSelected ? selectedObjectColor.color : edgeColor, side: THREE.DoubleSide });
-    //   const mesh = new THREE.Mesh(geometry, material);
-    //   this.rootGroup.add(mesh);
-    // }
+      element.commands.forEach(cmd => {
+        switch (cmd.type) {
+          case 'moveTo':
+            shape.moveTo(cmd.x, cmd.y);
+            break;
+          case 'lineTo':
+            shape.lineTo(cmd.x, cmd.y);
+            break;
+          case 'quadraticCurveTo':
+            shape.quadraticCurveTo(cmd.cpX, cmd.cpY, cmd.x, cmd.y);
+            break;
+          case 'bezierCurveTo':
+            shape.bezierCurveTo(cmd.cp1X, cmd.cp1Y, cmd.cp2X, cmd.cp2Y, cmd.x, cmd.y);
+            break;
+        }
+      });
+
+      // Optional: aus Shape ein Mesh bauen
+      const geometry = new THREE.ShapeGeometry(shape);
+      const material = new THREE.MeshStandardMaterial({
+        color: isSelected ? selectedObjectColor.color : objectColor.color,
+        side: THREE.DoubleSide
+      });
+      const mesh = new THREE.Mesh(geometry, material);
+
+      // Position/Rotation setzen
+      mesh.position.set(...element.position);
+      if (element.rotation) {
+        mesh.rotation.set(...element.rotation);
+      }
+
+      this.rootGroup.add(mesh);
+    };
 
     data.forEach(el => {
       const isSelected = selectedObject && (selectedObject.id === el.id);
@@ -205,9 +225,10 @@ export class MainViewComponent implements AfterViewInit {
         renderFormObject(el, isSelected);
       } else if (el.type === 'Circle') {
         renderFormObject(el, isSelected);
+      } else if (el.type === 'Freeform') {
+        renderFreeFormObject(el, isSelected);
       }
     });
-    // renderFreeFormObject(false);
   }
 
   animate() {
