@@ -67,6 +67,7 @@ export class MainViewComponent implements AfterViewInit {
     this.camera.rotation.set(view.camera.rotation.x, view.camera.rotation.y, view.camera.rotation.z);
     this.rootGroup.position.set(view.rootGroup.position.x, view.rootGroup.position.y, view.rootGroup.position.z);
     this.rootGroup.rotation.set(view.rootGroup.rotation.x, view.rootGroup.rotation.y, view.rootGroup.rotation.z);
+    this.rootGroup.scale.set(view.rootGroup.scale.x, view.rootGroup.scale.y, view.rootGroup.scale.z);
     this.camera.up.set(0, 1, 0);
     this.camera.lookAt(0, 0, 0);
 
@@ -247,6 +248,7 @@ onMouseMove(event: MouseEvent, button: string) {
 
 onMouseWheel(event: WheelEvent) {
   const zoomFactor = 1.1;
+  const view = this.drawservice.getView();
   if (event.deltaY < 0) {
     // Zoom in
     this.rootGroup.scale.multiplyScalar(zoomFactor);
@@ -254,6 +256,8 @@ onMouseWheel(event: WheelEvent) {
     // Zoom out
     this.rootGroup.scale.multiplyScalar(1 / zoomFactor);
   }
+  view.rootGroup.scale = this.rootGroup.scale;
+  this.drawservice.setView(view);
 }
 
 onClick(event: MouseEvent) {

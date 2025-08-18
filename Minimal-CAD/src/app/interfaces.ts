@@ -1,3 +1,5 @@
+import { Vector3 } from "three";
+
 export interface FormObject {
     id: string;
     name: string;
@@ -47,9 +49,14 @@ export interface view {
             x: number,
             y: number,
             z: number
+        },
+        scale: {
+            x: number,
+            y: number,
+            z: number
         }
     }
-}
+};
 
 export const DEFAULT_VIEW: view = {
     camera: {
@@ -74,6 +81,7 @@ export const DEFAULT_VIEW: view = {
             x: -Math.PI / 3, // 60 degrees down
             y: 0,
             z: -Math.PI / 5 // 36 degrees down
-        }
+        },
+        scale: new Vector3(1, 1, 1)
     }
 };
