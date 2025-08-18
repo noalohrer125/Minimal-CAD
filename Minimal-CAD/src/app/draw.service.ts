@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { DEFAULT_VIEW, FormObject, LineObject, view } from './interfaces';
+import { DEFAULT_VIEW, FormObject, FreeObject, LineObject, view } from './interfaces';
 
 
 @Injectable({
@@ -81,6 +81,36 @@ export class Draw {
       r: 1,
       h: 0,
       position: [0, 0, 0]
+    };
+    localStorage.setItem('selectedObject', JSON.stringify(newObject));
+    location.reload();
+  }
+
+  freeform() {
+    const newObject: FreeObject = {
+      id: this.generateId(),
+      name: 'New Freeform',
+      type: 'Freeform',
+      commands: [
+        {
+          type: 'moveTo',
+          x: 0,
+          y: 0
+        },
+        {
+          type: 'lineTo',
+          x: 1,
+          y: 0
+        },
+        {
+          type: 'quadraticCurveTo',
+          cpX: 0.5,
+          cpY: 1,
+          x: 0,
+          y: 0
+        }
+      ],
+      position: [0, 0, 0],
     };
     localStorage.setItem('selectedObject', JSON.stringify(newObject));
     location.reload();

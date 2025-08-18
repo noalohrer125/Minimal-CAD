@@ -19,12 +19,37 @@ export interface LineObject {
     end: [number, number, number]; // [x, y, z]
 }
 
-// export interface FreeObject {
-//     name: string;
-//     type: 'Freeform';
-//     size: [[number, number]]; // Array of number pairs for positions of endpoints
-//     position: [number, number, number]; // [x, y, z]
-// }
+export type FreeObjectCommand =
+    | {
+        type: 'moveTo' | 'lineTo';
+        x: number;
+        y: number;
+    }
+    | {
+        type: 'quadraticCurveTo';
+        cpX: number;
+        cpY: number;
+        x: number;
+        y: number;
+    }
+    | {
+        type: 'bezierCurveTo';
+        cp1X: number;
+        cp1Y: number;
+        cp2X: number;
+        cp2Y: number;
+        x: number;
+        y: number;
+    };
+
+export interface FreeObject {
+    id: string;
+    name: string;
+    type: 'Freeform';
+    commands: FreeObjectCommand[]; // shape building steps
+    position: [number, number, number]; // world position
+    rotation?: [number, number, number]; // optional
+}
 
 export interface view {
     camera: {

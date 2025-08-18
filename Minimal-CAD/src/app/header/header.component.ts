@@ -39,6 +39,10 @@ export class HeaderComponent {
     this.drawService.circle();
   }
 
+  freeform() {
+    this.drawService.freeform();
+  }
+
   shape_lines() {
     this.drawService.shape_lines();
   }

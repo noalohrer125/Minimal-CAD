@@ -5,38 +5,11 @@
             <mat-icon (mousedown)="onMouseDown($event)">open_with</mat-icon>
             <mat-icon (click)="onClose()">close</mat-icon>
         </div>
-        @if (selectedObject.type === 'Line') {
-            <fieldset class="fieldset" formGroupName="start">
-                <legend>Start Point</legend>
-                <label>
-                    X:
-                    <input type="number" formControlName="x">
-                </label>
-                <label>
-                    Y:
-                    <input type="number" formControlName="y">
-                </label>
-                <label>
-                    Z:
-                    <input type="number" formControlName="z">
-                </label>
+        @if (selectedObject.type === 'Freeform') {
+            <fieldset>
+                
             </fieldset>
-            <fieldset class="fieldset" formGroupName="end">
-                <legend>End Point</legend>
-                <label>
-                    X:
-                    <input type="number" formControlName="x">
-                </label>
-                <label>
-                    Y:
-                    <input type="number" formControlName="y">
-                </label>
-                <label>
-                    Z:
-                    <input type="number" formControlName="z">
-                </label>
-            </fieldset>
-        } @else {
+        } @else if (selectedObject.type !== 'Line') {
             <fieldset class="fieldset" formGroupName="size">
                 <legend>Size</legend>
                 @if (selectedObject.type !== 'Circle') {

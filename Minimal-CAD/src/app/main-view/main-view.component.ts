@@ -1,7 +1,7 @@
 import { Component, ElementRef, AfterViewInit, ViewChild, HostListener, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Draw } from '../draw.service';
-import { FormObject, LineObject } from '../interfaces';
+import { FormObject, FreeObject, LineObject } from '../interfaces';
 import * as THREE from 'three';
 
 @Component({
@@ -180,6 +180,22 @@ export class MainViewComponent implements AfterViewInit {
       edgeLine.position.copy(line.position);
       this.rootGroup.add(edgeLine);
     };
+    // const renderFreeFormObject = (isSelected: boolean) => {
+    //   // Freeform mit THREE.Shape erstellen
+    //   const shape = new THREE.Shape();
+    //   shape.moveTo(0, 0);
+    //   shape.lineTo(1, 0.2);
+    //   shape.quadraticCurveTo(1.5, 1, 0.8, 1.5);
+    //   shape.bezierCurveTo(0.5, 2, -0.5, 1.5, -0.8, 1.2);
+    //   shape.lineTo(-1, 0.5);
+    //   shape.lineTo(-0.5, -0.2);
+    //   shape.quadraticCurveTo(0, -0.5, 0, 0);
+
+    //   const geometry = new THREE.ShapeGeometry(shape);
+    //   const material = new THREE.MeshStandardMaterial({ color: isSelected ? selectedObjectColor.color : edgeColor, side: THREE.DoubleSide });
+    //   const mesh = new THREE.Mesh(geometry, material);
+    //   this.rootGroup.add(mesh);
+    // }
 
     data.forEach(el => {
       const isSelected = selectedObject && (selectedObject.id === el.id);
@@ -191,6 +207,7 @@ export class MainViewComponent implements AfterViewInit {
         renderFormObject(el, isSelected);
       }
     });
+    // renderFreeFormObject(false);
   }
 
   animate() {
