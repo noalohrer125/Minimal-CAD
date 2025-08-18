@@ -173,6 +173,12 @@ export class MainViewComponent implements AfterViewInit {
       line.userData = element;
       this.rootGroup.add(line);
       this.objects.push(line);
+
+      // Edgelines are just the line itself, but for consistency:
+      const edgeMaterial = new THREE.LineBasicMaterial({ color: isSelected ? selectedEdgeColor : edgeColor });
+      const edgeLine = new THREE.Line(geometry, edgeMaterial);
+      edgeLine.position.copy(line.position);
+      this.rootGroup.add(edgeLine);
     };
 
     data.forEach(el => {
