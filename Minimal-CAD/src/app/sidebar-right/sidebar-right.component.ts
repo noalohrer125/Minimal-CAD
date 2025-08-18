@@ -24,6 +24,8 @@ export class SidebarRightComponent implements OnInit {
   @Input() selectedObjectInput: (FormObject | LineObject)[] = [];
   @Output() positionChange = new EventEmitter<[number, number, number]>();
 
+  constructor(public elementRef: ElementRef, private drawService: Draw) { }
+
   private isDragging = false;
   private startX = 0;
   private startY = 0;
@@ -33,32 +35,30 @@ export class SidebarRightComponent implements OnInit {
   public selectedObject: FormObject | LineObject | any = {};
   public selectedObjectType!: 'Square' | 'Circle' | 'Line';
 
-  constructor(public elementRef: ElementRef, private drawService: Draw) {}
-
   public form: FormGroup = new FormGroup({
-      name: new FormControl('New Object'),
-      size: new FormGroup({
-        length: new FormControl(0),
-        height: new FormControl(0),
-        width: new FormControl(0),
-        radius: new FormControl(0)
-      }),
-      position: new FormGroup({
-        x: new FormControl(0),
-        y: new FormControl(0),
-        z: new FormControl(0)
-      }),
-      // For Line objects
-      start: new FormGroup({
-        x: new FormControl(0),
-        y: new FormControl(0),
-        z: new FormControl(0)
-      }),
-      end: new FormGroup({
-        x: new FormControl(0),
-        y: new FormControl(0),
-        z: new FormControl(0)
-      })
+    name: new FormControl('New Object'),
+    size: new FormGroup({
+      length: new FormControl(0),
+      height: new FormControl(0),
+      width: new FormControl(0),
+      radius: new FormControl(0)
+    }),
+    position: new FormGroup({
+      x: new FormControl(0),
+      y: new FormControl(0),
+      z: new FormControl(0)
+    }),
+    // For Line objects
+    start: new FormGroup({
+      x: new FormControl(0),
+      y: new FormControl(0),
+      z: new FormControl(0)
+    }),
+    end: new FormGroup({
+      x: new FormControl(0),
+      y: new FormControl(0),
+      z: new FormControl(0)
+    })
   });
 
   ngOnInit(): void {
@@ -204,7 +204,7 @@ export class SidebarRightComponent implements OnInit {
   }
 
   onDelete() {
-    if (window.confirm("You have unsaved changes. Are you sure you want to close the Editor?")) {
+    if (window.confirm("You are about to delete " + this.selectedObject.name + ". Are you sure you want to proceed?")) {
       localStorage.removeItem('selectedObject');
       let models: (FormObject | LineObject)[] = localStorage.getItem('model-data') ? JSON.parse(localStorage.getItem('model-data')!) : [];
       models = models.filter(model => model.id !== this.selectedObject.id);
@@ -217,11 +217,11 @@ export class SidebarRightComponent implements OnInit {
     this.isDragging = true;
     this.startX = event.clientX;
     this.startY = event.clientY;
-    
+
     const rect = this.elementRef.nativeElement.getBoundingClientRect();
     this.initialX = rect.left;
     this.initialY = rect.top;
-    
+
     event.preventDefault();
   }
 
@@ -231,40 +231,36 @@ export class SidebarRightComponent implements OnInit {
 
     const deltaX = event.clientX - this.startX;
     const deltaY = event.clientY - this.startY;
-    
     let newX = this.initialX + deltaX;
     let newY = this.initialY + deltaY;
-    
-    // Get the main-view bounds for constraining movement
+
+    // Get main-view bounds for constraining movement
     const mainView = document.querySelector('.main-view') as HTMLElement;
     const sidebar = this.elementRef.nativeElement;
-    
+
     if (mainView) {
       const mainViewRect = mainView.getBoundingClientRect();
       const sidebarRect = sidebar.getBoundingClientRect();
-      
+
       // Constrain X position (left and right boundaries)
       const minX = mainViewRect.left;
       const maxX = mainViewRect.right - sidebarRect.width;
       newX = Math.max(minX, Math.min(maxX, newX));
-      
+
       // Constrain Y position (top and bottom boundaries)
       const minY = mainViewRect.top;
       const maxY = mainViewRect.bottom - sidebarRect.height;
       newY = Math.max(minY, Math.min(maxY, newY));
     }
-    
-    // Update the element position
     this.elementRef.nativeElement.style.left = `${newX}px`;
     this.elementRef.nativeElement.style.top = `${newY}px`;
-    this.elementRef.nativeElement.style.right = 'auto'; // Override CSS right positioning
-    
-    // Emit position change (converting to your coordinate system if needed)
+    this.elementRef.nativeElement.style.right = 'auto';
+
     this.positionChange.emit([newX, newY, this.position[2]]);
   }
 
-  @HostListener('document:mouseup', ['$event'])
-  onMouseUp(event: MouseEvent) {
+  @HostListener('document:mouseup')
+  onMouseUp() {
     this.isDragging = false;
   }
 }

@@ -1,6 +1,5 @@
 :host {
   position: absolute;
-  background: #afafaf;
   padding: 10px;
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
@@ -17,15 +16,6 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-.move-icon {
-    cursor: pointer;
-}
-
-.move-icon:hover {
-    background-color: #fff;
-    border-radius: 10px;
-}
-
 .fieldset {
   display: flex;
   flex-direction: column;
@@ -33,10 +23,15 @@
 
 button {
   margin-top: 10px;
+  margin-right: 5px;
   padding: 5px;
   background-color: #e0e0e0;
   border: 1px solid #ccc;
   border-radius: 4px;
+
+  &:hover {
+    background-color: #c4c4c4;
+  }
 }
 
 input {

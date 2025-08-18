@@ -1,7 +1,4 @@
 <div class="tree">
-    <div class="shapes">
-
-    </div>
     <div class="objects">
         @for (object of objects; track $index) {
             <div class="object {{ object.id === selectedObject.id ? 'selectedObject' : ''}}" (click)="onClick(object)">

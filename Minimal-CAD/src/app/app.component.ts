@@ -7,8 +7,8 @@ import { CommonModule } from '@angular/common';
 import { MainViewComponent } from './main-view/main-view.component';
 import { FormObject, LineObject } from './interfaces';
 import { OnInit } from '@angular/core';
-import * as THREE from 'three';
 import { Draw } from './draw.service';
+import * as THREE from 'three';
 
 @Component({
   selector: 'app-root',
@@ -25,7 +25,7 @@ import { Draw } from './draw.service';
   styleUrl: './app.component.css'
 })
 export class AppComponent implements OnInit {
-  @ViewChild(MainViewComponent) mainView!: MainViewComponent; // Zugriff auf MainView
+  @ViewChild(MainViewComponent) mainView!: MainViewComponent;
 
   constructor(private drawservice: Draw) { }
 
@@ -38,7 +38,6 @@ export class AppComponent implements OnInit {
     this.selectedObject = localStorage.getItem('selectedObject') ? JSON.parse(localStorage.getItem('selectedObject')!) : null;
   }
 
-  // Drehen in MainView → Viewcube updaten
   onRotationChanged(rot: THREE.Euler) {
     this.currentRotation = rot;
     const view = this.drawservice.getView();
@@ -48,7 +47,6 @@ export class AppComponent implements OnInit {
     this.drawservice.setView(view);
   }
 
-  // Drehen im Viewcube → MainView updaten
   onViewcubeRotation(rot: THREE.Euler) {
     if (this.mainView) {
       this.mainView.setRotation(rot);

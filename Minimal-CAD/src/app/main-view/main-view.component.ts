@@ -9,30 +9,28 @@ import * as THREE from 'three';
   standalone: true,
   imports: [CommonModule],
   template: `<canvas #canvas></canvas>`,
-  styleUrls: ['./main-view.component.css']
+  styleUrl: './main-view.component.css'
 })
 export class MainViewComponent implements AfterViewInit {
   @Output() rotationChange = new EventEmitter<THREE.Euler>();
+  @ViewChild('canvas', { static: true }) canvasRef!: ElementRef;
 
   constructor(private drawservice: Draw) { }
-
-  @ViewChild('canvas', { static: true }) canvasRef!: ElementRef;
 
   private scene = new THREE.Scene();
   private camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
   private renderer = new THREE.WebGLRenderer({ antialias: true });
   private rootGroup = new THREE.Group();
+  private objects: THREE.Object3D[] = [];
 
   private raycaster = new THREE.Raycaster();
   private mouse = new THREE.Vector2();
-  private objects: THREE.Object3D[] = [];
-
   private rightClick = false;
   private middleClick = false;
 
   public setRotation(rot: THREE.Euler) {
     this.rootGroup.rotation.copy(rot);
-    this.rotationChange.emit(this.rootGroup.rotation.clone()); // optional, falls nötig
+    this.rotationChange.emit(this.rootGroup.rotation.clone());
   }
 
   init() {
@@ -40,10 +38,11 @@ export class MainViewComponent implements AfterViewInit {
       canvas: this.canvasRef.nativeElement,
       antialias: true,
     });
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    const withOffset = window.innerWidth * 0.1;
+    const heightOffset = Math.max(window.innerHeight * 0.08, 80);
+    this.renderer.setSize(window.innerWidth - withOffset, window.innerHeight - heightOffset);
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    // this.scene.background = new THREE.Color(0xd9d9d9);
 
     const loader = new THREE.TextureLoader();
     loader.load('/bg-image.jpg', (texture) => {
@@ -54,13 +53,13 @@ export class MainViewComponent implements AfterViewInit {
     const divisions = 10;
     const gridColor = 0xf5f8fa;
     const gridCenterLineColor = 0xb9cee4;
-  const gridHelper = new THREE.GridHelper(size, divisions, gridCenterLineColor, gridColor);
-  gridHelper.position.set(0, 0, 0);
-  gridHelper.rotation.x = Math.PI / 2;
-  // Grid casts and receives shadows
-  (gridHelper as any).castShadow = true;
-  (gridHelper as any).receiveShadow = true;
-  this.rootGroup.add(gridHelper);
+    const gridHelper = new THREE.GridHelper(size, divisions, gridCenterLineColor, gridColor);
+
+    gridHelper.position.set(0, 0, 0);
+    gridHelper.rotation.x = Math.PI / 2;
+    (gridHelper as any).castShadow = true;
+    (gridHelper as any).receiveShadow = true;
+    this.rootGroup.add(gridHelper);
 
     const view = this.drawservice.getView();
     this.camera.position.set(view.camera.position.x, view.camera.position.y, view.camera.position.z);
@@ -71,17 +70,14 @@ export class MainViewComponent implements AfterViewInit {
     this.camera.up.set(0, 1, 0);
     this.camera.lookAt(0, 0, 0);
 
-    // Ambient light for general illumination
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
 
-    // Directional light to simulate sunlight
     const directionalLight = new THREE.DirectionalLight(0xffffff, 5);
     directionalLight.position.set(10, 15, 5);
     directionalLight.castShadow = true;
     directionalLight.shadow.mapSize.width = 1024;
     directionalLight.shadow.mapSize.height = 1024;
 
-    // Soft fill light from the opposite side
     const fillLight = new THREE.PointLight(0xffffff, 100);
     fillLight.position.set(-10, -10, 5);
 
@@ -123,7 +119,7 @@ export class MainViewComponent implements AfterViewInit {
         mesh.receiveShadow = true;
         this.rootGroup.add(mesh);
         this.objects.push(mesh);
-        
+
         const edges = new THREE.EdgesGeometry(geometry);
         const line = new THREE.LineSegments(
           edges,
@@ -189,11 +185,6 @@ export class MainViewComponent implements AfterViewInit {
         renderFormObject(el, isSelected);
       }
     });
-
-    // Freeform
-    // else if (element.type === 'Freeform') {
-    //   Comming soon: Freeform objects will be implemented later
-    // }
   }
 
   animate() {
@@ -227,66 +218,66 @@ export class MainViewComponent implements AfterViewInit {
     });
   }
 
-onMouseMove(event: MouseEvent, button: string) {
-  const view = this.drawservice.getView();
-  if (button === 'right') {
-    this.rootGroup.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), event.movementX * 0.01);
-    this.rootGroup.rotation.x += event.movementY * 0.01;
-    this.rotationChange.emit(this.rootGroup.rotation.clone());
-    view.rootGroup.rotation.x = this.rootGroup.rotation.x;
-    view.rootGroup.rotation.y = this.rootGroup.rotation.y;
-    view.rootGroup.rotation.z = this.rootGroup.rotation.z;
-  } else if (button === 'middle') {
-    this.rootGroup.position.y -= event.movementY * 0.01;
-    this.rootGroup.position.x += event.movementX * 0.01;
-    view.rootGroup.position.x = this.rootGroup.position.x;
-    view.rootGroup.position.y = this.rootGroup.position.y;
-    view.rootGroup.position.z = this.rootGroup.position.z;
-  }
-  this.drawservice.setView(view);
-}
-
-onMouseWheel(event: WheelEvent) {
-  const zoomFactor = 1.1;
-  const view = this.drawservice.getView();
-  if (event.deltaY < 0) {
-    // Zoom in
-    this.rootGroup.scale.multiplyScalar(zoomFactor);
-  } else if (event.deltaY > 0) {
-    // Zoom out
-    this.rootGroup.scale.multiplyScalar(1 / zoomFactor);
-  }
-  view.rootGroup.scale = this.rootGroup.scale;
-  this.drawservice.setView(view);
-}
-
-onClick(event: MouseEvent) {
-  const rect = this.canvasRef.nativeElement.getBoundingClientRect();
-  this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-  this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-  this.raycaster.setFromCamera(this.mouse, this.camera);
-  const intersects = this.raycaster.intersectObjects(this.objects);
-  if (intersects.length > 0) {
-    const selected = intersects[0].object;
-    const originalData = selected.userData as FormObject | LineObject;
-    const selectedObject = JSON.parse(localStorage.getItem('selectedObject') || '{}') as FormObject | LineObject;
-    if (selectedObject && selectedObject.id === originalData.id) {
-      return;
+  onMouseMove(event: MouseEvent, button: string) {
+    const view = this.drawservice.getView();
+    if (button === 'right') {
+      this.rootGroup.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), event.movementX * 0.01);
+      this.rootGroup.rotation.x += event.movementY * 0.01;
+      this.rotationChange.emit(this.rootGroup.rotation.clone());
+      view.rootGroup.rotation.x = this.rootGroup.rotation.x;
+      view.rootGroup.rotation.y = this.rootGroup.rotation.y;
+      view.rootGroup.rotation.z = this.rootGroup.rotation.z;
+    } else if (button === 'middle') {
+      this.rootGroup.position.y -= event.movementY * 0.01;
+      this.rootGroup.position.x += event.movementX * 0.01;
+      view.rootGroup.position.x = this.rootGroup.position.x;
+      view.rootGroup.position.y = this.rootGroup.position.y;
+      view.rootGroup.position.z = this.rootGroup.position.z;
     }
-    localStorage.setItem('selectedObject', JSON.stringify(originalData));
-  } else {
-    localStorage.removeItem('selectedObject');
+    this.drawservice.setView(view);
   }
-  this.clearScene();
-  this.loadModels();
-  location.reload();
-}
 
-clearScene() {
-  this.objects.forEach(obj => this.scene.remove(obj));
-  this.objects = [];
-}
+  onMouseWheel(event: WheelEvent) {
+    const zoomFactor = 1.1;
+    const view = this.drawservice.getView();
+    if (event.deltaY < 0) {
+      // Zoom in
+      this.rootGroup.scale.multiplyScalar(zoomFactor);
+    } else if (event.deltaY > 0) {
+      // Zoom out
+      this.rootGroup.scale.multiplyScalar(1 / zoomFactor);
+    }
+    view.rootGroup.scale = this.rootGroup.scale;
+    this.drawservice.setView(view);
+  }
+
+  onClick(event: MouseEvent) {
+    const rect = this.canvasRef.nativeElement.getBoundingClientRect();
+    this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+    this.raycaster.setFromCamera(this.mouse, this.camera);
+    const intersects = this.raycaster.intersectObjects(this.objects);
+    if (intersects.length > 0) {
+      const selected = intersects[0].object;
+      const originalData = selected.userData as FormObject | LineObject;
+      const selectedObject = JSON.parse(localStorage.getItem('selectedObject') || '{}') as FormObject | LineObject;
+      if (selectedObject && selectedObject.id === originalData.id) {
+        return;
+      }
+      localStorage.setItem('selectedObject', JSON.stringify(originalData));
+    } else {
+      localStorage.removeItem('selectedObject');
+    }
+    this.clearScene();
+    this.loadModels();
+    location.reload();
+  }
+
+  clearScene() {
+    this.objects.forEach(obj => this.scene.remove(obj));
+    this.objects = [];
+  }
 
   @HostListener('window:resize')
   onResize() {

@@ -1,5 +1,4 @@
-import { Injectable, model } from '@angular/core';
-import { FormObject, LineObject } from './interfaces';
+import { Injectable } from '@angular/core';
 
 @Injectable({
     providedIn: 'root'

@@ -10,7 +10,6 @@ import { Draw } from '../draw.service';
 export class ViewcubeComponent implements AfterViewInit {
   @Input() rotation!: THREE.Euler;
   @Output() rotationChange = new EventEmitter<THREE.Euler>();
-
   @ViewChild('canvas', { static: true }) canvasRef!: ElementRef;
 
   constructor(private drawservice: Draw) { }
@@ -18,6 +17,7 @@ export class ViewcubeComponent implements AfterViewInit {
   private scene = new THREE.Scene();
   private camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
   private renderer!: THREE.WebGLRenderer;
+  private size = Math.min(window.innerWidth, window.innerHeight) * 0.15;
   private cube!: THREE.Mesh;
   private cornerSpheres: THREE.Mesh[] = [];
   private raycaster = new THREE.Raycaster();
@@ -34,7 +34,7 @@ export class ViewcubeComponent implements AfterViewInit {
 
   ngAfterViewInit() {
     this.renderer = new THREE.WebGLRenderer({ canvas: this.canvasRef.nativeElement, alpha: true, antialias: true });
-    this.renderer.setSize(150, 150);
+    this.renderer.setSize(this.size, this.size);
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
@@ -59,16 +59,15 @@ export class ViewcubeComponent implements AfterViewInit {
     const light = new THREE.DirectionalLight(0xffffff, 10);
     light.position.set(5, 5, 2);
     light.castShadow = true;
-    this.scene.add(light);
 
     const light2 = new THREE.DirectionalLight(0xffffff, 1);
     light2.position.set(-5, -5, -2);
     light2.castShadow = true;
-    this.scene.add(light2);
+
+    this.scene.add(light, light2);
 
     this.addAxesArrows();
     this.addCornerSpheres();
-    this.canvasRef.nativeElement.addEventListener('click', (event: MouseEvent) => this.onClick(event));
 
     this.camera.up.set(0, 1, 0);
     const view = this.drawservice.getView();
@@ -76,13 +75,13 @@ export class ViewcubeComponent implements AfterViewInit {
     this.cube.rotation.y = view.rootGroup.rotation.y;
     this.cube.rotation.z = view.rootGroup.rotation.z;
 
+    this.canvasRef.nativeElement.addEventListener('click', (event: MouseEvent) => this.onClick(event));
     this.animate();
   }
 
   private addCornerSpheres() {
     const sphereGeom = new THREE.SphereGeometry(0.1, 50, 50);
     const sphereMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5, metalness: 2 });
-
     const offsets = [
       [+0.5, +0.5, +0.5],
       [+0.5, +0.5, -0.5],
@@ -93,7 +92,6 @@ export class ViewcubeComponent implements AfterViewInit {
       [-0.5, -0.5, +0.5],
       [-0.5, -0.5, -0.5],
     ];
-
     offsets.forEach((pos, index) => {
       const sphere = new THREE.Mesh(sphereGeom, sphereMat.clone());
       sphere.position.set(pos[0], pos[1], pos[2]);
@@ -109,7 +107,6 @@ export class ViewcubeComponent implements AfterViewInit {
     const length = 1.5; // Pfeillänge
     const headLength = 0.2;
     const headWidth = 0.2;
-
     const arrowX = new THREE.ArrowHelper(
       new THREE.Vector3(1, 0, 0), // Richtung X
       new THREE.Vector3(-0.6, -0.6, -0.6), // Ursprung
@@ -118,7 +115,6 @@ export class ViewcubeComponent implements AfterViewInit {
       headLength,
       headWidth
     );
-
     const arrowY = new THREE.ArrowHelper(
       new THREE.Vector3(0, 1, 0),
       new THREE.Vector3(-0.6, -0.6, -0.6),
@@ -127,7 +123,6 @@ export class ViewcubeComponent implements AfterViewInit {
       headLength,
       headWidth
     );
-
     const arrowZ = new THREE.ArrowHelper(
       new THREE.Vector3(0, 0, 1),
       new THREE.Vector3(-0.6, -0.6, -0.6),
@@ -138,19 +133,16 @@ export class ViewcubeComponent implements AfterViewInit {
     );
 
     // Prevent arrows from interfering with raycasting
-    (arrowX as any).raycast = () => {};
-    (arrowY as any).raycast = () => {};
-    (arrowZ as any).raycast = () => {};
+    (arrowX as any).raycast = () => { };
+    (arrowY as any).raycast = () => { };
+    (arrowZ as any).raycast = () => { };
 
     // An den Cube hängen, damit sie sich mitdrehen
-    this.cube.add(arrowX);
-    this.cube.add(arrowY);
-    this.cube.add(arrowZ);
+    this.cube.add(arrowX, arrowY, arrowZ);
   }
 
   animate() {
     requestAnimationFrame(() => this.animate());
-
     if (this.animating) {
       this.cube.quaternion.slerp(this.targetQuat, 0.1);
       if (this.cube.quaternion.angleTo(this.targetQuat) < 0.001) {
@@ -158,7 +150,6 @@ export class ViewcubeComponent implements AfterViewInit {
         this.animating = false;
       }
     }
-
     this.renderer.render(this.scene, this.camera);
   }
 
@@ -188,7 +179,6 @@ export class ViewcubeComponent implements AfterViewInit {
       if (cubeIntersect) {
         const faceIndex = Math.floor(cubeIntersect.faceIndex! / 2);
         const newRot = new THREE.Euler();
-
         switch (faceIndex) {
           case 0: newRot.set(-Math.PI / 2, 0, -Math.PI / 2); break; // right
           case 1: newRot.set(-Math.PI / 2, 0, Math.PI / 2); break;  // left
@@ -197,7 +187,6 @@ export class ViewcubeComponent implements AfterViewInit {
           case 4: newRot.set(0, 0, 0); break;                       // top
           case 5: newRot.set(0, Math.PI, Math.PI); break;           // bottom
         }
-
         this.targetQuat.setFromEuler(newRot);
         this.animating = true;
         this.rotationChange.emit(newRot);
