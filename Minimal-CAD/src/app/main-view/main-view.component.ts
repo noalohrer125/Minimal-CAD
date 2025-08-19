@@ -201,7 +201,7 @@ export class MainViewComponent implements AfterViewInit {
       });
 
       // Optional: aus Shape ein Mesh bauen
-      const geometry = new THREE.ShapeGeometry(shape);
+      const geometry = new THREE.ShapeGeometry(shape, 64);
       const material = new THREE.MeshStandardMaterial({
         color: isSelected ? selectedObjectColor.color : objectColor.color,
         side: THREE.DoubleSide
