@@ -184,7 +184,7 @@ export class MainViewComponent implements AfterViewInit {
       const shape = new THREE.Shape();
       let lastX = 0, lastY = 0;
 
-      const newCurves: THREE.Vector3[][] = []; // sammelt Punkte von "gelben" Linien/Kurven
+      const newCurves: THREE.Vector3[][] = [];
 
       const renderCommand = (cmd: FreeObjectCommand) => {
         switch (cmd.type) {
@@ -195,7 +195,10 @@ export class MainViewComponent implements AfterViewInit {
           case 'lineTo':
             shape.lineTo(cmd.x, cmd.y);
             if (cmd.new) {
-              newCurves.push([new THREE.Vector3(lastX, lastY, 0), new THREE.Vector3(cmd.x, cmd.y, 0)]);
+              newCurves.push([
+                new THREE.Vector3(lastX, lastY, 0),
+                new THREE.Vector3(cmd.x, cmd.y, 0)
+              ]);
             }
             lastX = cmd.x; lastY = cmd.y;
             break;
