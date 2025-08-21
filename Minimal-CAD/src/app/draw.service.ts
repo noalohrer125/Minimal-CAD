@@ -95,19 +95,22 @@ export class Draw {
         {
           type: 'moveTo',
           x: 0,
-          y: 0
+          y: 0,
+          new: false
         },
         {
           type: 'lineTo',
           x: 1,
-          y: 0
+          y: 0,
+          new: false
         },
         {
           type: 'quadraticCurveTo',
           cpX: 0.5,
           cpY: 1,
           x: 0,
-          y: 0
+          y: 0,
+          new: false
         }
       ],
       position: [0, 0, 0],

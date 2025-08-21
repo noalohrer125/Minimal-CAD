@@ -24,6 +24,7 @@ export type FreeObjectCommand =
         type: 'moveTo' | 'lineTo';
         x: number;
         y: number;
+        new: boolean;
     }
     | {
         type: 'quadraticCurveTo';
@@ -31,6 +32,7 @@ export type FreeObjectCommand =
         cpY: number;
         x: number;
         y: number;
+        new: boolean;
     }
     | {
         type: 'bezierCurveTo';
@@ -40,6 +42,7 @@ export type FreeObjectCommand =
         cp2Y: number;
         x: number;
         y: number;
+        new: boolean;
     };
 
 export interface FreeObject {

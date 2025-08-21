@@ -1,7 +1,7 @@
 import { Component, ElementRef, AfterViewInit, ViewChild, HostListener, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Draw } from '../draw.service';
-import { FormObject, FreeObject, LineObject } from '../interfaces';
+import { FormObject, FreeObject, FreeObjectCommand, LineObject } from '../interfaces';
 import * as THREE from 'three';
 
 @Component({
@@ -182,39 +182,76 @@ export class MainViewComponent implements AfterViewInit {
     };
     const renderFreeFormObject = (element: FreeObject, isSelected: boolean) => {
       const shape = new THREE.Shape();
+      let lastX = 0, lastY = 0;
 
-      element.commands.forEach(cmd => {
+      const newCurves: THREE.Vector3[][] = []; // sammelt Punkte von "gelben" Linien/Kurven
+
+      const renderCommand = (cmd: FreeObjectCommand) => {
         switch (cmd.type) {
           case 'moveTo':
             shape.moveTo(cmd.x, cmd.y);
+            lastX = cmd.x; lastY = cmd.y;
             break;
           case 'lineTo':
             shape.lineTo(cmd.x, cmd.y);
+            if (cmd.new) {
+              newCurves.push([new THREE.Vector3(lastX, lastY, 0), new THREE.Vector3(cmd.x, cmd.y, 0)]);
+            }
+            lastX = cmd.x; lastY = cmd.y;
             break;
           case 'quadraticCurveTo':
             shape.quadraticCurveTo(cmd.cpX, cmd.cpY, cmd.x, cmd.y);
+            if (cmd.new) {
+              const curve = new THREE.QuadraticBezierCurve(
+                new THREE.Vector2(lastX, lastY),
+                new THREE.Vector2(cmd.cpX, cmd.cpY),
+                new THREE.Vector2(cmd.x, cmd.y)
+              );
+              const pts = curve.getPoints(32).map(p => new THREE.Vector3(p.x, p.y, 0));
+              newCurves.push(pts);
+            }
+            lastX = cmd.x; lastY = cmd.y;
             break;
           case 'bezierCurveTo':
             shape.bezierCurveTo(cmd.cp1X, cmd.cp1Y, cmd.cp2X, cmd.cp2Y, cmd.x, cmd.y);
+            if (cmd.new) {
+              const curve = new THREE.CubicBezierCurve(
+                new THREE.Vector2(lastX, lastY),
+                new THREE.Vector2(cmd.cp1X, cmd.cp1Y),
+                new THREE.Vector2(cmd.cp2X, cmd.cp2Y),
+                new THREE.Vector2(cmd.x, cmd.y)
+              );
+              const pts = curve.getPoints(32).map(p => new THREE.Vector3(p.x, p.y, 0));
+              newCurves.push(pts);
+            }
+            lastX = cmd.x; lastY = cmd.y;
             break;
         }
-      });
+      };
 
-      // Optional: aus Shape ein Mesh bauen
+      element.commands.forEach((cmd) => renderCommand(cmd));
+
       const geometry = new THREE.ShapeGeometry(shape, 64);
       const material = new THREE.MeshStandardMaterial({
         color: isSelected ? selectedObjectColor.color : objectColor.color,
         side: THREE.DoubleSide
       });
       const mesh = new THREE.Mesh(geometry, material);
-
-      // Position/Rotation setzen
       mesh.position.set(...element.position);
-      if (element.rotation) {
-        mesh.rotation.set(...element.rotation);
-      }
-
+      if (element.rotation) mesh.rotation.set(...element.rotation);
       this.rootGroup.add(mesh);
+
+      // Gelbe Overlays für alle "new"-Kurven
+      if (newCurves.length > 0) {
+        const material2 = new THREE.LineBasicMaterial({ color: 0xffff00 });
+        newCurves.forEach(points => {
+          const geo = new THREE.BufferGeometry().setFromPoints(points);
+          const line = new THREE.Line(geo, material2);
+          line.position.set(...element.position);
+          if (element.rotation) line.rotation.set(...element.rotation);
+          this.rootGroup.add(line);
+        });
+      }
     };
 
     data.forEach(el => {
