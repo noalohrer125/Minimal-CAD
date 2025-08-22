@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter, HostListener, ElementRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { FormObject, LineObject } from '../interfaces';
+import { FormObject, LineObject, FreeObject, FreeObjectCommand } from '../interfaces';
 import { FormGroup, FormControl } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { debounceTime } from 'rxjs';
@@ -35,6 +35,8 @@ export class SidebarRightComponent implements OnInit {
   public selectedObject: FormObject | LineObject | any = {};
   public selectedObjectType!: 'Square' | 'Circle' | 'Line';
 
+  public commands: FreeObjectCommand[] = [];
+
   public form: FormGroup = new FormGroup({
     name: new FormControl('New Object'),
     size: new FormGroup({
@@ -58,6 +60,22 @@ export class SidebarRightComponent implements OnInit {
       x: new FormControl(0),
       y: new FormControl(0),
       z: new FormControl(0)
+    }),
+    // For Freeform objects
+    commands: new FormGroup({
+      type: new FormControl<'moveTo' | 'lineTo' | 'quadraticCurveTo' | 'bezierCurveTo'>('moveTo'),
+      new: new FormControl(false),
+      // shared
+      x: new FormControl(0),
+      y: new FormControl(0),
+      // quadratic
+      cpX: new FormControl(0),
+      cpY: new FormControl(0),
+      // bezier
+      cp1X: new FormControl(0),
+      cp1Y: new FormControl(0),
+      cp2X: new FormControl(0),
+      cp2Y: new FormControl(0),
     })
   });
 
@@ -152,6 +170,10 @@ export class SidebarRightComponent implements OnInit {
       }
       this.form.patchValue(patch);
     }
+  }
+
+  removeCommand(index: number) {
+    this.commands.splice(index, 1);
   }
 
   onClose() {

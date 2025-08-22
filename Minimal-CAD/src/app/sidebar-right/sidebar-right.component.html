@@ -6,8 +6,50 @@
             <mat-icon (click)="onClose()">close</mat-icon>
         </div>
         @if (selectedObject.type === 'Freeform') {
-            <fieldset>
-                
+            <fieldset class="fieldset" formGroupName="commands">
+                <legend>Commands</legend>
+                @for (item of commands; track $index) {
+                    <div [formGroupName]="$index" class="command-group">
+                        <label>
+                            Type:
+                            <select formControlName="type">
+                                <option value="moveTo">moveTo</option>
+                                <option value="lineTo">lineTo</option>
+                                <option value="quadraticCurveTo">quadraticCurveTo</option>
+                                <option value="bezierCurveTo">bezierCurveTo</option>
+                            </select>
+                        </label>
+                        <label>
+                            X:
+                            <input type="number" formControlName="x">
+                        </label>
+                        <label>
+                            Y:
+                            <input type="number" formControlName="y">
+                        </label>
+                        @if (item.type === 'quadraticCurveTo' || item.type === 'bezierCurveTo') {
+                            <label>
+                                Control X1:
+                                <input type="number" formControlName="cp1x">
+                            </label>
+                            <label>
+                                Control Y1:
+                                <input type="number" formControlName="cp1y">
+                            </label>
+                        }
+                        @if (item.type === 'bezierCurveTo') {
+                            <label>
+                                Control X2:
+                                <input type="number" formControlName="cp2x">
+                            </label>
+                            <label>
+                                Control Y2:
+                                <input type="number" formControlName="cp2y">
+                            </label>
+                        }
+                        <button type="button" (click)="removeCommand($index)">Remove</button>
+                    </div>
+                }
             </fieldset>
         } @else if (selectedObject.type !== 'Line') {
             <fieldset class="fieldset" formGroupName="size">
