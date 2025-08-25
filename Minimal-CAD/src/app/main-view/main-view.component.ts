@@ -184,8 +184,6 @@ export class MainViewComponent implements AfterViewInit {
       const shape = new THREE.Shape();
       let lastX = 0, lastY = 0;
 
-      const newCurves: THREE.Vector3[][] = [];
-
       const renderCommand = (cmd: FreeObjectCommand) => {
         switch (cmd.type) {
           case 'moveTo':
@@ -194,12 +192,6 @@ export class MainViewComponent implements AfterViewInit {
             break;
           case 'lineTo':
             shape.lineTo(cmd.x, cmd.y);
-            if (cmd.new) {
-              newCurves.push([
-                new THREE.Vector3(lastX, lastY, 0),
-                new THREE.Vector3(cmd.x, cmd.y, 0)
-              ]);
-            }
             lastX = cmd.x; lastY = cmd.y;
             break;
           case 'quadraticCurveTo':
@@ -212,16 +204,6 @@ export class MainViewComponent implements AfterViewInit {
               2 * P1.y - 0.5 * (P0.y + P2.y)
             );
             shape.quadraticCurveTo(C.x, C.y, P2.x, P2.y);
-
-            if (cmd.new) {
-              const curve = new THREE.QuadraticBezierCurve(
-                new THREE.Vector2(P0.x, P0.y),
-                new THREE.Vector2(C.x, C.y),
-                new THREE.Vector2(P2.x, P2.y)
-              );
-              const pts = curve.getPoints(32).map(p => new THREE.Vector3(p.x, p.y, 0));
-              newCurves.push(pts);
-            }
             lastX = cmd.x; lastY = cmd.y;
             break;
         }
@@ -229,9 +211,9 @@ export class MainViewComponent implements AfterViewInit {
 
       element.commands.forEach((cmd) => renderCommand(cmd));
 
-      const geometry = new THREE.ShapeGeometry(shape, 64);
+      const geometry = new THREE.ShapeGeometry(shape, 1000);
       const material = new THREE.MeshStandardMaterial({
-        color: isSelected ? selectedObjectColor.color : objectColor.color,
+        ...(isSelected ? selectedObjectColor : objectColor),
         side: THREE.DoubleSide
       });
       const mesh = new THREE.Mesh(geometry, material);
@@ -239,16 +221,20 @@ export class MainViewComponent implements AfterViewInit {
       if (element.rotation) mesh.rotation.set(...element.rotation);
       this.rootGroup.add(mesh);
 
-      // Gelbe Overlays für alle "new"-Kurven
-      if (newCurves.length > 0) {
-        const material2 = new THREE.LineBasicMaterial({ color: 0xffff00 });
-        newCurves.forEach(points => {
-          const geo = new THREE.BufferGeometry().setFromPoints(points);
-          const line = new THREE.Line(geo, material2);
-          line.position.set(...element.position);
-          if (element.rotation) line.rotation.set(...element.rotation);
-          this.rootGroup.add(line);
-        });
+      const edgeLineMaterial = new THREE.LineBasicMaterial({ color: isSelected ? selectedEdgeColor : edgeColor });
+      // Get outline points from shape
+      const outlinePoints = shape.getPoints(1000);
+      if (outlinePoints.length > 1) {
+        const edgeLinePoints = outlinePoints.map(pt => new THREE.Vector3(pt.x, pt.y, 0));
+        // Close the loop if needed
+        if (!outlinePoints[0].equals(outlinePoints[outlinePoints.length - 1])) {
+          edgeLinePoints.push(new THREE.Vector3(outlinePoints[0].x, outlinePoints[0].y, 0));
+        }
+        const edgeGeom = new THREE.BufferGeometry().setFromPoints(edgeLinePoints);
+        const edgeLine = new THREE.Line(edgeGeom, edgeLineMaterial);
+        edgeLine.position.set(...element.position);
+        if (element.rotation) edgeLine.rotation.set(...element.rotation);
+        this.rootGroup.add(edgeLine);
       }
     };
 
