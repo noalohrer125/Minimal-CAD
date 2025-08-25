@@ -207,7 +207,10 @@ export class MainViewComponent implements AfterViewInit {
             let P1 = new THREE.Vector2(cmd.cpX, cmd.cpY);
             let P2 = new THREE.Vector2(cmd.x, cmd.y);
 
-            const C = new THREE.Vector2(2 * P1.x - 0.5 * (P0.x + P2.x), 2 * P1.y - 0.5 * (P0.y + P2.y));
+            const C = new THREE.Vector2(
+              2 * P1.x - 0.5 * (P0.x + P2.x),
+              2 * P1.y - 0.5 * (P0.y + P2.y)
+            );
             shape.quadraticCurveTo(C.x, C.y, P2.x, P2.y);
 
             if (cmd.new) {
@@ -215,20 +218,6 @@ export class MainViewComponent implements AfterViewInit {
                 new THREE.Vector2(P0.x, P0.y),
                 new THREE.Vector2(C.x, C.y),
                 new THREE.Vector2(P2.x, P2.y)
-              );
-              const pts = curve.getPoints(32).map(p => new THREE.Vector3(p.x, p.y, 0));
-              newCurves.push(pts);
-            }
-            lastX = cmd.x; lastY = cmd.y;
-            break;
-          case 'bezierCurveTo':
-            shape.bezierCurveTo(cmd.cp1X, cmd.cp1Y, cmd.cp2X, cmd.cp2Y, cmd.x, cmd.y);
-            if (cmd.new) {
-              const curve = new THREE.CubicBezierCurve(
-                new THREE.Vector2(lastX, lastY),
-                new THREE.Vector2(cmd.cp1X, cmd.cp1Y),
-                new THREE.Vector2(cmd.cp2X, cmd.cp2Y),
-                new THREE.Vector2(cmd.x, cmd.y)
               );
               const pts = curve.getPoints(32).map(p => new THREE.Vector3(p.x, p.y, 0));
               newCurves.push(pts);

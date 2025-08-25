@@ -81,11 +81,6 @@ export class SidebarRightComponent implements OnInit {
     if (cmd?.type === 'quadraticCurveTo') {
       group.cpX = new FormControl((cmd as any)?.cpX ?? 0);
       group.cpY = new FormControl((cmd as any)?.cpY ?? 0);
-    } else if (cmd?.type === 'bezierCurveTo') {
-      group.cp1X = new FormControl((cmd as any)?.cp1X ?? (cmd as any)?.cp1x ?? 0);
-      group.cp1Y = new FormControl((cmd as any)?.cp1Y ?? (cmd as any)?.cp1y ?? 0);
-      group.cp2X = new FormControl((cmd as any)?.cp2X ?? (cmd as any)?.cp2x ?? 0);
-      group.cp2Y = new FormControl((cmd as any)?.cp2Y ?? (cmd as any)?.cp2y ?? 0);
     }
     return new FormGroup(group);
   }

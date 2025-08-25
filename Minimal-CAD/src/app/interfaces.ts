@@ -33,16 +33,6 @@ export type FreeObjectCommand =
         x: number;
         y: number;
         new: boolean;
-    }
-    | {
-        type: 'bezierCurveTo';
-        cp1X: number;
-        cp1Y: number;
-        cp2X: number;
-        cp2Y: number;
-        x: number;
-        y: number;
-        new: boolean;
     };
 
 export interface FreeObject {

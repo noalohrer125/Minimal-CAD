@@ -16,7 +16,6 @@
                                 <option value="moveTo">moveTo</option>
                                 <option value="lineTo">lineTo</option>
                                 <option value="quadraticCurveTo">quadraticCurveTo</option>
-                                <option value="bezierCurveTo">bezierCurveTo</option>
                             </select>
                         </label>
                         <label>
@@ -35,23 +34,6 @@
                             <label>
                                 Control Y:
                                 <input type="number" formControlName="cpY" />
-                            </label>
-                        } @if (item.value.type === 'bezierCurveTo') {
-                            <label>
-                                Control X1:
-                                <input type="number" formControlName="cp1X" />
-                            </label>
-                            <label>
-                                Control Y1:
-                                <input type="number" formControlName="cp1Y" />
-                            </label>
-                            <label>
-                                Control X2:
-                                <input type="number" formControlName="cp2X" />
-                            </label>
-                            <label>
-                                Control Y2:
-                                <input type="number" formControlName="cp2Y" />
                             </label>
                         }
                         <button type="button" (click)="removeCommand($index)"><mat-icon>delete</mat-icon></button>
