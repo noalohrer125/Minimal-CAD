@@ -63,6 +63,7 @@ export class SidebarRightComponent implements OnInit {
 
     this.form.valueChanges.pipe(debounceTime(1000)).subscribe(() => {
       this.saveToLocalStorage();
+      window.location.reload(); // Reload page after user stops typing and changes are saved
     });
   }
 
