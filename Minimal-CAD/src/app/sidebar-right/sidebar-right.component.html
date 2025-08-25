@@ -6,9 +6,9 @@
             <mat-icon (click)="onClose()">close</mat-icon>
         </div>
         @if (selectedObject.type === 'Freeform') {
-            <fieldset class="fieldset" formGroupName="commands">
+            <fieldset class="fieldset" formArrayName="commands">
                 <legend>Commands</legend>
-                @for (item of commands; track $index) {
+                @for (item of commands.controls; track $index) {
                     <div [formGroupName]="$index" class="command-group">
                         <label>
                             Type:
@@ -21,73 +21,74 @@
                         </label>
                         <label>
                             X:
-                            <input type="number" formControlName="x">
+                            <input type="number" formControlName="x" />
                         </label>
                         <label>
                             Y:
-                            <input type="number" formControlName="y">
+                            <input type="number" formControlName="y" />
                         </label>
-                        @if (item.type === 'quadraticCurveTo' || item.type === 'bezierCurveTo') {
+                        @if (item.value.type === 'quadraticCurveTo') {
+                            <label>
+                                Control X:
+                                <input type="number" formControlName="cpX" />
+                            </label>
+                            <label>
+                                Control Y:
+                                <input type="number" formControlName="cpY" />
+                            </label>
+                        } @if (item.value.type === 'bezierCurveTo') {
                             <label>
                                 Control X1:
-                                <input type="number" formControlName="cp1x">
+                                <input type="number" formControlName="cp1X" />
                             </label>
                             <label>
                                 Control Y1:
-                                <input type="number" formControlName="cp1y">
+                                <input type="number" formControlName="cp1Y" />
                             </label>
-                        }
-                        @if (item.type === 'bezierCurveTo') {
                             <label>
                                 Control X2:
-                                <input type="number" formControlName="cp2x">
+                                <input type="number" formControlName="cp2X" />
                             </label>
                             <label>
                                 Control Y2:
-                                <input type="number" formControlName="cp2y">
+                                <input type="number" formControlName="cp2Y" />
                             </label>
                         }
-                        <button type="button" (click)="removeCommand($index)">Remove</button>
+                        <button type="button" (click)="removeCommand($index)"><mat-icon>delete</mat-icon></button>
                     </div>
                 }
+                <button type="button" (click)="addCommand()">Add Command</button>
             </fieldset>
         } @else if (selectedObject.type !== 'Line') {
             <fieldset class="fieldset" formGroupName="size">
                 <legend>Size</legend>
                 @if (selectedObject.type !== 'Circle') {
                     <label>
-                        Length:
-                        <input type="number" formControlName="length">
+                        Length: <input type="number" formControlName="length" />
                     </label>
                     <label>
-                        Width:
-                        <input type="number" formControlName="width">
+                        Width: <input type="number" formControlName="width" />
                     </label>
                 }
                 <label>
-                    Height:
-                    <input type="number" formControlName="height">
+                    Height: <input type="number" formControlName="height" />
                 </label>
                 @if (selectedObject.type === 'Circle') {
                     <label>
-                        Radius:
-                        <input type="number" formControlName="radius">
+                        Radius: <input type="number" formControlName="radius" />
                     </label>
                 }
             </fieldset>
             <fieldset class="fieldset" formGroupName="position">
                 <legend>Position</legend>
                 <label>
-                    X:
-                    <input type="number" formControlName="x">
+                    X: <input type="number" formControlName="x" />
                 </label>
                 <label>
-                    Y:
-                    <input type="number" formControlName="y">
+                    Y: <input type="number" formControlName="y" />
                 </label>
                 <label>
-                    Z:
-                    <input type="number" formControlName="z">
+                    Z: <input type="number" formControlName="z" />
                 </label>
             </fieldset>
         }

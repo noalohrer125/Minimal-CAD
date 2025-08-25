@@ -1,8 +1,7 @@
 import { Component, Input, Output, EventEmitter, HostListener, ElementRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { FormObject, LineObject, FreeObject, FreeObjectCommand } from '../interfaces';
-import { FormGroup, FormControl } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormGroup, FormControl, FormArray, Validators } from '@angular/forms';
+import { FormObject, LineObject, FreeObjectCommand } from '../interfaces';
 import { MatIconModule } from '@angular/material/icon';
 import { debounceTime } from 'rxjs';
 import { Draw } from '../draw.service';
@@ -26,16 +25,8 @@ export class SidebarRightComponent implements OnInit {
 
   constructor(public elementRef: ElementRef, private drawService: Draw) { }
 
-  private isDragging = false;
-  private startX = 0;
-  private startY = 0;
-  private initialX = 0;
-  private initialY = 0;
-
   public selectedObject: FormObject | LineObject | any = {};
-  public selectedObjectType!: 'Square' | 'Circle' | 'Line';
-
-  public commands: FreeObjectCommand[] = [];
+  public selectedObjectType!: 'Square' | 'Circle' | 'Line' | 'Freeform';
 
   public form: FormGroup = new FormGroup({
     name: new FormControl('New Object'),
@@ -50,7 +41,6 @@ export class SidebarRightComponent implements OnInit {
       y: new FormControl(0),
       z: new FormControl(0)
     }),
-    // For Line objects
     start: new FormGroup({
       x: new FormControl(0),
       y: new FormControl(0),
@@ -61,89 +51,52 @@ export class SidebarRightComponent implements OnInit {
       y: new FormControl(0),
       z: new FormControl(0)
     }),
-    // For Freeform objects
-    commands: new FormGroup({
-      type: new FormControl<'moveTo' | 'lineTo' | 'quadraticCurveTo' | 'bezierCurveTo'>('moveTo'),
-      new: new FormControl(false),
-      // shared
-      x: new FormControl(0),
-      y: new FormControl(0),
-      // quadratic
-      cpX: new FormControl(0),
-      cpY: new FormControl(0),
-      // bezier
-      cp1X: new FormControl(0),
-      cp1Y: new FormControl(0),
-      cp2X: new FormControl(0),
-      cp2Y: new FormControl(0),
-    })
+    commands: new FormArray([])
   });
 
   ngOnInit(): void {
     this.initForm();
+
     this.form.get('position')?.valueChanges.subscribe((pos: any) => {
       this.positionChange.emit([pos.x, pos.y, pos.z]);
     });
 
     this.form.valueChanges.pipe(debounceTime(1000)).subscribe(() => {
-      let localStorageData: any = {};
-      if (this.selectedObjectType === 'Square') {
-        localStorageData = {
-          name: this.form.value.name,
-          type: this.selectedObjectType,
-          l: this.form.value.size.length,
-          w: this.form.value.size.width,
-          h: this.form.value.size.height
-        };
-        localStorageData.position = [
-          this.form.value.position.x,
-          this.form.value.position.y,
-          this.form.value.position.z
-        ];
-      } else if (this.selectedObjectType === 'Circle') {
-        localStorageData = {
-          name: this.form.value.name,
-          type: this.selectedObjectType,
-          r: this.form.value.size.radius,
-          h: this.form.value.size.height
-        };
-        localStorageData.position = [
-          this.form.value.position.x,
-          this.form.value.position.y,
-          this.form.value.position.z
-        ];
-      } else if (this.selectedObjectType === 'Line') {
-        localStorageData = {
-          name: this.form.value.name,
-          type: this.selectedObjectType,
-          start: [
-            this.form.value.start.x,
-            this.form.value.start.y,
-            this.form.value.start.z
-          ],
-          end: [
-            this.form.value.end.x,
-            this.form.value.end.y,
-            this.form.value.end.z
-          ]
-        };
-      }
-      localStorageData.id = this.selectedObject.id;
-      this.selectedObject = localStorageData;
-      localStorage.setItem('selectedObject', JSON.stringify(this.selectedObject));
-      location.reload();
+      this.saveToLocalStorage();
     });
+  }
+
+  // Getter fürs Template
+  get commands(): FormArray {
+    return this.form.get('commands') as FormArray;
+  }
+
+  private createCommandGroup(cmd?: FreeObjectCommand): FormGroup {
+    const group: any = {
+      type: new FormControl(cmd?.type ?? 'moveTo', Validators.required),
+      new: new FormControl(cmd?.new ?? false),
+      x: new FormControl((cmd as any)?.x ?? 0),
+      y: new FormControl((cmd as any)?.y ?? 0)
+    };
+    if (cmd?.type === 'quadraticCurveTo') {
+      group.cpX = new FormControl((cmd as any)?.cpX ?? 0);
+      group.cpY = new FormControl((cmd as any)?.cpY ?? 0);
+    } else if (cmd?.type === 'bezierCurveTo') {
+      group.cp1X = new FormControl((cmd as any)?.cp1X ?? (cmd as any)?.cp1x ?? 0);
+      group.cp1Y = new FormControl((cmd as any)?.cp1Y ?? (cmd as any)?.cp1y ?? 0);
+      group.cp2X = new FormControl((cmd as any)?.cp2X ?? (cmd as any)?.cp2x ?? 0);
+      group.cp2Y = new FormControl((cmd as any)?.cp2Y ?? (cmd as any)?.cp2y ?? 0);
+    }
+    return new FormGroup(group);
   }
 
   initForm(): void {
     this.selectedObject = localStorage.getItem('selectedObject') ? JSON.parse(localStorage.getItem('selectedObject')!) : null;
     this.selectedObjectType = this.selectedObject?.type!;
 
-    // Initialize form values if selectedObject exists
     if (this.selectedObject) {
-      const patch: any = {
-        name: this.selectedObject.name
-      };
+      const patch: any = { name: this.selectedObject.name };
+
       if (this.selectedObject.type === 'Line') {
         patch.start = {
           x: this.selectedObject.start?.[0] ?? 0,
@@ -155,7 +108,7 @@ export class SidebarRightComponent implements OnInit {
           y: this.selectedObject.end?.[1] ?? 0,
           z: this.selectedObject.end?.[2] ?? 0
         };
-      } else {
+      } else if (this.selectedObject.type === 'Square' || this.selectedObject.type === 'Circle') {
         patch.size = {
           length: this.selectedObject.l ?? 0,
           width: this.selectedObject.w ?? 0,
@@ -167,13 +120,132 @@ export class SidebarRightComponent implements OnInit {
           y: this.selectedObject.position?.[1] ?? 0,
           z: this.selectedObject.position?.[2] ?? 0
         };
+      } else if (this.selectedObject.type === 'Freeform') {
+        // Patch position
+        patch.position = {
+          x: this.selectedObject.position?.[0] ?? 0,
+          y: this.selectedObject.position?.[1] ?? 0,
+          z: this.selectedObject.position?.[2] ?? 0
+        };
+        // Patch commands
+        const cmds = this.selectedObject.commands ?? [];
+        cmds.forEach((c: FreeObjectCommand) =>
+          this.commands.push(this.createCommandGroup(c))
+        );
       }
       this.form.patchValue(patch);
     }
   }
 
+  addCommand() {
+    this.commands.push(this.createCommandGroup());
+  }
+
   removeCommand(index: number) {
-    this.commands.splice(index, 1);
+    this.commands.removeAt(index);
+  }
+
+  private saveToLocalStorage() {
+    let localStorageData: any = {};
+
+    if (this.selectedObjectType === 'Square') {
+      localStorageData = {
+        name: this.form.value.name,
+        type: this.selectedObjectType,
+        l: this.form.value.size.length,
+        w: this.form.value.size.width,
+        h: this.form.value.size.height,
+        position: [
+          this.form.value.position.x,
+          this.form.value.position.y,
+          this.form.value.position.z
+        ]
+      };
+    } else if (this.selectedObjectType === 'Circle') {
+      localStorageData = {
+        name: this.form.value.name,
+        type: this.selectedObjectType,
+        r: this.form.value.size.radius,
+        h: this.form.value.size.height,
+        position: [
+          this.form.value.position.x,
+          this.form.value.position.y,
+          this.form.value.position.z
+        ]
+      };
+    } else if (this.selectedObjectType === 'Line') {
+      localStorageData = {
+        name: this.form.value.name,
+        type: this.selectedObjectType,
+        start: [
+          this.form.value.start.x,
+          this.form.value.start.y,
+          this.form.value.start.z
+        ],
+        end: [
+          this.form.value.end.x,
+          this.form.value.end.y,
+          this.form.value.end.z
+        ]
+      };
+    } else if (this.selectedObjectType === 'Freeform') {
+      // Mapping der Commands entsprechend dem Interface
+      const commands = (this.form.value.commands || []).map((cmd: any) => {
+        if (cmd.type === 'moveTo' || cmd.type === 'lineTo') {
+          return {
+            type: cmd.type,
+            x: Number(cmd.x),
+            y: Number(cmd.y),
+            new: !!cmd.new
+          };
+        } else if (cmd.type === 'quadraticCurveTo') {
+          return {
+            type: 'quadraticCurveTo',
+            cpX: Number(cmd.cpX),
+            cpY: Number(cmd.cpY),
+            x: Number(cmd.x),
+            y: Number(cmd.y),
+            new: !!cmd.new
+          };
+        } else if (cmd.type === 'bezierCurveTo') {
+          return {
+            type: 'bezierCurveTo',
+            cp1X: Number(cmd.cp1X ?? cmd.cp1x),
+            cp1Y: Number(cmd.cp1Y ?? cmd.cp1y),
+            cp2X: Number(cmd.cp2X ?? cmd.cp2x),
+            cp2Y: Number(cmd.cp2Y ?? cmd.cp2y),
+            x: Number(cmd.x),
+            y: Number(cmd.y),
+            new: !!cmd.new
+          };
+        }
+        return null;
+      }).filter((c: any) => !!c);
+      localStorageData = {
+        name: this.form.value.name,
+        type: this.selectedObjectType,
+        commands,
+        position: [
+          this.form.value.position.x,
+          this.form.value.position.y,
+          this.form.value.position.z
+        ]
+      };
+    }
+
+    localStorageData.id = this.selectedObject?.id;
+    this.selectedObject = localStorageData;
+    localStorage.setItem(
+      'selectedObject',
+      JSON.stringify(this.selectedObject)
+    );
+  }
+
+  onSubmit() {
+    if (!this.selectedObject) return;
+    this.saveToLocalStorage();
+    this.drawService.saveObject(this.selectedObject);
+    window.location.reload();
   }
 
   onClose() {
@@ -182,58 +254,32 @@ export class SidebarRightComponent implements OnInit {
     location.reload();
   }
 
-  onSubmit() {
-    if (this.selectedObject) {
-      if (this.selectedObject.type === 'Line') {
-        this.selectedObject.start = [
-          this.form.value.start.x,
-          this.form.value.start.y,
-          this.form.value.start.z
-        ];
-        this.selectedObject.end = [
-          this.form.value.end.x,
-          this.form.value.end.y,
-          this.form.value.end.z
-        ];
-      }
-      else if (this.selectedObject.type === 'Square') {
-        this.selectedObject.l = this.form.value.size.length;
-        this.selectedObject.w = this.form.value.size.width;
-        this.selectedObject.h = this.form.value.size.height;
-        delete this.selectedObject.r;
-        this.selectedObject.position = [
-          this.form.value.position.x,
-          this.form.value.position.y,
-          this.form.value.position.z
-        ];
-      } else if (this.selectedObject.type === 'Circle') {
-        this.selectedObject.r = this.form.value.size.radius;
-        this.selectedObject.h = this.form.value.size.height;
-        delete this.selectedObject.l;
-        delete this.selectedObject.w;
-        this.selectedObject.position = [
-          this.form.value.position.x,
-          this.form.value.position.y,
-          this.form.value.position.z
-        ];
-      }
-      this.selectedObject.id = this.selectedObject.id;
-      this.selectedObject.name = this.form.value.name;
-      this.selectedObject.type = this.selectedObjectType;
-      this.drawService.saveObject(this.selectedObject);
-      window.location.reload();
-    }
-  }
-
   onDelete() {
-    if (window.confirm("You are about to delete " + this.selectedObject.name + ". Are you sure you want to proceed?")) {
+    if (
+      window.confirm(
+        `You are about to delete ${this.selectedObject.name}. Proceed?`
+      )
+    ) {
       localStorage.removeItem('selectedObject');
-      let models: (FormObject | LineObject)[] = localStorage.getItem('model-data') ? JSON.parse(localStorage.getItem('model-data')!) : [];
-      models = models.filter(model => model.id !== this.selectedObject.id);
+      let models: (FormObject | LineObject)[] = localStorage.getItem(
+        'model-data'
+      )
+        ? JSON.parse(localStorage.getItem('model-data')!)
+        : [];
+      models = models.filter(
+        (model) => model.id !== this.selectedObject.id
+      );
       localStorage.setItem('model-data', JSON.stringify(models));
       location.reload();
     }
   }
+
+  // Dragging
+  private isDragging = false;
+  private startX = 0;
+  private startY = 0;
+  private initialX = 0;
+  private initialY = 0;
 
   onMouseDown(event: MouseEvent) {
     this.isDragging = true;
@@ -256,7 +302,6 @@ export class SidebarRightComponent implements OnInit {
     let newX = this.initialX + deltaX;
     let newY = this.initialY + deltaY;
 
-    // Get main-view bounds for constraining movement
     const mainView = document.querySelector('.main-view') as HTMLElement;
     const sidebar = this.elementRef.nativeElement;
 
@@ -264,12 +309,10 @@ export class SidebarRightComponent implements OnInit {
       const mainViewRect = mainView.getBoundingClientRect();
       const sidebarRect = sidebar.getBoundingClientRect();
 
-      // Constrain X position (left and right boundaries)
       const minX = mainViewRect.left;
       const maxX = mainViewRect.right - sidebarRect.width;
       newX = Math.max(minX, Math.min(maxX, newX));
 
-      // Constrain Y position (top and bottom boundaries)
       const minY = mainViewRect.top;
       const maxY = mainViewRect.bottom - sidebarRect.height;
       newY = Math.max(minY, Math.min(maxY, newY));
