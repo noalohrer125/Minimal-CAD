@@ -45,8 +45,19 @@ export class MainViewComponent implements AfterViewInit {
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     const loader = new THREE.TextureLoader();
-    loader.load('/bg-image.jpg', (texture) => {
-      this.scene.background = texture;
+    loader.load('/bg.jpg', (texture) => {
+      // Create a darkening material using a canvas
+      const canvas = document.createElement('canvas');
+      canvas.width = texture.image.width;
+      canvas.height = texture.image.height;
+      const ctx = canvas.getContext('2d');
+      ctx!.drawImage(texture.image, 0, 0);
+      ctx!.globalAlpha = 0.6; // Adjust alpha for darkness (0.5 = 50% darker)
+      ctx!.fillStyle = '#000';
+      ctx!.fillRect(0, 0, canvas.width, canvas.height);
+      const darkTexture = new THREE.Texture(canvas);
+      darkTexture.needsUpdate = true;
+      this.scene.background = darkTexture;
     });
 
     const size = 10;
@@ -72,11 +83,11 @@ export class MainViewComponent implements AfterViewInit {
 
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 5);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
     directionalLight.position.set(10, 15, 5);
     directionalLight.castShadow = true;
-    directionalLight.shadow.mapSize.width = 1024;
-    directionalLight.shadow.mapSize.height = 1024;
+    directionalLight.shadow.mapSize.width = 2048;
+    directionalLight.shadow.mapSize.height = 2048;
 
     const fillLight = new THREE.PointLight(0xffffff, 100);
     fillLight.position.set(-10, -10, 5);
@@ -102,11 +113,11 @@ export class MainViewComponent implements AfterViewInit {
     const renderFormObject = (element: FormObject, isSelected: boolean) => {
       if (element.type === 'Square') {
         const geometry = new THREE.BoxGeometry(element.l, element.w, element.h);
-        let material: THREE.MeshStandardMaterial;
+        let material: THREE.MeshPhysicalMaterial;
         if (isSelected) {
-          material = new THREE.MeshStandardMaterial(selectedObjectColor);
+          material = new THREE.MeshPhysicalMaterial(selectedObjectColor);
         } else {
-          material = new THREE.MeshStandardMaterial(objectColor);
+          material = new THREE.MeshPhysicalMaterial(objectColor);
         }
         const mesh = new THREE.Mesh(geometry, material);
         mesh.position.set(
@@ -134,11 +145,11 @@ export class MainViewComponent implements AfterViewInit {
           element.h,
           64
         );
-        let material: THREE.MeshStandardMaterial;
+        let material: THREE.MeshPhysicalMaterial;
         if (isSelected) {
-          material = new THREE.MeshStandardMaterial(selectedObjectColor);
+          material = new THREE.MeshPhysicalMaterial(selectedObjectColor);
         } else {
-          material = new THREE.MeshStandardMaterial(objectColor);
+          material = new THREE.MeshPhysicalMaterial(objectColor);
         }
         const mesh = new THREE.Mesh(geometry, material);
         mesh.position.set(
@@ -212,7 +223,7 @@ export class MainViewComponent implements AfterViewInit {
       element.commands.forEach((cmd) => renderCommand(cmd));
 
       const geometry = new THREE.ShapeGeometry(shape, 1000);
-      const material = new THREE.MeshStandardMaterial({
+      const material = new THREE.MeshPhysicalMaterial({
         ...(isSelected ? selectedObjectColor : objectColor),
         side: THREE.DoubleSide
       });
