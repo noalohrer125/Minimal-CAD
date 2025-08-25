@@ -2,8 +2,9 @@
   <app-header class="header"></app-header>
   <app-main-view
     class="main-view"
-    (rotationChange)="onRotationChanged($event)">
-  </app-main-view>
+    (rotationChange)="onRotationChanged($event)"
+    [cameraReset]="cameraResetValue"
+  ></app-main-view>
   <app-sidebar-left class="sidebar-left"></app-sidebar-left>
   @if (selectedObject) {
     <app-sidebar-right
@@ -16,6 +17,7 @@
   <app-viewcube
     class="viewcube"
     [rotation]="currentRotation"
-    (rotationChange)="onViewcubeRotation($event)">
-  </app-viewcube>
+    (rotationChange)="onViewcubeRotation($event)"
+    (cameraReset)="onViewcubeCameraReset($event)"
+  ></app-viewcube>
 </main>

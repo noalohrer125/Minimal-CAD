@@ -1,4 +1,4 @@
-import { Component, ElementRef, AfterViewInit, ViewChild, HostListener, Output, EventEmitter } from '@angular/core';
+import { Component, ElementRef, AfterViewInit, ViewChild, HostListener, Output, EventEmitter, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Draw } from '../draw.service';
 import { FormObject, FreeObject, FreeObjectCommand, LineObject } from '../interfaces';
@@ -14,6 +14,29 @@ import * as THREE from 'three';
 export class MainViewComponent implements AfterViewInit {
   @Output() rotationChange = new EventEmitter<THREE.Euler>();
   @ViewChild('canvas', { static: true }) canvasRef!: ElementRef;
+  // Add cameraReset input for viewcube
+  private _cameraReset: any;
+  @Input()
+  set cameraReset(val: { position: { x: number, y: number, z: number }, rotation: { x: number, y: number, z: number }, scale: { x: number, y: number, z: number }, rootGroupPosition?: { x: number, y: number, z: number } }) {
+    this._cameraReset = val;
+    if (val) {
+      this.camera.position.set(val.position.x, val.position.y, val.position.z);
+      this.camera.rotation.set(val.rotation.x, val.rotation.y, val.rotation.z);
+      this.rootGroup.scale.set(val.scale.x, val.scale.y, val.scale.z);
+      if (val.rootGroupPosition) {
+        this.rootGroup.position.set(val.rootGroupPosition.x, val.rootGroupPosition.y, val.rootGroupPosition.z);
+      }
+      // Optionally update view in drawservice if needed
+      const view = this.drawservice.getView();
+      view.camera.position = { ...val.position };
+      view.camera.rotation = { ...val.rotation };
+      view.rootGroup.scale = { ...val.scale };
+      if (val.rootGroupPosition) {
+        view.rootGroup.position = { ...val.rootGroupPosition };
+      }
+      this.drawservice.setView(view);
+    }
+  }
 
   constructor(private drawservice: Draw) { }
 

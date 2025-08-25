@@ -10,7 +10,9 @@ import { Draw } from '../draw.service';
 export class ViewcubeComponent implements AfterViewInit {
   @Input() rotation!: THREE.Euler;
   @Output() rotationChange = new EventEmitter<THREE.Euler>();
+
   @ViewChild('canvas', { static: true }) canvasRef!: ElementRef;
+  @Output() cameraReset = new EventEmitter<{ position: { x: number, y: number, z: number }, rotation: { x: number, y: number, z: number }, scale: { x: number, y: number, z: number }, rootGroupPosition: { x: number, y: number, z: number } }>();
 
   constructor(private drawservice: Draw) { }
 
@@ -171,6 +173,13 @@ export class ViewcubeComponent implements AfterViewInit {
         this.targetQuat.setFromEuler(newRot);
         this.animating = true;
         this.rotationChange.emit(newRot);
+        // Emit camera reset event
+        this.cameraReset.emit({
+          position: { x: 0, y: 0, z: 10 },
+          rotation: { x: 0, y: 0, z: 0 },
+          scale: { x: 1, y: 1, z: 1 },
+          rootGroupPosition: { x: 0, y: 0, z: 0 }
+        });
         return;
       }
 
@@ -190,6 +199,13 @@ export class ViewcubeComponent implements AfterViewInit {
         this.targetQuat.setFromEuler(newRot);
         this.animating = true;
         this.rotationChange.emit(newRot);
+        // Emit camera reset event
+        this.cameraReset.emit({
+          position: { x: 0, y: 0, z: 10 },
+          rotation: { x: 0, y: 0, z: 0 },
+          scale: { x: 1, y: 1, z: 1 },
+          rootGroupPosition: { x: 0, y: 0, z: 0 }
+        });
       }
     }
   }

@@ -26,6 +26,7 @@ import * as THREE from 'three';
 })
 export class AppComponent implements OnInit {
   @ViewChild(MainViewComponent) mainView!: MainViewComponent;
+  cameraResetValue: any = null;
 
   constructor(private drawservice: Draw) { }
 
@@ -56,6 +57,12 @@ export class AppComponent implements OnInit {
     view.rootGroup.rotation.y = rot.y;
     view.rootGroup.rotation.z = rot.z;
     this.drawservice.setView(view);
+  }
+
+  onViewcubeCameraReset(val: { position: { x: number, y: number, z: number }, rotation: { x: number, y: number, z: number }, scale: { x: number, y: number, z: number } }) {
+    this.cameraResetValue = val;
+    // Optionally, reset after a tick to allow for repeated events
+    setTimeout(() => { this.cameraResetValue = null; }, 100);
   }
 
   @HostListener('contextmenu', ['$event'])
