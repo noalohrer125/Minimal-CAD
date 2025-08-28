@@ -51,9 +51,14 @@ export class MainViewComponent implements AfterViewInit {
   private rightClick = false;
   private middleClick = false;
 
+  // Smooth rotation animation
+  private targetRotation: THREE.Euler | null = null;
+  private rotationLerpAlpha = 0.1; // Adjust for speed (0.1-0.2 is smooth)
+  private isRotating = false;
+
   public setRotation(rot: THREE.Euler) {
-    this.rootGroup.rotation.copy(rot);
-    this.rotationChange.emit(this.rootGroup.rotation.clone());
+    this.targetRotation = rot.clone();
+    this.isRotating = true;
   }
 
   init() {
@@ -287,6 +292,30 @@ export class MainViewComponent implements AfterViewInit {
 
   animate() {
     requestAnimationFrame(() => this.animate());
+
+    // Smooth rotation animation
+    if (this.isRotating && this.targetRotation) {
+      // Slerp each axis separately (Euler angles)
+      const current = this.rootGroup.rotation;
+      const target = this.targetRotation;
+      // Lerp each axis
+      current.x += (target.x - current.x) * this.rotationLerpAlpha;
+      current.y += (target.y - current.y) * this.rotationLerpAlpha;
+      current.z += (target.z - current.z) * this.rotationLerpAlpha;
+
+      // If close enough, snap to target and stop animating
+      if (
+        Math.abs(current.x - target.x) < 0.001 &&
+        Math.abs(current.y - target.y) < 0.001 &&
+        Math.abs(current.z - target.z) < 0.001
+      ) {
+        this.rootGroup.rotation.copy(target);
+        this.isRotating = false;
+        this.targetRotation = null;
+      }
+      this.rotationChange.emit(this.rootGroup.rotation.clone());
+    }
+
     this.renderer.render(this.scene, this.camera);
   }
 
