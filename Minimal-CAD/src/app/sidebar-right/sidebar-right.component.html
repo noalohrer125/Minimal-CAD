@@ -42,6 +42,51 @@
                 <button type="button" (click)="addCommand()">Add Command</button>
             </fieldset>
         }
+        <fieldset class="fieldset" formGroupName="size">
+            <legend>Size</legend>
+            @if (!['Circle', 'Freeform'].includes(selectedObject.type)) {
+                <label>
+                    Length: <input type="number" formControlName="length" />
+                </label>
+                <label>
+                    Width: <input type="number" formControlName="width" />
+                </label>
+            }
+            <label>
+                Height: <input type="number" formControlName="height" />
+            </label>
+            @if (selectedObject.type === 'Circle') {
+                <label>
+                    Radius: <input type="number" formControlName="radius" />
+                </label>
+            }
+        </fieldset>
+        @if (selectedObject.type !== 'Freeform') {
+        <fieldset class="fieldset" formGroupName="position">
+            <legend>Position</legend>
+            <label>
+                X: <input type="number" formControlName="x" />
+            </label>
+            <label>
+                Y: <input type="number" formControlName="y" />
+            </label>
+                <label>
+                    Z: <input type="number" formControlName="z" />
+                </label>
+            </fieldset>
+        }
+        <fieldset class="fieldset" formGroupName="rotation">
+            <legend>Rotation</legend>
+            <label>
+                X: <input type="number" formControlName="x" />
+            </label>
+            <label>
+                Y: <input type="number" formControlName="y" />
+            </label>
+            <label>
+                Z: <input type="number" formControlName="z" />
+            </label>
+        </fieldset>
         <button type="submit" (click)="onSubmit()">Apply</button>
         <button type="button" (click)="onDelete()">Delete</button>
     </form>

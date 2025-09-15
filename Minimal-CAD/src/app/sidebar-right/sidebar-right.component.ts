@@ -41,6 +41,11 @@ export class SidebarRightComponent implements OnInit {
       y: new FormControl(0),
       z: new FormControl(0)
     }),
+    rotation: new FormGroup({
+      x: new FormControl(0),
+      y: new FormControl(0),
+      z: new FormControl(0)
+    }),
     start: new FormGroup({
       x: new FormControl(0),
       y: new FormControl(0),
@@ -118,6 +123,11 @@ export class SidebarRightComponent implements OnInit {
           this.commands.push(this.createCommandGroup(c))
         );
       }
+      patch.rotation = {
+        x: this.selectedObject.rotation?.[0] ?? 0,
+        y: this.selectedObject.rotation?.[1] ?? 0,
+        z: this.selectedObject.rotation?.[2] ?? 0
+      };
       this.form.patchValue(patch);
     }
   }
@@ -204,6 +214,11 @@ export class SidebarRightComponent implements OnInit {
     }
 
     localStorageData.id = this.selectedObject?.id;
+    localStorageData.rotation = [
+      this.form.value.rotation.x,
+      this.form.value.rotation.y,
+      this.form.value.rotation.z
+    ];
     this.selectedObject = localStorageData;
     localStorage.setItem(
       'selectedObject',

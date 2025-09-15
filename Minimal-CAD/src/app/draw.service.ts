@@ -55,7 +55,8 @@ export class Draw {
       l: 1,
       w: 1,
       h: 0,
-      position: [0, 0, 0]
+      position: [0, 0, 0],
+      rotation: [0, 0, 0]
     };
     localStorage.setItem('selectedObject', JSON.stringify(newObject));
     location.reload();
@@ -68,7 +69,8 @@ export class Draw {
       type: 'Circle',
       r: 1,
       h: 0,
-      position: [0, 0, 0]
+      position: [0, 0, 0],
+      rotation: [0, 0, 0]
     };
     localStorage.setItem('selectedObject', JSON.stringify(newObject));
     location.reload();
@@ -100,6 +102,7 @@ export class Draw {
         }
       ],
       position: [0, 0, 0],
+      rotation: [0, 0, 0],
       height: 2
     };
     localStorage.setItem('selectedObject', JSON.stringify(newObject));
