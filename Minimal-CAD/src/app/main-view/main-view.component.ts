@@ -152,9 +152,10 @@ export class MainViewComponent implements AfterViewInit {
           element.position[1],
           (element.position[2] || 0) + element.h / 2
         );
-        mesh.rotation.x = element.rotation ? element.rotation[0] : 0;
-        mesh.rotation.y = element.rotation ? element.rotation[1] : 0;
-        mesh.rotation.z = element.rotation ? element.rotation[2] : 0;
+        // Convert degrees to radians for rotation
+        mesh.rotation.x = element.rotation ? element.rotation[0] * Math.PI / 180 : 0;
+        mesh.rotation.y = element.rotation ? element.rotation[1] * Math.PI / 180 : 0;
+        mesh.rotation.z = element.rotation ? element.rotation[2] * Math.PI / 180 : 0;
         mesh.userData = element;
         mesh.castShadow = true;
         mesh.receiveShadow = true;
@@ -188,9 +189,10 @@ export class MainViewComponent implements AfterViewInit {
           element.position[1],
           (element.position[2] || 0) + element.h / 2
         );
-        mesh.rotation.x = element.rotation ? element.rotation[0] - Math.PI / 2 : Math.PI / 2;
-        mesh.rotation.y = element.rotation ? element.rotation[1] : 0;
-        mesh.rotation.z = element.rotation ? element.rotation[2] : 0;
+        // Convert degrees to radians for rotation, and subtract 90deg for x as before
+        mesh.rotation.x = element.rotation ? (element.rotation[0] - 90) * Math.PI / 180 : Math.PI / 2;
+        mesh.rotation.y = element.rotation ? element.rotation[1] * Math.PI / 180 : 0;
+        mesh.rotation.z = element.rotation ? element.rotation[2] * Math.PI / 180 : 0;
         mesh.userData = element;
         mesh.castShadow = true;
         mesh.receiveShadow = true;
@@ -250,7 +252,9 @@ export class MainViewComponent implements AfterViewInit {
       });
       const mesh = new THREE.Mesh(geometry, material);
       mesh.position.set(...element.position);
-      if (element.rotation) mesh.rotation.set(...element.rotation);
+      mesh.rotation.x = element.rotation[0] * Math.PI / 180;
+      mesh.rotation.y = element.rotation[1] * Math.PI / 180;
+      mesh.rotation.z = element.rotation[2] * Math.PI / 180;
       this.rootGroup.add(mesh);
 
       const edgeLineMaterial = new THREE.LineBasicMaterial({ color: isSelected ? selectedEdgeColor : edgeColor });
@@ -265,7 +269,9 @@ export class MainViewComponent implements AfterViewInit {
         const edgeGeom = new THREE.BufferGeometry().setFromPoints(edgeLinePoints);
         const edgeLine = new THREE.Line(edgeGeom, edgeLineMaterial);
         edgeLine.position.set(...element.position);
-        if (element.rotation) edgeLine.rotation.set(...element.rotation);
+        edgeLine.rotation.x = element.rotation[0] * Math.PI / 180;
+        edgeLine.rotation.y = element.rotation[1] * Math.PI / 180;
+        edgeLine.rotation.z = element.rotation[2] * Math.PI / 180;
         this.rootGroup.add(edgeLine);
       }
     };
