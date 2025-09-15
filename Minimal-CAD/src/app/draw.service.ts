@@ -103,7 +103,7 @@ export class Draw {
       ],
       position: [0, 0, 0],
       rotation: [0, 0, 0],
-      height: 2
+      h: 2
     };
     localStorage.setItem('selectedObject', JSON.stringify(newObject));
     location.reload();

@@ -152,6 +152,9 @@ export class MainViewComponent implements AfterViewInit {
           element.position[1],
           (element.position[2] || 0) + element.h / 2
         );
+        mesh.rotation.x = element.rotation ? element.rotation[0] : 0;
+        mesh.rotation.y = element.rotation ? element.rotation[1] : 0;
+        mesh.rotation.z = element.rotation ? element.rotation[2] : 0;
         mesh.userData = element;
         mesh.castShadow = true;
         mesh.receiveShadow = true;
@@ -164,6 +167,7 @@ export class MainViewComponent implements AfterViewInit {
           new THREE.LineBasicMaterial({ color: isSelected ? selectedEdgeColor : edgeColor })
         );
         line.position.copy(mesh.position);
+        line.rotation.copy(mesh.rotation);
         this.rootGroup.add(line);
       } else if (element.type === 'Circle') {
         const geometry = new THREE.CylinderGeometry(
@@ -184,7 +188,9 @@ export class MainViewComponent implements AfterViewInit {
           element.position[1],
           (element.position[2] || 0) + element.h / 2
         );
-        mesh.rotation.x = Math.PI / 2;
+        mesh.rotation.x = element.rotation ? element.rotation[0] - Math.PI / 2 : Math.PI / 2;
+        mesh.rotation.y = element.rotation ? element.rotation[1] : 0;
+        mesh.rotation.z = element.rotation ? element.rotation[2] : 0;
         mesh.userData = element;
         mesh.castShadow = true;
         mesh.receiveShadow = true;
@@ -232,7 +238,12 @@ export class MainViewComponent implements AfterViewInit {
 
       element.commands.forEach((cmd) => renderCommand(cmd));
 
-      const geometry = new THREE.ShapeGeometry(shape, 1000);
+      const extrudeSettings = {
+        curveSegments: 10000,
+        depth: element.h, // Use element.h as height, default to 1 if not set
+        bevelEnabled: false
+      };
+      const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
       const material = new THREE.MeshPhysicalMaterial({
         ...(isSelected ? selectedObjectColor : objectColor),
         side: THREE.DoubleSide

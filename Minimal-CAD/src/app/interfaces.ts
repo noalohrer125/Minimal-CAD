@@ -9,7 +9,7 @@ export interface FormObject {
     h: number; // Height for squares
     r?: number; // Radius for circles
     position: [number, number, number]; // [x, y, z]
-    rotation: [number, number, number]; // optional [x, y, z] in radians
+    rotation: [number, number, number]; // [x, y, z] in radians
 }
 
 export type FreeObjectCommand =
@@ -33,7 +33,7 @@ export interface FreeObject {
     name: string;
     type: 'Freeform';
     commands: FreeObjectCommand[]; // shape building steps
-    height: number; // extrusion height
+    h: number; // extrusion height
     position: [number, number, number]; // world position
     rotation: [number, number, number]; // optional
 }

@@ -117,6 +117,9 @@ export class SidebarRightComponent implements OnInit {
           y: this.selectedObject.position?.[1] ?? 0,
           z: this.selectedObject.position?.[2] ?? 0
         };
+        patch.size = {
+          height: this.selectedObject.h ?? 0
+        };
         // Patch commands
         const cmds = this.selectedObject.commands ?? [];
         cmds.forEach((c: FreeObjectCommand) =>
@@ -209,7 +212,8 @@ export class SidebarRightComponent implements OnInit {
           this.form.value.position.x,
           this.form.value.position.y,
           this.form.value.position.z
-        ]
+        ],
+        h: this.form.value.size.height
       };
     }
 
