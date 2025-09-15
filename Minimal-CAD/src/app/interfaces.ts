@@ -4,12 +4,13 @@ export interface FormObject {
     id: string;
     name: string;
     type: 'Square' | 'Circle';
-    l?: number; // Length for squares
-    w?: number; // Width for squares
-    h: number; // Height for squares
-    r?: number; // Radius for circles
+    l?: number; // for squares
+    w?: number; // for squares
+    h: number; // for squares
+    r?: number; // for circles
     position: [number, number, number]; // [x, y, z]
     rotation: [number, number, number]; // [x, y, z] in radians
+    curveSegments?: number; // for circles
 }
 
 export type FreeObjectCommand =

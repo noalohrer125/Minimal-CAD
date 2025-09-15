@@ -34,7 +34,8 @@ export class SidebarRightComponent implements OnInit {
       length: new FormControl(0),
       height: new FormControl(0),
       width: new FormControl(0),
-      radius: new FormControl(0)
+      radius: new FormControl(0),
+      curveSegments: new FormControl(100)
     }),
     position: new FormGroup({
       x: new FormControl(0),
@@ -103,7 +104,8 @@ export class SidebarRightComponent implements OnInit {
           length: this.selectedObject.l ?? 0,
           width: this.selectedObject.w ?? 0,
           height: this.selectedObject.h ?? 0,
-          radius: this.selectedObject.r ?? 0
+          radius: this.selectedObject.r ?? 0,
+          ...(this.selectedObject.type === 'Circle' ? { curveSegments: this.selectedObject.curveSegments ?? 100 } : {})
         };
         patch.position = {
           x: this.selectedObject.position?.[0] ?? 0,
@@ -165,6 +167,7 @@ export class SidebarRightComponent implements OnInit {
         type: this.selectedObjectType,
         r: this.form.value.size.radius,
         h: this.form.value.size.height,
+        curveSegments: this.form.value.size.curveSegments,
         position: [
           this.form.value.position.x,
           this.form.value.position.y,

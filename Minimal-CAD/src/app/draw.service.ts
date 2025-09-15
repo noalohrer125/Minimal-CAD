@@ -70,7 +70,8 @@ export class Draw {
       r: 1,
       h: 0,
       position: [0, 0, 0],
-      rotation: [0, 0, 0]
+      rotation: [0, 0, 0],
+      curveSegments: 100
     };
     localStorage.setItem('selectedObject', JSON.stringify(newObject));
     location.reload();
