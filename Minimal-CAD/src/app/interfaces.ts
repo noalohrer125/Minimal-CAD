@@ -11,14 +11,6 @@ export interface FormObject {
     position: [number, number, number]; // [x, y, z]
 }
 
-export interface LineObject {
-    id: string;
-    name: string;
-    type: 'Line';
-    start: [number, number, number]; // [x, y, z]
-    end: [number, number, number]; // [x, y, z]
-}
-
 export type FreeObjectCommand =
     | {
         type: 'moveTo' | 'lineTo';
@@ -40,6 +32,7 @@ export interface FreeObject {
     name: string;
     type: 'Freeform';
     commands: FreeObjectCommand[]; // shape building steps
+    height: number; // extrusion height
     position: [number, number, number]; // world position
     rotation?: [number, number, number]; // optional
 }

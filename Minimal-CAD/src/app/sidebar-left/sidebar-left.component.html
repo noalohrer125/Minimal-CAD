@@ -3,7 +3,7 @@
         @for (object of objects; track $index) {
             <div class="object {{ object.id === selectedObject.id ? 'selectedObject' : ''}}" (click)="onClick(object)">
                 <div class="object-name">{{ object.name }}</div>
-                <mat-icon>{{ object.type === 'Line' ? 'show_chart' : object.type === 'Square' ? 'square' : 'circle' }}</mat-icon>
+                <mat-icon>{{ object.type === 'Freeform' ? 'interests' : object.type === 'Square' ? 'square' : 'circle' }}</mat-icon>
             </div>
         }
     </div>

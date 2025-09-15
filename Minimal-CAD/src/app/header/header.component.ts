@@ -27,10 +27,6 @@ export class HeaderComponent {
     this.fileService.upload();
   }
 
-  line() {
-    this.drawService.line();
-  }
-
   rectangle() {
     this.drawService.rectangle();
   }
@@ -41,13 +37,5 @@ export class HeaderComponent {
 
   freeform() {
     this.drawService.freeform();
-  }
-
-  shape_lines() {
-    this.drawService.shape_lines();
-  }
-
-  extrusion() {
-    this.drawService.extrusion();
   }
 }

@@ -1,17 +1,17 @@
 import { Injectable } from '@angular/core';
-import { DEFAULT_VIEW, FormObject, FreeObject, LineObject, view } from './interfaces';
+import { DEFAULT_VIEW, FormObject, FreeObject, view } from './interfaces';
 
 
 @Injectable({
   providedIn: 'root'
 })
 export class Draw {
-  loadObjects(): (FormObject | LineObject)[] {
+  loadObjects(): (FormObject | FreeObject)[] {
     const modelDataString = localStorage.getItem('model-data');
-    const data = modelDataString ? JSON.parse(modelDataString) as (FormObject | LineObject)[] : [];
+    const data = modelDataString ? JSON.parse(modelDataString) as (FormObject | FreeObject)[] : [];
     const selectedObject = localStorage.getItem('selectedObject');
     if (selectedObject) {
-      data.push(JSON.parse(selectedObject) as FormObject | LineObject);
+      data.push(JSON.parse(selectedObject) as FormObject | FreeObject);
       if (data) {
         return data;
       }
@@ -31,9 +31,9 @@ export class Draw {
     return viewString ? JSON.parse(viewString) as view : DEFAULT_VIEW;
   }
 
-  saveObject(object: FormObject | LineObject): void {
+  saveObject(object: FormObject | FreeObject): void {
     const modelData = JSON.parse(localStorage.getItem('model-data') || '[]');
-    const isNewObject = modelData.findIndex((obj: FormObject | LineObject) => obj.id === object.id);
+    const isNewObject = modelData.findIndex((obj: FormObject | FreeObject) => obj.id === object.id);
     if (isNewObject === -1) {
       modelData.push(object);
     } else {
@@ -45,18 +45,6 @@ export class Draw {
 
   generateId(): string {
     return Date.now().toString() + Math.random().toString(36);
-  }
-
-  line() {
-    const newObject: LineObject = {
-      id: this.generateId(),
-      name: 'New Line',
-      type: 'Line',
-      start: [0, 0, 0],
-      end: [1, 1, 0]
-    };
-    localStorage.setItem('selectedObject', JSON.stringify(newObject));
-    location.reload();
   }
 
   rectangle() {
@@ -112,16 +100,9 @@ export class Draw {
         }
       ],
       position: [0, 0, 0],
+      height: 2
     };
     localStorage.setItem('selectedObject', JSON.stringify(newObject));
     location.reload();
-  }
-
-  shape_lines() {
-    // Coming soon: Shape lines will be implemented later
-  }
-
-  extrusion() {
-    // Coming soon: Extrusion objects will be implemented later
   }
 }

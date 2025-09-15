@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter, HostListener, ElementRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormGroup, FormControl, FormArray, Validators } from '@angular/forms';
-import { FormObject, LineObject, FreeObjectCommand } from '../interfaces';
+import { FormObject, FreeObject, FreeObjectCommand } from '../interfaces';
 import { MatIconModule } from '@angular/material/icon';
 import { debounceTime } from 'rxjs';
 import { Draw } from '../draw.service';
@@ -20,13 +20,13 @@ import { Draw } from '../draw.service';
 })
 export class SidebarRightComponent implements OnInit {
   @Input() position: [number, number, number] = [0, 0, 0];
-  @Input() selectedObjectInput: (FormObject | LineObject)[] = [];
+  @Input() selectedObjectInput: (FormObject | FreeObject)[] = [];
   @Output() positionChange = new EventEmitter<[number, number, number]>();
 
   constructor(public elementRef: ElementRef, private drawService: Draw) { }
 
-  public selectedObject: FormObject | LineObject | any = {};
-  public selectedObjectType!: 'Square' | 'Circle' | 'Line' | 'Freeform';
+  public selectedObject: FormObject | FreeObject | any = {};
+  public selectedObjectType!: 'Square' | 'Circle' | 'Freeform';
 
   public form: FormGroup = new FormGroup({
     name: new FormControl('New Object'),
@@ -93,18 +93,7 @@ export class SidebarRightComponent implements OnInit {
     if (this.selectedObject) {
       const patch: any = { name: this.selectedObject.name };
 
-      if (this.selectedObject.type === 'Line') {
-        patch.start = {
-          x: this.selectedObject.start?.[0] ?? 0,
-          y: this.selectedObject.start?.[1] ?? 0,
-          z: this.selectedObject.start?.[2] ?? 0
-        };
-        patch.end = {
-          x: this.selectedObject.end?.[0] ?? 0,
-          y: this.selectedObject.end?.[1] ?? 0,
-          z: this.selectedObject.end?.[2] ?? 0
-        };
-      } else if (this.selectedObject.type === 'Square' || this.selectedObject.type === 'Circle') {
+      if (this.selectedObject.type === 'Square' || this.selectedObject.type === 'Circle') {
         patch.size = {
           length: this.selectedObject.l ?? 0,
           width: this.selectedObject.w ?? 0,
@@ -167,21 +156,6 @@ export class SidebarRightComponent implements OnInit {
           this.form.value.position.x,
           this.form.value.position.y,
           this.form.value.position.z
-        ]
-      };
-    } else if (this.selectedObjectType === 'Line') {
-      localStorageData = {
-        name: this.form.value.name,
-        type: this.selectedObjectType,
-        start: [
-          this.form.value.start.x,
-          this.form.value.start.y,
-          this.form.value.start.z
-        ],
-        end: [
-          this.form.value.end.x,
-          this.form.value.end.y,
-          this.form.value.end.z
         ]
       };
     } else if (this.selectedObjectType === 'Freeform') {
@@ -257,7 +231,7 @@ export class SidebarRightComponent implements OnInit {
       )
     ) {
       localStorage.removeItem('selectedObject');
-      let models: (FormObject | LineObject)[] = localStorage.getItem(
+      let models: (FormObject | FreeObject)[] = localStorage.getItem(
         'model-data'
       )
         ? JSON.parse(localStorage.getItem('model-data')!)

@@ -1,7 +1,7 @@
 import { Component, ElementRef, AfterViewInit, ViewChild, HostListener, Output, EventEmitter, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Draw } from '../draw.service';
-import { FormObject, FreeObject, FreeObjectCommand, LineObject } from '../interfaces';
+import { FormObject, FreeObject, FreeObjectCommand } from '../interfaces';
 import * as THREE from 'three';
 
 @Component({
@@ -130,7 +130,7 @@ export class MainViewComponent implements AfterViewInit {
     const data = this.drawservice.loadObjects();
     const selectedObject = JSON.parse(
       localStorage.getItem('selectedObject') || '{}'
-    ) as FormObject | LineObject;
+    ) as FormObject | FreeObject;
 
     const objectColor = { color: 0x8cb9d4, roughness: 0.5, metalness: 0.5, flatShading: true };
     const selectedObjectColor = { color: 0x7ec8e3, roughness: 0.5, metalness: 0.1, flatShading: true };
@@ -201,23 +201,6 @@ export class MainViewComponent implements AfterViewInit {
         this.rootGroup.add(line);
       }
     };
-    const renderLineObject = (element: LineObject, isSelected: boolean) => {
-      const geometry = new THREE.BufferGeometry().setFromPoints([
-        new THREE.Vector3(element.start[0], element.start[1], element.start[2]),
-        new THREE.Vector3(element.end[0], element.end[1], element.end[2])
-      ]);
-      const material = new THREE.LineBasicMaterial({ color: isSelected ? selectedObjectColor.color : edgeColor });
-      const line = new THREE.Line(geometry, material);
-      line.userData = element;
-      this.rootGroup.add(line);
-      this.objects.push(line);
-
-      // Edgelines are just the line itself, but for consistency:
-      const edgeMaterial = new THREE.LineBasicMaterial({ color: isSelected ? selectedEdgeColor : edgeColor });
-      const edgeLine = new THREE.Line(geometry, edgeMaterial);
-      edgeLine.position.copy(line.position);
-      this.rootGroup.add(edgeLine);
-    };
     const renderFreeFormObject = (element: FreeObject, isSelected: boolean) => {
       const shape = new THREE.Shape();
       let lastX = 0, lastY = 0;
@@ -278,9 +261,7 @@ export class MainViewComponent implements AfterViewInit {
 
     data.forEach(el => {
       const isSelected = selectedObject && (selectedObject.id === el.id);
-      if (el.type === 'Line') {
-        renderLineObject(el, isSelected);
-      } else if (el.type === 'Square') {
+      if (el.type === 'Square') {
         renderFormObject(el, isSelected);
       } else if (el.type === 'Circle') {
         renderFormObject(el, isSelected);
@@ -386,8 +367,8 @@ export class MainViewComponent implements AfterViewInit {
     const intersects = this.raycaster.intersectObjects(this.objects);
     if (intersects.length > 0) {
       const selected = intersects[0].object;
-      const originalData = selected.userData as FormObject | LineObject;
-      const selectedObject = JSON.parse(localStorage.getItem('selectedObject') || '{}') as FormObject | LineObject;
+      const originalData = selected.userData as FormObject | FreeObject;
+      const selectedObject = JSON.parse(localStorage.getItem('selectedObject') || '{}') as FormObject | FreeObject;
       if (selectedObject && selectedObject.id === originalData.id) {
         return;
       }

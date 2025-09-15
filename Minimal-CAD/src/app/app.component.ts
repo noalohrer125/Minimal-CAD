@@ -5,7 +5,7 @@ import { SidebarRightComponent } from './sidebar-right/sidebar-right.component';
 import { ViewcubeComponent } from './viewcube/viewcube.component';
 import { CommonModule } from '@angular/common';
 import { MainViewComponent } from './main-view/main-view.component';
-import { FormObject, LineObject } from './interfaces';
+import { FormObject, FreeObject } from './interfaces';
 import { OnInit } from '@angular/core';
 import { Draw } from './draw.service';
 import * as THREE from 'three';
@@ -32,7 +32,7 @@ export class AppComponent implements OnInit {
 
   title = 'Minimal-CAD';
   sidebarRightPosition: [number, number, number] = [0, 0, 0];
-  public selectedObject: FormObject | LineObject | null = null;
+  public selectedObject: FormObject | FreeObject | null = null;
   public currentRotation = new THREE.Euler();
 
   ngOnInit(): void {

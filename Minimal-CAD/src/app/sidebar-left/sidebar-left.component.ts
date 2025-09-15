@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { FormObject, LineObject } from '../interfaces';
+import { FormObject, FreeObject } from '../interfaces';
 import { Draw } from '../draw.service';
 import { MatIcon } from '@angular/material/icon';
 
@@ -13,8 +13,8 @@ import { MatIcon } from '@angular/material/icon';
 export class SidebarLeftComponent {
   constructor (private drawService: Draw) { }
 
-  public objects: (FormObject | LineObject)[] = [];
-  public selectedObject: (FormObject | LineObject) | any = {};
+  public objects: (FormObject | FreeObject)[] = [];
+  public selectedObject: (FormObject | FreeObject) | any = {};
 
   ngOnInit() {
     this.objects = this.drawService.loadObjects();
@@ -22,7 +22,7 @@ export class SidebarLeftComponent {
     this.selectedObject?.id && this.objects.splice(this.objects.reduce((acc, obj, i) => obj.id === this.selectedObject.id ? i : acc, -1), 1);
   }
 
-  onClick(object: FormObject | LineObject) {
+  onClick(object: FormObject | FreeObject) {
     this.selectedObject = object;
     localStorage.setItem('selectedObject', JSON.stringify(object));
     location.reload();
