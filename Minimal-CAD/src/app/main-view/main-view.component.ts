@@ -174,7 +174,7 @@ export class MainViewComponent implements AfterViewInit {
           element.r,
           element.r,
           element.h,
-          element.curveSegments! <= 10000 ? element.curveSegments : 10000,
+          element.curveSegments! <= 10000 && element.curveSegments! > 2 ? element.curveSegments : 10000,
         );
         let material: THREE.MeshPhysicalMaterial;
         if (isSelected) {
