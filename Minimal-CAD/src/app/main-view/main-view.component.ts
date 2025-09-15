@@ -73,7 +73,7 @@ export class MainViewComponent implements AfterViewInit {
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     const loader = new THREE.TextureLoader();
-    loader.load('/bg.jpg', (texture) => {
+    loader.load('/bg-gray.png', (texture) => {
       // Create a darkening material using a canvas
       const canvas = document.createElement('canvas');
       canvas.width = texture.image.width;
