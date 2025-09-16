@@ -255,6 +255,9 @@ export class MainViewComponent implements AfterViewInit {
       mesh.rotation.x = element.rotation[0] * Math.PI / 180;
       mesh.rotation.y = element.rotation[1] * Math.PI / 180;
       mesh.rotation.z = element.rotation[2] * Math.PI / 180;
+      mesh.userData = element;
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
       this.rootGroup.add(mesh);
 
       const edgeLineMaterial = new THREE.LineBasicMaterial({ color: isSelected ? selectedEdgeColor : edgeColor });
