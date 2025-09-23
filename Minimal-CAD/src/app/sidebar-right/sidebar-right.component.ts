@@ -5,15 +5,25 @@ import { FormObject, FreeObject, FreeObjectCommand } from '../interfaces';
 import { MatIconModule } from '@angular/material/icon';
 import { debounceTime } from 'rxjs';
 import { Draw } from '../draw.service';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
+import { MatExpansionModule } from '@angular/material/expansion';
 
 @Component({
   selector: 'app-sidebar-right',
   standalone: true,
   imports: [
     CommonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatButtonModule,
     FormsModule,
     ReactiveFormsModule,
-    MatIconModule
+    MatIconModule,
+    MatExpansionModule
   ],
   templateUrl: './sidebar-right.component.html',
   styleUrl: './sidebar-right.component.css'

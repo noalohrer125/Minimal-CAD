@@ -1,96 +1,137 @@
 <div class="sidebar-content">
     <form [formGroup]="form">
         <div class="formheader">
-            <input class="name-input" type="text" formControlName="name"/>
-            <mat-icon (mousedown)="onMouseDown($event)">open_with</mat-icon>
-            <mat-icon (click)="onClose()">close</mat-icon>
+            <h1>
+                <input
+                    type="text"
+                    formControlName="name"
+                    class="name-header"
+                    placeholder="Titel eingeben..." />
+            </h1>
+            <button mat-icon-button (mousedown)="onMouseDown($event)">
+                <mat-icon>open_with</mat-icon>
+            </button>
+            <button mat-icon-button (click)="onClose()">
+                <mat-icon>close</mat-icon>
+            </button>
         </div>
         @if (selectedObject.type === 'Freeform') {
-            <fieldset class="fieldset" formArrayName="commands">
-                <legend>Commands</legend>
+        <mat-expansion-panel expanded>
+            <mat-expansion-panel-header>
+                <mat-panel-title>Commands</mat-panel-title>
+            </mat-expansion-panel-header>
+
+            <div formArrayName="commands">
                 @for (item of commands.controls; track $index) {
-                    <div [formGroupName]="$index" class="command-group">
-                        <label>
-                            Type:
-                            <select formControlName="type">
-                                <option value="moveTo">moveTo</option>
-                                <option value="lineTo">lineTo</option>
-                                <option value="quadraticCurveTo">quadraticCurveTo</option>
-                            </select>
-                        </label>
-                        <label>
-                            X:
-                            <input type="number" formControlName="x" />
-                        </label>
-                        <label>
-                            Y:
-                            <input type="number" formControlName="y" />
-                        </label>
-                        @if (item.value.type === 'quadraticCurveTo') {
-                            <label>
-                                Control X:
-                                <input type="number" formControlName="cpX" />
-                            </label>
-                            <label>
-                                Control Y:
-                                <input type="number" formControlName="cpY" />
-                            </label>
-                        }
-                        <button type="button" (click)="removeCommand($index)"><mat-icon>delete</mat-icon></button>
-                    </div>
+                <div [formGroupName]="$index" class="command-group">
+                    <mat-form-field appearance="outline">
+                        <mat-label>Type</mat-label>
+                        <mat-select formControlName="type">
+                            <mat-option value="moveTo">moveTo</mat-option>
+                            <mat-option value="lineTo">lineTo</mat-option>
+                            <mat-option
+                                value="quadraticCurveTo">quadraticCurveTo</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline">
+                        <mat-label>X</mat-label>
+                        <input matInput type="number" formControlName="x" />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline">
+                        <mat-label>Y</mat-label>
+                        <input matInput type="number" formControlName="y" />
+                    </mat-form-field>
+                    @if (item.value.type === 'quadraticCurveTo') {
+                    <mat-form-field appearance="outline">
+                        <mat-label>Control X</mat-label>
+                        <input matInput type="number" formControlName="cpX" />
+                    </mat-form-field>
+                    <mat-form-field appearance="outline">
+                        <mat-label>Control Y</mat-label>
+                        <input matInput type="number" formControlName="cpY" />
+                    </mat-form-field>
+                    }
+                    <button mat-icon-button type="button"
+                        (click)="removeCommand($index)">
+                        <mat-icon>delete</mat-icon>
+                    </button>
+                </div>
                 }
-                <button type="button" (click)="addCommand()">Add Command</button>
-            </fieldset>
+                <button mat-raised-button color="primary" type="button"
+                    (click)="addCommand()">Add Command</button>
+            </div>
+        </mat-expansion-panel>
         }
-        <fieldset class="fieldset" formGroupName="size">
-            <legend>Size</legend>
+        <mat-expansion-panel expanded formGroupName="size">
+            <mat-expansion-panel-header>
+                <mat-panel-title>Size</mat-panel-title>
+            </mat-expansion-panel-header>
             @if (!['Circle', 'Freeform'].includes(selectedObject.type)) {
-                <label>
-                    Length: <input type="number" formControlName="length" />
-                </label>
-                <label>
-                    Width: <input type="number" formControlName="width" />
-                </label>
+            <mat-form-field appearance="outline">
+                <mat-label>Width</mat-label>
+                <input matInput type="number" formControlName="length" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Length</mat-label>
+                <input matInput type="number" formControlName="width" />
+            </mat-form-field>
             }
-            <label>
-                Height: <input type="number" formControlName="height" />
-            </label>
+            <mat-form-field appearance="outline">
+                <mat-label>Height</mat-label>
+                <input matInput type="number" formControlName="height" />
+            </mat-form-field>
             @if (selectedObject.type === 'Circle') {
-                <label>
-                    Radius: <input type="number" formControlName="radius" />
-                </label>
-                <label>
-                    Curve Segments: <input type="number" formControlName="curveSegments" />
-                </label>
+            <mat-form-field appearance="outline">
+                <mat-label>Radius</mat-label>
+                <input matInput type="number" formControlName="radius" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Curve Segments</mat-label>
+                <input matInput type="number" formControlName="curveSegments" />
+            </mat-form-field>
             }
-        </fieldset>
+        </mat-expansion-panel>
         @if (selectedObject.type !== 'Freeform') {
-        <fieldset class="fieldset" formGroupName="position">
-            <legend>Position</legend>
-            <label>
-                X: <input type="number" formControlName="x" />
-            </label>
-            <label>
-                Y: <input type="number" formControlName="y" />
-            </label>
-                <label>
-                    Z: <input type="number" formControlName="z" />
-                </label>
-            </fieldset>
+        <mat-expansion-panel formGroupName="position">
+            <mat-expansion-panel-header>
+                <mat-panel-title>Position</mat-panel-title>
+            </mat-expansion-panel-header>
+            <mat-form-field appearance="outline">
+                <mat-label>X</mat-label>
+                <input matInput type="number" formControlName="x" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Y</mat-label>
+                <input matInput type="number" formControlName="y" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Z</mat-label>
+                <input matInput type="number" formControlName="z" />
+            </mat-form-field>
+        </mat-expansion-panel>
         }
-        <fieldset class="fieldset" formGroupName="rotation">
-            <legend>Rotation</legend>
-            <label>
-                X: <input type="number" formControlName="x" />
-            </label>
-            <label>
-                Y: <input type="number" formControlName="y" />
-            </label>
-            <label>
-                Z: <input type="number" formControlName="z" />
-            </label>
-        </fieldset>
-        <button type="submit" (click)="onSubmit()">Apply</button>
-        <button type="button" (click)="onDelete()">Delete</button>
+        <mat-expansion-panel formGroupName="rotation">
+            <mat-expansion-panel-header>
+                <mat-panel-title>Rotation</mat-panel-title>
+            </mat-expansion-panel-header>
+            <mat-form-field appearance="outline">
+                <mat-label>X</mat-label>
+                <input matInput type="number" formControlName="x" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Y</mat-label>
+                <input matInput type="number" formControlName="y" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Z</mat-label>
+                <input matInput type="number" formControlName="z" />
+            </mat-form-field>
+        </mat-expansion-panel>
+        <div class="form-actions">
+            <button mat-raised-button color="primary" type="submit"
+                (click)="onSubmit()">Apply</button>
+            <button mat-raised-button color="warn" type="button"
+                (click)="onDelete()">Delete</button>
+        </div>
     </form>
 </div>

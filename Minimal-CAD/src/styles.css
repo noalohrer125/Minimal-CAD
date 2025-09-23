@@ -3,6 +3,7 @@
     margin: 0;
     box-sizing: border-box;
     user-select: none;
+    font-family: "Lucida Console", "Courier New", monospace;
 }
 
 .root {
