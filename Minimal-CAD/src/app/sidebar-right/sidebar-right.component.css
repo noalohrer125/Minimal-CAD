@@ -1,70 +1,223 @@
-:host {
-  position: absolute;
-  padding: 10px;
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  min-width: 150px;
-  min-height: 100px;
-}
-
 .sidebar-content {
-  width: 100%;
   height: 100%;
-}
-
-:host:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.fieldset {
-  display: flex;
-  flex-direction: column;
-}
-
-button {
-  margin-top: 10px;
-  margin-right: 5px;
-  padding: 5px;
-  background-color: #e0e0e0;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-
-  &:hover {
-    background-color: #c4c4c4;
-  }
-}
-
-input {
-  width: 50px;
-}
-
-.name-input {
-  font-size: 2em;
-  font-weight: bold;
-  border: none;
-  background: transparent;
-  width: 80%;
-  max-width: 360px;
+  max-height: 60vh;
+  width: 100%;
+  background-color: #e8e8e8;
+  border: 2px solid #e57373;
+  border-radius: 10px;
+  overflow-y: auto;
+  padding: 1rem;
+  box-sizing: border-box;
+  overflow-x: scroll;
 }
 
 .formheader {
   display: flex;
-  flex-direction: row;
+  align-items: center;
   justify-content: space-between;
+  margin-bottom: 1.5rem;
+  padding: 0.5rem;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid #e57373;
+}
 
-  .mat-icon {
-    margin-left: auto;
-    align-self: center;
+.formheader h1 {
+  flex-grow: 1;
+  margin: 0;
+  padding: 0;
+}
+
+.name-header {
+  border: none;
+  background: transparent;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #333;
+  width: 100%;
+  padding: 0.25rem 0.5rem;
+  outline: none;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.name-header:focus {
+  background-color: #ffcdcd;
+}
+
+.name-header::placeholder {
+  color: #999;
+  font-weight: normal;
+}
+
+/* Material Angular Form Field Customizations */
+::ng-deep .mat-mdc-form-field {
+  width: 100%;
+}
+
+::ng-deep .mat-expansion-panel-header:hover {
+  background-color: #ffa1a1 !important;
+}
+
+::ng-deep .mat-expansion-panel-body {
+  padding: 1rem !important;
+  background-color: #f5f5f5;
+}
+
+/* Command Group Styling */
+.command-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding: 1rem;
+  background-color: #f0f0f0;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  border: 1px solid #e0e0e0;
+}
+
+.command-group::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background-color: #e57373;
+  border-radius: 4px 0 0 4px;
+}
+
+.command-group button[mat-icon-button] {
+  background-color: #dc3545;
+  color: white;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  margin-left: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.command-group button[mat-icon-button]:hover {
+  background-color: #c82333;
+  transform: scale(1.05);
+}
+
+/* Form Actions */
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding: 1rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 5px;
+}
+
+.form-actions button {
+  flex: 1;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+/* Button Styling */
+::ng-deep .mat-mdc-raised-button.mat-primary {
+  background-color: #e57373 !important;
+  color: white !important;
+}
+
+::ng-deep .mat-mdc-raised-button.mat-primary:hover {
+  background-color: #d32f2f !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(229, 115, 115, 0.3) !important;
+}
+
+::ng-deep .mat-mdc-raised-button.mat-warn {
+  background-color: #dc3545 !important;
+  color: white !important;
+}
+
+::ng-deep .mat-mdc-raised-button.mat-warn:hover {
+  background-color: #c82333 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3) !important;
+}
+
+/* Add Command Button */
+button[mat-raised-button][color="primary"]:not(.form-actions button) {
+  width: 100%;
+  margin-top: 1rem;
+  background-color: #81c784;
+  border-radius: 6px;
+}
+
+::ng-deep button[mat-raised-button][color="primary"]:not(.form-actions button):hover {
+  background-color: #66bb6a !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(129, 199, 132, 0.3) !important;
+}
+
+/* Apply Button */
+.form-actions button[mat-raised-button][color="primary"]:hover {
+  background-color: #66bb6a !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(129, 199, 132, 0.3) !important;
+}
+
+/* Header Icons */
+.formheader button[mat-icon-button] {
+  background-color: transparent;
+  color: #666;
+  transition: all 0.2s ease;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+}
+
+.formheader button[mat-icon-button]:hover {
+  color: #dc3545;
+  transform: scale(1.1);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .sidebar-content {
+    padding: 0.5rem;
   }
-  .mat-icon:hover {
-    background-color: #eaeaea;
-    border-radius: 10px;
-    cursor: pointer;
+
+  .command-group {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .command-group mat-form-field {
+    min-width: 100%;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .formheader {
+    padding: 0.25rem;
   }
 }
 
-.command-group {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
+/* Scrollbar Styling */
+.sidebar-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.sidebar-content::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.sidebar-content::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
