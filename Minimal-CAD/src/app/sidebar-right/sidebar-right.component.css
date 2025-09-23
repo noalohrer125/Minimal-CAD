@@ -221,3 +221,25 @@ button[mat-raised-button][color="primary"]:not(.form-actions button) {
 .sidebar-content::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
+
+.sidebar-content ::ng-deep .mdc-text-field__input {
+  padding-left: 10px;
+}
+
+.sidebar-content ::ng-deep .mat-mdc-select-trigger {
+  padding-left: 10px;
+}
+
+::ng-deep .mat-mdc-select-panel {
+  background: #f2f2f2 !important; /* solid light gray */
+  border: 1px solid #d8d8d8;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+::ng-deep .mat-mdc-option.mdc-list-item--selected,
+::ng-deep .mat-mdc-option.mdc-list-item--selected.mdc-list-item--with-one-line .mdc-list-item__primary-text,
+::ng-deep .mat-mdc-option:hover {
+  background: #ffe1e1 !important;
+}
