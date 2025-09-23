@@ -90,7 +90,7 @@ export class SidebarRightComponent implements OnInit {
 
   private createCommandGroup(cmd?: FreeObjectCommand): FormGroup {
     const group: any = {
-      type: new FormControl(cmd?.type ?? 'moveTo', Validators.required),
+      type: new FormControl({value: cmd?.type ?? 'moveTo', disabled: cmd?.type === 'moveTo'}, Validators.required),
       new: new FormControl(cmd?.new ?? false),
       x: new FormControl((cmd as any)?.x ?? 0),
       y: new FormControl((cmd as any)?.y ?? 0)

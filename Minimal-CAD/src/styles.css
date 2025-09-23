@@ -18,3 +18,7 @@ button {
     background-color: transparent;
     border: none;
 }
+
+.mat-form-field-disabled {
+    color: #aaa;
+}
