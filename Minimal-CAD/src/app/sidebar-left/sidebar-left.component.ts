@@ -19,7 +19,6 @@ export class SidebarLeftComponent {
   ngOnInit() {
     this.objects = this.drawService.loadObjects();
     this.selectedObject = this.drawService.loadObjects().find(obj => obj.selected) || {};
-    this.selectedObject?.id && this.objects.splice(this.objects.reduce((acc, obj, i) => obj.id === this.selectedObject.id ? i : acc, -1), 1);
   }
 
   onClick(object: FormObject | FreeObject) {
