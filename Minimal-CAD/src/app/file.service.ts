@@ -1,11 +1,14 @@
 import { Injectable } from '@angular/core';
+import { Draw } from './draw.service';
 
 @Injectable({
     providedIn: 'root'
 })
 export class File {
+    constructor(private drawService: Draw) { }
+
     save() {
-        const modelDataString = localStorage.getItem('model-data');
+        const modelDataString = JSON.stringify(this.drawService.loadObjects());
         const jsonToSave = modelDataString ? modelDataString : JSON.stringify([]);
         const a = Object.assign(document.createElement('a'), {
             href: URL.createObjectURL(new Blob([jsonToSave], { type: 'application/json' })),

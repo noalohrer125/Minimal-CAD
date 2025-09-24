@@ -8,9 +8,10 @@ export interface FormObject {
     w?: number; // for squares
     h: number; // for squares
     r?: number; // for circles
-    position: [number, number, number]; // [x, y, z]
-    rotation: [number, number, number]; // [x, y, z] in radians
+    position: [number, number, number];
+    rotation: [number, number, number];
     curveSegments?: number; // for circles
+    selected: boolean;
 }
 
 export type FreeObjectCommand =
@@ -35,8 +36,9 @@ export interface FreeObject {
     type: 'Freeform';
     commands: FreeObjectCommand[]; // shape building steps
     h: number; // extrusion height
-    position: [number, number, number]; // world position
-    rotation: [number, number, number]; // optional
+    position: [number, number, number];
+    rotation: [number, number, number];
+    selected: boolean;
 }
 
 export interface view {

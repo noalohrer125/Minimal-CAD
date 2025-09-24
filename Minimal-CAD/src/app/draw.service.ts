@@ -9,13 +9,6 @@ export class Draw {
   loadObjects(): (FormObject | FreeObject)[] {
     const modelDataString = localStorage.getItem('model-data');
     const data = modelDataString ? JSON.parse(modelDataString) as (FormObject | FreeObject)[] : [];
-    const selectedObject = localStorage.getItem('selectedObject');
-    if (selectedObject) {
-      data.push(JSON.parse(selectedObject) as FormObject | FreeObject);
-      if (data) {
-        return data;
-      }
-    }
     if (data) {
       return data;
     }
@@ -32,15 +25,15 @@ export class Draw {
   }
 
   saveObject(object: FormObject | FreeObject): void {
-    const modelData = JSON.parse(localStorage.getItem('model-data') || '[]');
+    const modelData = this.loadObjects();
     const isNewObject = modelData.findIndex((obj: FormObject | FreeObject) => obj.id === object.id);
     if (isNewObject === -1) {
       modelData.push(object);
     } else {
       modelData[isNewObject] = object;
     }
+    modelData.forEach((obj: FormObject | FreeObject) => obj.selected = false);
     localStorage.setItem('model-data', JSON.stringify(modelData));
-    localStorage.removeItem('selectedObject');
   }
 
   generateId(): string {
@@ -56,9 +49,10 @@ export class Draw {
       w: 1,
       h: 0,
       position: [0, 0, 0],
-      rotation: [0, 0, 0]
+      rotation: [0, 0, 0],
+      selected: true
     };
-    localStorage.setItem('selectedObject', JSON.stringify(newObject));
+    localStorage.setItem('model-data', JSON.stringify([...this.loadObjects(), newObject]));
     location.reload();
   }
 
@@ -71,9 +65,10 @@ export class Draw {
       h: 0,
       position: [0, 0, 0],
       rotation: [0, 0, 0],
-      curveSegments: 100
+      curveSegments: 100,
+      selected: true
     };
-    localStorage.setItem('selectedObject', JSON.stringify(newObject));
+    localStorage.setItem('model-data', JSON.stringify([...this.loadObjects(), newObject]));
     location.reload();
   }
 
@@ -104,9 +99,10 @@ export class Draw {
       ],
       position: [0, 0, 0],
       rotation: [0, 0, 0],
-      h: 2
+      h: 2,
+      selected: true
     };
-    localStorage.setItem('selectedObject', JSON.stringify(newObject));
+    localStorage.setItem('model-data', JSON.stringify([...this.loadObjects(), newObject]));
     location.reload();
   }
 }

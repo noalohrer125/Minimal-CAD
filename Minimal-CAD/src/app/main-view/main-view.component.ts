@@ -127,21 +127,23 @@ export class MainViewComponent implements AfterViewInit {
   }
 
   loadModels() {
-    const data = this.drawservice.loadObjects();
-    const selectedObject = JSON.parse(
-      localStorage.getItem('selectedObject') || '{}'
-    ) as FormObject | FreeObject;
+    const modelData = this.drawservice.loadObjects();
+    const selectedObject = modelData.find(obj => obj.selected);
 
     const objectColor = { color: 0x8cb9d4, roughness: 0.5, metalness: 0.5, flatShading: true };
     const selectedObjectColor = { color: 0x7ec8e3, roughness: 0.5, metalness: 0.1, flatShading: true };
+    const ghostObjectColor = { color: 0x8cb9d4, roughness: 0.5, metalness: 0.5, flatShading: true, transparent: true, opacity: 0 };
     const edgeColor = 0x253238;
     const selectedEdgeColor = 0xffb347;
+    const ghostEdgeColor = 0x888888;
 
-    const renderFormObject = (element: FormObject, isSelected: boolean) => {
+    const renderFormObject = (element: FormObject, isSelected: boolean, isGhost: boolean = false) => {
       if (element.type === 'Square') {
         const geometry = new THREE.BoxGeometry(element.l, element.w, element.h);
         let material: THREE.MeshPhysicalMaterial;
-        if (isSelected) {
+        if (isGhost) {
+          material = new THREE.MeshPhysicalMaterial(ghostObjectColor);
+        } else if (isSelected) {
           material = new THREE.MeshPhysicalMaterial(selectedObjectColor);
         } else {
           material = new THREE.MeshPhysicalMaterial(objectColor);
@@ -157,15 +159,18 @@ export class MainViewComponent implements AfterViewInit {
         mesh.rotation.y = element.rotation ? element.rotation[1] * Math.PI / 180 : 0;
         mesh.rotation.z = element.rotation ? element.rotation[2] * Math.PI / 180 : 0;
         mesh.userData = element;
-        mesh.castShadow = true;
+        mesh.castShadow = !isGhost;
         mesh.receiveShadow = true;
         this.rootGroup.add(mesh);
-        this.objects.push(mesh);
+        if (!isGhost) {
+          this.objects.push(mesh);
+        }
 
         const edges = new THREE.EdgesGeometry(geometry);
+        const edgeColorToUse = isGhost ? ghostEdgeColor : (isSelected ? selectedEdgeColor : edgeColor);
         const line = new THREE.LineSegments(
           edges,
-          new THREE.LineBasicMaterial({ color: isSelected ? selectedEdgeColor : edgeColor })
+          new THREE.LineBasicMaterial({ color: edgeColorToUse })
         );
         line.position.copy(mesh.position);
         line.rotation.copy(mesh.rotation);
@@ -178,7 +183,9 @@ export class MainViewComponent implements AfterViewInit {
           element.curveSegments! <= 10000 && element.curveSegments! > 2 ? element.curveSegments : 10000,
         );
         let material: THREE.MeshPhysicalMaterial;
-        if (isSelected) {
+        if (isGhost) {
+          material = new THREE.MeshPhysicalMaterial(ghostObjectColor);
+        } else if (isSelected) {
           material = new THREE.MeshPhysicalMaterial(selectedObjectColor);
         } else {
           material = new THREE.MeshPhysicalMaterial(objectColor);
@@ -194,22 +201,25 @@ export class MainViewComponent implements AfterViewInit {
         mesh.rotation.y = element.rotation ? element.rotation[1] * Math.PI / 180 : 0;
         mesh.rotation.z = element.rotation ? element.rotation[2] * Math.PI / 180 : 0;
         mesh.userData = element;
-        mesh.castShadow = true;
+        mesh.castShadow = !isGhost;
         mesh.receiveShadow = true;
         this.rootGroup.add(mesh);
-        this.objects.push(mesh);
+        if (!isGhost) {
+          this.objects.push(mesh);
+        }
 
         const edges = new THREE.EdgesGeometry(geometry);
+        const edgeColorToUse = isGhost ? ghostEdgeColor : (isSelected ? selectedEdgeColor : edgeColor);
         const line = new THREE.LineSegments(
           edges,
-          new THREE.LineBasicMaterial({ color: isSelected ? selectedEdgeColor : edgeColor })
+          new THREE.LineBasicMaterial({ color: edgeColorToUse })
         );
         line.position.copy(mesh.position);
         line.rotation.copy(mesh.rotation);
         this.rootGroup.add(line);
       }
     };
-    const renderFreeFormObject = (element: FreeObject, isSelected: boolean) => {
+    const renderFreeFormObject = (element: FreeObject, isSelected: boolean, isGhost: boolean = false) => {
       const shape = new THREE.Shape();
       let lastX = 0, lastY = 0;
 
@@ -246,21 +256,30 @@ export class MainViewComponent implements AfterViewInit {
         bevelEnabled: false
       };
       const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-      const material = new THREE.MeshPhysicalMaterial({
-        ...(isSelected ? selectedObjectColor : objectColor),
-        side: THREE.DoubleSide
-      });
+      let material: THREE.MeshPhysicalMaterial;
+      if (isGhost) {
+        material = new THREE.MeshPhysicalMaterial({
+          ...ghostObjectColor,
+          side: THREE.DoubleSide
+        });
+      } else {
+        material = new THREE.MeshPhysicalMaterial({
+          ...(isSelected ? selectedObjectColor : objectColor),
+          side: THREE.DoubleSide
+        });
+      }
       const mesh = new THREE.Mesh(geometry, material);
       mesh.position.set(...element.position);
       mesh.rotation.x = element.rotation[0] * Math.PI / 180;
       mesh.rotation.y = element.rotation[1] * Math.PI / 180;
       mesh.rotation.z = element.rotation[2] * Math.PI / 180;
       mesh.userData = element;
-      mesh.castShadow = true;
+      mesh.castShadow = !isGhost;
       mesh.receiveShadow = true;
       this.rootGroup.add(mesh);
 
-      const edgeLineMaterial = new THREE.LineBasicMaterial({ color: isSelected ? selectedEdgeColor : edgeColor });
+      const edgeColorToUse = isGhost ? ghostEdgeColor : (isSelected ? selectedEdgeColor : edgeColor);
+      const edgeLineMaterial = new THREE.LineBasicMaterial({ color: edgeColorToUse });
       // Get outline points from shape
       const outlinePoints = shape.getPoints(1000);
       if (outlinePoints.length > 1) {
@@ -279,14 +298,11 @@ export class MainViewComponent implements AfterViewInit {
       }
     };
 
-    data.forEach(el => {
-      const isSelected = selectedObject && (selectedObject.id === el.id);
-      if (el.type === 'Square') {
-        renderFormObject(el, isSelected);
-      } else if (el.type === 'Circle') {
-        renderFormObject(el, isSelected);
+    modelData.forEach(el => {
+      if (el.type === 'Square' || el.type === 'Circle') {
+        renderFormObject(el, el.selected, false);
       } else if (el.type === 'Freeform') {
-        renderFreeFormObject(el, isSelected);
+        renderFreeFormObject(el, el.selected, false);
       }
     });
   }
@@ -379,6 +395,7 @@ export class MainViewComponent implements AfterViewInit {
   }
 
   onClick(event: MouseEvent) {
+    const modelData = this.drawservice.loadObjects();
     const rect = this.canvasRef.nativeElement.getBoundingClientRect();
     this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
@@ -388,13 +405,15 @@ export class MainViewComponent implements AfterViewInit {
     if (intersects.length > 0) {
       const selected = intersects[0].object;
       const originalData = selected.userData as FormObject | FreeObject;
-      const selectedObject = JSON.parse(localStorage.getItem('selectedObject') || '{}') as FormObject | FreeObject;
+      const selectedObject = modelData.find(obj => obj.selected);
       if (selectedObject && selectedObject.id === originalData.id) {
         return;
       }
-      localStorage.setItem('selectedObject', JSON.stringify(originalData));
+      modelData.find(obj => obj.id === originalData.id)!.selected = true;
+      localStorage.setItem('model-data', JSON.stringify(modelData));
     } else {
-      localStorage.removeItem('selectedObject');
+      modelData.forEach(obj => obj.selected = false);
+      localStorage.setItem('model-data', JSON.stringify(modelData));
     }
     this.clearScene();
     this.loadModels();

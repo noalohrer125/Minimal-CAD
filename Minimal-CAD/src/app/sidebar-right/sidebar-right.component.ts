@@ -103,7 +103,7 @@ export class SidebarRightComponent implements OnInit {
   }
 
   initForm(): void {
-    this.selectedObject = localStorage.getItem('selectedObject') ? JSON.parse(localStorage.getItem('selectedObject')!) : null;
+    this.selectedObject = this.drawService.loadObjects().find(obj => obj.selected) || null;
     this.selectedObjectType = this.selectedObject?.type!;
 
     if (this.selectedObject) {
@@ -230,17 +230,21 @@ export class SidebarRightComponent implements OnInit {
       };
     }
 
+    const modelData = this.drawService.loadObjects();
     localStorageData.id = this.selectedObject?.id;
     localStorageData.rotation = [
       this.form.value.rotation.x,
       this.form.value.rotation.y,
       this.form.value.rotation.z
     ];
+    localStorageData.selected = true;
     this.selectedObject = localStorageData;
-    localStorage.setItem(
-      'selectedObject',
-      JSON.stringify(this.selectedObject)
-    );
+    modelData.forEach((model: any, index: number) => {
+      if (model.id === this.selectedObject.id) {
+        modelData[index] = this.selectedObject;
+      }
+    });
+    localStorage.setItem('model-data', JSON.stringify(modelData));
   }
 
   onSubmit() {
@@ -263,11 +267,7 @@ export class SidebarRightComponent implements OnInit {
       )
     ) {
       localStorage.removeItem('selectedObject');
-      let models: (FormObject | FreeObject)[] = localStorage.getItem(
-        'model-data'
-      )
-        ? JSON.parse(localStorage.getItem('model-data')!)
-        : [];
+      let models = this.drawService.loadObjects();
       models = models.filter(
         (model) => model.id !== this.selectedObject.id
       );

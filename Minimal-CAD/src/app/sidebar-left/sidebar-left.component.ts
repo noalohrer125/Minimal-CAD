@@ -18,13 +18,15 @@ export class SidebarLeftComponent {
 
   ngOnInit() {
     this.objects = this.drawService.loadObjects();
-    this.selectedObject = localStorage.getItem('selectedObject') ? JSON.parse(localStorage.getItem('selectedObject')!) : {};
+    this.selectedObject = this.drawService.loadObjects().find(obj => obj.selected) || {};
     this.selectedObject?.id && this.objects.splice(this.objects.reduce((acc, obj, i) => obj.id === this.selectedObject.id ? i : acc, -1), 1);
   }
 
   onClick(object: FormObject | FreeObject) {
     this.selectedObject = object;
-    localStorage.setItem('selectedObject', JSON.stringify(object));
+    const modelData = this.drawService.loadObjects();
+    modelData.find(obj => obj.id === object.id)!.selected = true;
+    localStorage.setItem('model-data', JSON.stringify(modelData));
     location.reload();
   }
 }

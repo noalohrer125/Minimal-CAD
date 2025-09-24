@@ -36,7 +36,8 @@ export class AppComponent implements OnInit {
   public currentRotation = new THREE.Euler();
 
   ngOnInit(): void {
-    this.selectedObject = localStorage.getItem('selectedObject') ? JSON.parse(localStorage.getItem('selectedObject')!) : null;
+    const modelData = this.drawservice.loadObjects();
+    this.selectedObject = modelData.find(obj => obj.selected) || null;
   }
 
   onRotationChanged(rot: THREE.Euler) {
