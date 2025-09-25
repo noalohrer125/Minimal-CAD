@@ -132,7 +132,7 @@ export class MainViewComponent implements AfterViewInit {
 
     const objectColor = { color: 0x8cb9d4, roughness: 0.5, metalness: 0.5, flatShading: true };
     const selectedObjectColor = { color: 0x7ec8e3, roughness: 0.5, metalness: 0.1, flatShading: true };
-    const ghostObjectColor = { color: 0x8cb9d4, roughness: 0.5, metalness: 0.5, flatShading: true, transparent: true, opacity: 0 };
+    const ghostObjectColor = { color: 0x8cb9d4, roughness: 0.5, metalness: 0.5, flatShading: true, transparent: true, opacity: 0.5 };
     const edgeColor = 0x253238;
     const selectedEdgeColor = 0xffb347;
     const ghostEdgeColor = 0x888888;
