@@ -299,11 +299,7 @@ export class MainViewComponent implements AfterViewInit {
     };
 
     modelData.forEach(el => {
-      if (el.type === 'Square' || el.type === 'Circle') {
-        renderFormObject(el, el.selected, false);
-      } else if (el.type === 'Freeform') {
-        renderFreeFormObject(el, el.selected, false);
-      }
+      el.type === 'Freeform' ? renderFreeFormObject(el, el.selected, el.ghost || false) : renderFormObject(el, el.selected, el.ghost || false);
     });
   }
 
@@ -402,26 +398,46 @@ export class MainViewComponent implements AfterViewInit {
 
     this.raycaster.setFromCamera(this.mouse, this.camera);
     const intersects = this.raycaster.intersectObjects(this.objects);
+    
     if (intersects.length > 0) {
       const selected = intersects[0].object;
       const originalData = selected.userData as FormObject | FreeObject;
-      const selectedObject = modelData.find(obj => obj.selected);
+      const selectedObject = modelData.find(obj => obj.selected && !obj.ghost);
+      
       if (selectedObject && selectedObject.id === originalData.id) {
-        return;
+        return; // Same object already selected
       }
-      modelData.find(obj => obj.id === originalData.id)!.selected = true;
+      
+      // Clean up any existing ghost objects
+      this.drawservice.removeGhostObjects();
+      
+      // Deselect all objects and select the clicked one
+      modelData.forEach(obj => obj.selected = false);
+      const targetObject = modelData.find(obj => obj.id === originalData.id && !obj.ghost);
+      if (targetObject) {
+        targetObject.selected = true;
+      }
       localStorage.setItem('model-data', JSON.stringify(modelData));
     } else {
+      // Clicked on empty space - deselect all and clean up ghosts
+      this.drawservice.removeGhostObjects();
       modelData.forEach(obj => obj.selected = false);
       localStorage.setItem('model-data', JSON.stringify(modelData));
     }
+    
     this.clearScene();
     this.loadModels();
     location.reload();
   }
 
   clearScene() {
-    this.objects.forEach(obj => this.scene.remove(obj));
+    // Remove all objects from the rootGroup, not just from this.objects array
+    const objectsToRemove = [...this.rootGroup.children];
+    objectsToRemove.forEach(child => {
+      if (child !== this.rootGroup.children.find(c => (c as any).isGridHelper)) {
+        this.rootGroup.remove(child);
+      }
+    });
     this.objects = [];
   }
 

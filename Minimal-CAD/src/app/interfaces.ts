@@ -12,6 +12,7 @@ export interface FormObject {
     rotation: [number, number, number];
     curveSegments?: number; // for circles
     selected: boolean;
+    ghost?: boolean;
 }
 
 export type FreeObjectCommand =
@@ -39,6 +40,7 @@ export interface FreeObject {
     position: [number, number, number];
     rotation: [number, number, number];
     selected: boolean;
+    ghost?: boolean;
 }
 
 export interface view {

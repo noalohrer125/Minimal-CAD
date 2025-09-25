@@ -73,13 +73,17 @@ export class SidebarRightComponent implements OnInit {
   ngOnInit(): void {
     this.initForm();
 
+    // Create ghost object when starting to edit
+    if (this.selectedObject && this.selectedObject.id) {
+      this.drawService.createGhostObject(this.selectedObject.id);
+    }
+
     this.form.get('position')?.valueChanges.subscribe((pos: any) => {
       this.positionChange.emit([pos.x, pos.y, pos.z]);
     });
 
-    this.form.valueChanges.pipe(debounceTime(1000)).subscribe(() => {
-      this.saveToLocalStorage();
-      window.location.reload(); // Reload page after user stops typing and changes are saved
+    this.form.valueChanges.pipe(debounceTime(500)).subscribe(() => {
+      this.updatePreview();
     });
   }
 
@@ -153,6 +157,12 @@ export class SidebarRightComponent implements OnInit {
 
   removeCommand(index: number) {
     this.commands.removeAt(index);
+  }
+
+  private updatePreview() {
+    if (!this.selectedObject) return;
+    this.saveToLocalStorage();
+    window.location.reload();
   }
 
   private saveToLocalStorage() {
@@ -238,25 +248,30 @@ export class SidebarRightComponent implements OnInit {
       this.form.value.rotation.z
     ];
     localStorageData.selected = true;
-    this.selectedObject = localStorageData;
-    modelData.forEach((model: any, index: number) => {
-      if (model.id === this.selectedObject.id) {
-        modelData[index] = this.selectedObject;
-      }
-    });
+    
+    // Update the preview object (non-ghost version)
+    const existingIndex = modelData.findIndex((model: any) => model.id === this.selectedObject.id && !model.ghost);
+    if (existingIndex !== -1) {
+      modelData[existingIndex] = {...localStorageData};
+    }
+    
     localStorage.setItem('model-data', JSON.stringify(modelData));
   }
 
   onSubmit() {
     if (!this.selectedObject) return;
+    
+    // Save the final object and clean up ghosts
     this.saveToLocalStorage();
     this.drawService.saveObject(this.selectedObject);
     window.location.reload();
   }
 
   onClose() {
+    // Remove ghost objects and deselect all
+    this.drawService.removeGhostObjects();
+    this.drawService.deselectAllObjects();
     this.selectedObject = null;
-    localStorage.removeItem('selectedObject');
     location.reload();
   }
 
@@ -266,12 +281,12 @@ export class SidebarRightComponent implements OnInit {
         `You are about to delete ${this.selectedObject.name}. Proceed?`
       )
     ) {
-      localStorage.removeItem('selectedObject');
       let models = this.drawService.loadObjects();
       models = models.filter(
         (model) => model.id !== this.selectedObject.id
       );
       localStorage.setItem('model-data', JSON.stringify(models));
+      this.selectedObject = null;
       location.reload();
     }
   }

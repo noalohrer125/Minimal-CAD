@@ -25,14 +25,44 @@ export class Draw {
   }
 
   saveObject(object: FormObject | FreeObject): void {
-    const modelData = this.loadObjects();
-    const isNewObject = modelData.findIndex((obj: FormObject | FreeObject) => obj.id === object.id);
-    if (isNewObject === -1) {
+    let modelData = this.loadObjects();
+    const existingIndex = modelData.findIndex((obj: FormObject | FreeObject) => obj.id === object.id && !obj.ghost);
+    
+    if (existingIndex === -1) {
+      // New object
       modelData.push(object);
     } else {
-      modelData[isNewObject] = object;
+      // Update existing object
+      modelData[existingIndex] = object;
     }
-    modelData.forEach((obj: FormObject | FreeObject) => obj.selected = false);
+    
+    // Remove all ghost objects and deselect all objects
+    modelData = modelData.filter(obj => !obj.ghost);
+    modelData.forEach(obj => obj.selected = false);
+    localStorage.setItem('model-data', JSON.stringify(modelData));
+  }
+
+  createGhostObject(objectId: string): void {
+    let modelData = this.loadObjects();
+    const originalObject = modelData.find(obj => obj.id === objectId && !obj.ghost);
+    
+    if (originalObject && !modelData.some(obj => obj.id === objectId && obj.ghost)) {
+      // Create ghost copy of the original object
+      const ghostObject = { ...originalObject, ghost: true, selected: false };
+      modelData.push(ghostObject);
+      localStorage.setItem('model-data', JSON.stringify(modelData));
+    }
+  }
+
+  removeGhostObjects(): void {
+    let modelData = this.loadObjects();
+    modelData = modelData.filter(obj => !obj.ghost);
+    localStorage.setItem('model-data', JSON.stringify(modelData));
+  }
+
+  deselectAllObjects(): void {
+    let modelData = this.loadObjects();
+    modelData.forEach(obj => obj.selected = false);
     localStorage.setItem('model-data', JSON.stringify(modelData));
   }
 
