@@ -277,28 +277,20 @@ export class MainViewComponent implements AfterViewInit {
       mesh.castShadow = !isGhost;
       mesh.receiveShadow = true;
       this.rootGroup.add(mesh);
-        if (!isGhost) {
-          this.objects.push(mesh);
-        }
-
-      const edgeColorToUse = isGhost ? ghostEdgeColor : (isSelected ? selectedEdgeColor : edgeColor);
-      const edgeLineMaterial = new THREE.LineBasicMaterial({ color: edgeColorToUse });
-      // Get outline points from shape
-      const outlinePoints = shape.getPoints(1000);
-      if (outlinePoints.length > 1) {
-        const edgeLinePoints = outlinePoints.map(pt => new THREE.Vector3(pt.x, pt.y, 0));
-        // Close the loop if needed
-        if (!outlinePoints[0].equals(outlinePoints[outlinePoints.length - 1])) {
-          edgeLinePoints.push(new THREE.Vector3(outlinePoints[0].x, outlinePoints[0].y, 0));
-        }
-        const edgeGeom = new THREE.BufferGeometry().setFromPoints(edgeLinePoints);
-        const edgeLine = new THREE.Line(edgeGeom, edgeLineMaterial);
-        edgeLine.position.set(...element.position);
-        edgeLine.rotation.x = element.rotation[0] * Math.PI / 180;
-        edgeLine.rotation.y = element.rotation[1] * Math.PI / 180;
-        edgeLine.rotation.z = element.rotation[2] * Math.PI / 180;
-        this.rootGroup.add(edgeLine);
+      if (!isGhost) {
+        this.objects.push(mesh);
       }
+
+      // Add edge lines for the entire extruded geometry (not just bottom outline)
+      const edgeColorToUse = isGhost ? ghostEdgeColor : (isSelected ? selectedEdgeColor : edgeColor);
+      const edges = new THREE.EdgesGeometry(geometry);
+      const edgeLines = new THREE.LineSegments(
+        edges,
+        new THREE.LineBasicMaterial({ color: edgeColorToUse })
+      );
+      edgeLines.position.copy(mesh.position);
+      edgeLines.rotation.copy(mesh.rotation);
+      this.rootGroup.add(edgeLines);
     };
 
     modelData.forEach(el => {
