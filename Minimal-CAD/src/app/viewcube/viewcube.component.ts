@@ -21,12 +21,22 @@ export class ViewcubeComponent implements AfterViewInit {
   private renderer!: THREE.WebGLRenderer;
   private size = Math.min(window.innerWidth, window.innerHeight) * 0.15;
   private cube!: THREE.Mesh;
-  private cornerSpheres: THREE.Mesh[] = [];
+  private cornerBoxes: THREE.Mesh[] = [];
   private raycaster = new THREE.Raycaster();
   private mouse = new THREE.Vector2();
 
   private targetQuat = new THREE.Quaternion();
   private animating = false;
+
+  private materials: any = [
+    new THREE.MeshStandardMaterial({ color: 0xff5555, roughness: 0.5, metalness: 1 }), // right
+    new THREE.MeshStandardMaterial({ color: 0xff5555, roughness: 0.5, metalness: 1 }), // left
+    new THREE.MeshStandardMaterial({ color: 0x55ff55, roughness: 0.5, metalness: 1 }), // front
+    new THREE.MeshStandardMaterial({ color: 0x55ff55, roughness: 0.5, metalness: 1 }), // back
+    new THREE.MeshStandardMaterial({ color: 0x5555ff, roughness: 0.5, metalness: 1 }), // top
+    new THREE.MeshStandardMaterial({ color: 0x5555ff, roughness: 0.5, metalness: 1 })  // bottom
+  ];
+  private cornerBoxMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5, metalness: 2 });
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['rotation'] && this.cube && !this.animating) {
@@ -43,17 +53,9 @@ export class ViewcubeComponent implements AfterViewInit {
     this.camera.position.set(0, 0, 3);
     this.camera.lookAt(0, 0, 0);
 
-    const geometry = new THREE.BoxGeometry(1, 1, 1);
-    const materials = [
-      new THREE.MeshStandardMaterial({ color: 0xff5555, roughness: 0.5, metalness: 1 }), // right
-      new THREE.MeshStandardMaterial({ color: 0xff5555, roughness: 0.5, metalness: 1 }), // left
-      new THREE.MeshStandardMaterial({ color: 0x55ff55, roughness: 0.5, metalness: 1 }), // front
-      new THREE.MeshStandardMaterial({ color: 0x55ff55, roughness: 0.5, metalness: 1 }), // back
-      new THREE.MeshStandardMaterial({ color: 0x5555ff, roughness: 0.5, metalness: 1 }), // top
-      new THREE.MeshStandardMaterial({ color: 0x5555ff, roughness: 0.5, metalness: 1 })  // bottom
-    ];
+    const geometry = new THREE.BoxGeometry(0.9, 0.9, 0.9);
 
-    this.cube = new THREE.Mesh(geometry, materials);
+    this.cube = new THREE.Mesh(geometry, this.materials);
     this.cube.castShadow = true;
     this.cube.receiveShadow = true;
     this.scene.add(this.cube);
@@ -82,26 +84,25 @@ export class ViewcubeComponent implements AfterViewInit {
   }
 
   private addCornerSpheres() {
-    const sphereGeom = new THREE.SphereGeometry(0.1, 50, 50);
-    const sphereMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5, metalness: 2 });
+    const boxGeom = new THREE.BoxGeometry(0.2, 0.2, 0.2);
     const offsets = [
-      [+0.5, +0.5, +0.5],
-      [+0.5, +0.5, -0.5],
-      [+0.5, -0.5, +0.5],
-      [+0.5, -0.5, -0.5],
-      [-0.5, +0.5, +0.5],
-      [-0.5, +0.5, -0.5],
-      [-0.5, -0.5, +0.5],
-      [-0.5, -0.5, -0.5],
+      [+0.351, +0.351, +0.351],
+      [+0.351, +0.351, -0.351],
+      [+0.351, -0.351, +0.351],
+      [+0.351, -0.351, -0.351],
+      [-0.351, +0.351, +0.351],
+      [-0.351, +0.351, -0.351],
+      [-0.351, -0.351, +0.351],
+      [-0.351, -0.351, -0.351],
     ];
     offsets.forEach((pos, index) => {
-      const sphere = new THREE.Mesh(sphereGeom, sphereMat.clone());
-      sphere.position.set(pos[0], pos[1], pos[2]);
-      sphere.userData['cornerIndex'] = index;
-      sphere.castShadow = true;
-      sphere.receiveShadow = true;
-      this.cube.add(sphere);
-      this.cornerSpheres.push(sphere);
+      const box = new THREE.Mesh(boxGeom, this.cornerBoxMaterial);
+      box.position.set(pos[0], pos[1], pos[2]);
+      box.userData['cornerIndex'] = index;
+      box.castShadow = true;
+      box.receiveShadow = true;
+      this.cube.add(box);
+      this.cornerBoxes.push(box);
     });
   }
 
@@ -164,10 +165,10 @@ export class ViewcubeComponent implements AfterViewInit {
     const intersects = this.raycaster.intersectObjects([this.cube], true);
 
     if (intersects.length > 0) {
-      // Find the first intersected object that is a corner sphere
-      const sphereIntersect = intersects.find(i => this.cornerSpheres.includes(i.object as THREE.Mesh));
-      if (sphereIntersect) {
-        const clickedObj = sphereIntersect.object as THREE.Mesh;
+      // Find the first intersected object that is a corner box
+      const boxIntersect = intersects.find(i => this.cornerBoxes.includes(i.object as THREE.Mesh));
+      if (boxIntersect) {
+        const clickedObj = boxIntersect.object as THREE.Mesh;
         const index = clickedObj.userData['cornerIndex'];
         const newRot = this.getIsometricRotation(index);
         this.targetQuat.setFromEuler(newRot);
