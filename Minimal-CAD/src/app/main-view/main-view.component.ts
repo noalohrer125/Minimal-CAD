@@ -421,8 +421,7 @@ export class MainViewComponent implements AfterViewInit {
     } else {
       // Clicked on empty space - deselect all and clean up ghosts
       this.drawservice.removeGhostObjects();
-      modelData.forEach(obj => obj.selected = false);
-      localStorage.setItem('model-data', JSON.stringify(modelData));
+      this.drawservice.deselectAllObjects();
     }
     
     this.clearScene();

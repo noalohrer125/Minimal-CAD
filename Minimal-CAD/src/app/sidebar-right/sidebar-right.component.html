@@ -23,40 +23,38 @@
 
             <div formArrayName="commands">
                 @for (item of commands.controls; track $index) {
-                <div [formGroupName]="$index" class="command-group">
-                    <mat-form-field appearance="outline">
-                        <mat-label>Type</mat-label>
-                        <mat-select formControlName="type">
-                            <mat-option value="moveTo" disabled>moveTo</mat-option>
-                            <mat-option value="lineTo">lineTo</mat-option>
-                            <mat-option value="quadraticCurveTo">quadraticCurveTo</mat-option>
-                        </mat-select>
-                    </mat-form-field>
-                    <mat-form-field appearance="outline">
-                        <mat-label>X</mat-label>
-                        <input matInput type="number" formControlName="x" />
-                    </mat-form-field>
-                    <mat-form-field appearance="outline">
-                        <mat-label>Y</mat-label>
-                        <input matInput type="number" formControlName="y" />
-                    </mat-form-field>
-                    @if (item.value.type === 'quadraticCurveTo') {
-                    <mat-form-field appearance="outline">
-                        <mat-label>Control X</mat-label>
-                        <input matInput type="number" formControlName="cpX" />
-                    </mat-form-field>
-                    <mat-form-field appearance="outline">
-                        <mat-label>Control Y</mat-label>
-                        <input matInput type="number" formControlName="cpY" />
-                    </mat-form-field>
-                    }
-                    @if (item.value.type !== 'moveTo') {
+                    <div [formGroupName]="$index" class="command-group">
+                        <mat-form-field appearance="outline">
+                            <mat-label>Type</mat-label>
+                            <mat-select formControlName="type">
+                                <mat-option value="moveTo">moveTo</mat-option>
+                                <mat-option value="lineTo">lineTo</mat-option>
+                                <mat-option value="quadraticCurveTo">quadraticCurveTo</mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                        <mat-form-field appearance="outline">
+                            <mat-label>X</mat-label>
+                            <input matInput type="number" formControlName="x" />
+                        </mat-form-field>
+                        <mat-form-field appearance="outline">
+                            <mat-label>Y</mat-label>
+                            <input matInput type="number" formControlName="y" />
+                        </mat-form-field>
+                        @if (item.value.type === 'quadraticCurveTo') {
+                        <mat-form-field appearance="outline">
+                            <mat-label>Control X</mat-label>
+                            <input matInput type="number" formControlName="cpX" />
+                        </mat-form-field>
+                        <mat-form-field appearance="outline">
+                            <mat-label>Control Y</mat-label>
+                            <input matInput type="number" formControlName="cpY" />
+                        </mat-form-field>
+                        }
                         <button mat-icon-button type="button"
                             (click)="removeCommand($index)">
                             <mat-icon>delete</mat-icon>
                         </button>
-                    }
-                </div>
+                    </div>
                 }
                 <button mat-raised-button color="primary" type="button"
                     (click)="addCommand()">Add Command</button>
