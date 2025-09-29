@@ -73,20 +73,43 @@ export class MainViewComponent implements AfterViewInit {
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
     const loader = new THREE.TextureLoader();
-    loader.load('/bg-gray.png', (texture) => {
-      // Create a darkening material using a canvas
-      const canvas = document.createElement('canvas');
-      canvas.width = texture.image.width;
-      canvas.height = texture.image.height;
-      const ctx = canvas.getContext('2d');
-      ctx!.drawImage(texture.image, 0, 0);
-      ctx!.globalAlpha = 0.6; // Adjust alpha for darkness (0.5 = 50% darker)
-      ctx!.fillStyle = '#000';
-      ctx!.fillRect(0, 0, canvas.width, canvas.height);
-      const darkTexture = new THREE.Texture(canvas);
-      darkTexture.needsUpdate = true;
-      this.scene.background = darkTexture;
-    });
+    // Resolve the texture path relative to the document base (works for GitHub Pages sub-paths)
+    const textureUrl = new URL('bg-gray.png', document.baseURI).href;
+    console.log('[MainView] Loading background texture from:', textureUrl);
+    loader.load(
+      textureUrl,
+      (texture) => {
+        console.log('[MainView] Background texture loaded:', textureUrl, texture);
+        try {
+          // Darken the texture via an offscreen canvas
+            const canvas = document.createElement('canvas');
+            canvas.width = texture.image.width;
+            canvas.height = texture.image.height;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+              console.warn('[MainView] 2D context unavailable; using original texture as background');
+              this.scene.background = texture;
+              return;
+            }
+            ctx.drawImage(texture.image, 0, 0);
+            ctx.globalAlpha = 0.6; // 0 = original, 1 = fully black overlay
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            const darkTexture = new THREE.Texture(canvas);
+            darkTexture.needsUpdate = true;
+            this.scene.background = darkTexture;
+        } catch (e) {
+          console.error('[MainView] Failed to process background texture; using original image', e);
+          this.scene.background = texture;
+        }
+      },
+      undefined,
+      (err) => {
+        console.error('[MainView] Failed to load background texture:', textureUrl, err);
+        // Fallback: set a solid color so we can visually tell the texture failed
+        this.scene.background = new THREE.Color(0x202830);
+      }
+    );
 
     const size = 10;
     const divisions = 10;
