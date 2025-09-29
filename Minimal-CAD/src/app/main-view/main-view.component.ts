@@ -277,6 +277,9 @@ export class MainViewComponent implements AfterViewInit {
       mesh.castShadow = !isGhost;
       mesh.receiveShadow = true;
       this.rootGroup.add(mesh);
+        if (!isGhost) {
+          this.objects.push(mesh);
+        }
 
       const edgeColorToUse = isGhost ? ghostEdgeColor : (isSelected ? selectedEdgeColor : edgeColor);
       const edgeLineMaterial = new THREE.LineBasicMaterial({ color: edgeColorToUse });
