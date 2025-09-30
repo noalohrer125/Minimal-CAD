@@ -17,9 +17,7 @@ export class Draw {
     return [];
   }
 
-  loadObjectsFirebase(objects: (FormObject | FreeObject)[] = []): void {
-    // Fetch objects from Firebase and store them in localStorage replacing current model-data
-    // The passed-in objects param is optional and currently unused; kept for backward compatibility.
+  loadObjectsFirebase(): void {
     this.firebaseService.getObjects().subscribe({
       next: (firebaseObjects) => {
         // Ensure each object has selected & ghost flags normalized
@@ -45,16 +43,16 @@ export class Draw {
     return viewString ? JSON.parse(viewString) as view : DEFAULT_VIEW;
   }
 
-  saveObject(object: FormObject | FreeObject): void {
+  saveObject(object: FormObject | FreeObject, newId: string = object.id): void {
     let modelData = this.loadObjects();
     const existingIndex = modelData.findIndex((obj: FormObject | FreeObject) => obj.id === object.id && !obj.ghost);
     
     if (existingIndex === -1) {
       // New object
-      modelData.push(object);
+      modelData.push({...object, id: newId});
     } else {
       // Update existing object
-      modelData[existingIndex] = object;
+      modelData[existingIndex] = {...object, id: newId};
     }
     
     // Remove all ghost objects and deselect all objects
@@ -64,10 +62,9 @@ export class Draw {
   }
 
   saveObjectFirebase(object: FormObject | FreeObject): void {
-    this.firebaseService.saveObject(object).then(() => {
-      console.log('Object saved to Firebase');
-    }).catch(err => {
-      console.error('Failed to save object to Firebase', err);
+    this.firebaseService.saveObject(object).subscribe((savedObjectId) => {
+      this.saveObject(object, savedObjectId);
+      this.loadObjectsFirebase();
     });
   }
 
