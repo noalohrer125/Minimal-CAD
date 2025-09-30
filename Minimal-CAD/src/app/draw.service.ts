@@ -1,11 +1,13 @@
 import { Injectable } from '@angular/core';
 import { DEFAULT_VIEW, FormObject, FreeObject, view } from './interfaces';
+import { FirebaseService } from './firebase.service';
 
 
 @Injectable({
   providedIn: 'root'
 })
 export class Draw {
+  constructor(private firebaseService: FirebaseService) {}
   loadObjects(): (FormObject | FreeObject)[] {
     const modelDataString = localStorage.getItem('model-data');
     const data = modelDataString ? JSON.parse(modelDataString) as (FormObject | FreeObject)[] : [];
@@ -13,6 +15,25 @@ export class Draw {
       return data;
     }
     return [];
+  }
+
+  loadObjectsFirebase(objects: (FormObject | FreeObject)[] = []): void {
+    // Fetch objects from Firebase and store them in localStorage replacing current model-data
+    // The passed-in objects param is optional and currently unused; kept for backward compatibility.
+    this.firebaseService.getObjects().subscribe({
+      next: (firebaseObjects) => {
+        // Ensure each object has selected & ghost flags normalized
+        const normalized = (firebaseObjects as (FormObject | FreeObject)[]).map(obj => ({
+          ...obj,
+          selected: false,
+          ghost: obj.ghost ?? false
+        }));
+        localStorage.setItem('model-data', JSON.stringify(normalized));
+      },
+      error: (err) => {
+        console.error('Failed to load Firebase objects', err);
+      }
+    });
   }
 
   setView(position: view): void {
@@ -40,6 +61,14 @@ export class Draw {
     modelData = modelData.filter(obj => !obj.ghost);
     modelData.forEach(obj => obj.selected = false);
     localStorage.setItem('model-data', JSON.stringify(modelData));
+  }
+
+  saveObjectFirebase(object: FormObject | FreeObject): void {
+    this.firebaseService.saveObject(object).then(() => {
+      console.log('Object saved to Firebase');
+    }).catch(err => {
+      console.error('Failed to save object to Firebase', err);
+    });
   }
 
   createGhostObject(objectId: string): void {

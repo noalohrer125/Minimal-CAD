@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { Firestore, collection, collectionData } from '@angular/fire/firestore';
+import { Firestore, collection, collectionData, doc, setDoc } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 import { FormObject, FreeObject } from './interfaces';
 
@@ -15,5 +15,10 @@ export class FirebaseService {
     return collectionData(this.objectsCollection, {
       idField: 'id'
     }) as Observable<FormObject[] | FreeObject[]>;
+  }
+
+  saveObject(object: FormObject | FreeObject): Promise<void> {
+    const docRef = doc(this.objectsCollection, object.id);
+    return setDoc(docRef, object);
   }
 }

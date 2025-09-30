@@ -151,7 +151,6 @@ export class MainViewComponent implements AfterViewInit {
 
   loadModels() {
     const modelData = this.drawservice.loadObjects();
-    const selectedObject = modelData.find(obj => obj.selected);
 
     const objectColor = { color: 0x8cb9d4, roughness: 0.5, metalness: 0.5, flatShading: true };
     const selectedObjectColor = { color: 0x7ec8e3, roughness: 0.5, metalness: 0.1, flatShading: true };
