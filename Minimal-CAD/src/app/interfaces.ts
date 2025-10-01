@@ -1,5 +1,14 @@
 import { Vector3 } from "three";
 
+export interface Project {
+    id: string;
+    name: string;
+    licenceKey: string;
+    createdAt: Date;
+    updatedAt: Date;
+    objectIds: string[];
+}
+
 export interface FormObject {
     id: string;
     name: string;
