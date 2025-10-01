@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { DEFAULT_VIEW, FormObject, FreeObject, view } from './interfaces';
 import { FirebaseService } from './firebase.service';
+import { Observable } from 'rxjs';
 
 
 @Injectable({
@@ -17,20 +18,24 @@ export class Draw {
     return [];
   }
 
-  loadObjectsFirebase(): void {
-    this.firebaseService.getObjects().subscribe({
-      next: (firebaseObjects) => {
-        // Ensure each object has selected & ghost flags normalized
-        const normalized = (firebaseObjects as (FormObject | FreeObject)[]).map(obj => ({
-          ...obj,
-          selected: false,
-          ghost: obj.ghost ?? false
-        }));
-        localStorage.setItem('model-data', JSON.stringify(normalized));
-      },
-      error: (err) => {
-        console.error('Failed to load Firebase objects', err);
-      }
+  loadObjectsFirebase(): Observable<(FormObject | FreeObject)[]> {
+    return new Observable<(FormObject | FreeObject)[]>((observer) => {
+      this.firebaseService.getObjects().subscribe({
+        next: (firebaseObjects) => {
+          const normalized = (firebaseObjects as (FormObject | FreeObject)[]).map(obj => ({
+            ...obj,
+            selected: false,
+            ghost: false
+          }));
+          localStorage.setItem('model-data', JSON.stringify(normalized));
+          observer.next(normalized);
+          observer.complete();
+        },
+        error: (err) => {
+          console.error('Failed to load Firebase objects', err);
+          observer.error(err);
+        }
+      });
     });
   }
 

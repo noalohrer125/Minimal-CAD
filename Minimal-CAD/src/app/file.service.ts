@@ -20,7 +20,7 @@ export class File {
 
     upload() {
         const confirmed = window.confirm(
-            "Uploading a file will overwrite all changes in the current file. Do you want to continue?"
+            "Uploading a file will overwrite all changes in the current project. Sure you want to continue?"
         );
         if (!confirmed) return;
 
