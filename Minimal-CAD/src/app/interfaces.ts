@@ -5,7 +5,7 @@ export interface Project {
     name: string;
     licenceKey: string;
     createdAt: Date;
-    updatedAt: Date;
+    updatedAt?: Date;
     objectIds: string[];
 }
 
