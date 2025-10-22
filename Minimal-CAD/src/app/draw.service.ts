@@ -66,10 +66,32 @@ export class Draw {
     localStorage.setItem('model-data', JSON.stringify(modelData));
   }
 
-  saveObjectFirebase(object: FormObject | FreeObject): void {
-    this.firebaseService.saveObject(object).subscribe((savedObjectId) => {
-      this.saveObject(object, savedObjectId);
-      this.loadObjectsFirebase();
+  saveProjectToFirebase(): void {
+    const isExistingProject = localStorage.getItem('project-id') || 'notExisting';
+    const modelData = this.loadObjects().filter(obj => !obj.ghost);
+    modelData.forEach(obj => obj.selected = false);
+    let projectId: string | null = null;
+    if (isExistingProject !== 'notExisting') {
+      projectId = isExistingProject;
+    }
+    const projectName = window.prompt('Enter a (new) name for your project:', 'Unnamed Project') || 'Unnamed Project';
+    const project = {
+      id: projectId ? projectId : this.generateId(),
+      name: projectName,
+      licenceKey: this.generateHash(this.generateId()),
+      createdAt: new Date(),
+      objectIds: modelData.map(obj => obj.id)
+    };
+    this.firebaseService.saveProject(project).subscribe({
+      next: (projectId) => {
+        modelData.forEach(obj => {
+          this.firebaseService.saveObject(obj).subscribe();
+        });
+        window.alert(`Project saved with ID: ${projectId}.\n\nYour Licence Key to this project is: ${project.licenceKey}.\nMake sure to save it! Or else you won't be able to access your project later again.`);
+      },
+      error: (err) => {
+        console.error('Failed to save project to Firebase', err);
+      }
     });
   }
 
@@ -99,6 +121,15 @@ export class Draw {
 
   generateId(): string {
     return Date.now().toString() + Math.random().toString(36);
+  }
+
+  generateHash(string: string): string {
+    let hash = 0;
+    for (const char of string) {
+      hash = (hash << 5) - hash + char.charCodeAt(0);
+      hash |= 0; // Constrain to 32bit integer
+    }
+    return hash.toString() ;
   }
 
   rectangle() {

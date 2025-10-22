@@ -71,7 +71,23 @@ export class FirebaseService {
     }) as Observable<Project[]>;
   }
 
+  getProjectById(projectId: string): Observable<Project | null> {
+    const docRef = doc(this.projectsCollection, projectId);
+    const projectData = getDoc(docRef).then((snapshot) => {
+      if (snapshot.exists()) {
+        return snapshot.data() as Project;
+      } else {
+        return null;
+      }
+    });
+    return from(projectData);
+  }
+
   saveProject(project: Project): Observable<string> {
+    const projectAlreadyExists = Boolean(this.getProjectById(project.id));
+    if (projectAlreadyExists) {
+      return this.updateProject(project);
+    }
     const docRef = addDoc(this.projectsCollection, project).then(
       (response) => response.id
     );
@@ -79,7 +95,6 @@ export class FirebaseService {
   }
   
   updateProject(project: Project): Observable<string> {
-    // Update project document in Firestore
     const docRef = setDoc(doc(this.projectsCollection, project.id), project).then(
       () => project.id
     );
