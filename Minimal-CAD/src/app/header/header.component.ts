@@ -21,11 +21,15 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 export class HeaderComponent {
   constructor(private drawService: Draw, private fileService: FileService) { }
 
-  save() {
+  saveProjectToFirebase() {
+    this.drawService.saveProjectToFirebase();
+  }
+
+  saveToLocalFile() {
     this.fileService.save();
   }
 
-  upload() {
+  uploadFromLocalFile() {
     this.fileService.upload();
   }
 
