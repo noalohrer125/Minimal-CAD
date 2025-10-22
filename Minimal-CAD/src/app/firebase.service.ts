@@ -71,14 +71,14 @@ export class FirebaseService {
     }) as Observable<Project[]>;
   }
 
-  saveProject(project: any): Observable<string> {
+  saveProject(project: Project): Observable<string> {
     const docRef = addDoc(this.projectsCollection, project).then(
       (response) => response.id
     );
     return from(docRef);
   }
   
-  updateProject(project: any): Observable<string> {
+  updateProject(project: Project): Observable<string> {
     // Update project document in Firestore
     const docRef = setDoc(doc(this.projectsCollection, project.id), project).then(
       () => project.id
