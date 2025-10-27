@@ -34,6 +34,10 @@ export class HeaderComponent {
     this.drawService.saveProjectToFirebase();
   }
 
+  loadProjectFromFirebase() {
+    this.drawService.loadProjectFromFirebase();
+  }
+
   saveToLocalFile() {
     this.fileService.save();
   }

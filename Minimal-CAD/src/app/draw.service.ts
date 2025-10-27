@@ -66,6 +66,10 @@ export class Draw {
     localStorage.setItem('model-data', JSON.stringify(modelData));
   }
 
+  async loadProjectFromFirebase(): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
+
   async saveProjectToFirebase(): Promise<void> {
     const isExistingProject = localStorage.getItem('project-id') || 'notExisting';
     const modelData = this.loadObjects().filter(obj => !obj.ghost);
