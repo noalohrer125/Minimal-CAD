@@ -42,6 +42,10 @@ export class Home implements OnInit {
     const modelData = this.drawservice.loadObjects();
     this.selectedObject = modelData.find(obj => obj.selected) || null;
     this.isAuthenticated = this.authService.currentUserSignal() !== null;
+    // Reactively update isAuthenticated when auth state changes
+    this.authService.$user.subscribe(user => {
+      this.isAuthenticated = user !== null;
+    });
   }
 
   onRotationChanged(rot: THREE.Euler) {

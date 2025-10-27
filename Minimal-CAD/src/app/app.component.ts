@@ -16,7 +16,6 @@ export class AppComponent implements OnInit{
   constructor(private router: Router) { }
 
   ngOnInit(): void {
-    this.router.navigate(['/home']);
     this.authService.$user.subscribe(user => {
       if (user) {
         this.authService.currentUserSignal.set({
@@ -28,5 +27,6 @@ export class AppComponent implements OnInit{
       }
       console.log('Auth state changed, current user:', this.authService.currentUserSignal());
     });
+        // Removed unconditional navigation to /home
   }
 }
