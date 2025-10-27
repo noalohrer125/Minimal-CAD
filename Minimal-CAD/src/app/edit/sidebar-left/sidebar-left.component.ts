@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
-import { FormObject, FreeObject } from '../interfaces';
-import { Draw } from '../draw.service';
+import { FormObject, FreeObject } from '../../interfaces';
+import { Draw } from '../../draw.service';
 import { MatIcon } from '@angular/material/icon';
 
 @Component({

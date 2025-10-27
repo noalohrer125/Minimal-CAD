@@ -1,0 +1,127 @@
+.overview-container {
+    max-width: 1100px;
+    margin: 40px auto;
+    padding: 0 24px;
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+.overview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.new-project-btn {
+    background: #0078d4;
+    color: #fff;
+    border: none;
+    padding: 10px 22px;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.project-filters {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.filter-btn {
+    background: #f3f3f3;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.filter-btn.active {
+    background: #0078d4;
+    color: #fff;
+}
+
+.search-input {
+    margin-left: auto;
+    padding: 8px 14px;
+    border-radius: 20px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+}
+
+.projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+    gap: 24px;
+}
+
+.project-card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+}
+
+.project-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.project-thumb {
+    height: 120px;
+    background: linear-gradient(135deg, #e3e3e3 60%, #c7e0f4 100%);
+}
+
+.project-thumb.public {
+    background: linear-gradient(135deg, #f9d423 60%, #ff4e50 100%);
+}
+
+.project-info {
+    padding: 16px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.project-title {
+    font-size: 1.15rem;
+    margin: 0 0 8px 0;
+}
+
+.project-meta {
+    color: #888;
+    font-size: 0.95rem;
+    margin-bottom: 12px;
+}
+
+.project-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.open-btn,
+.share-btn,
+.fork-btn,
+.more-btn {
+    background: #f3f3f3;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 0.98rem;
+}
+
+.open-btn {
+    background: #0078d4;
+    color: #fff;
+}
+
+.fork-btn {
+    background: #ffb900;
+    color: #fff;
+}

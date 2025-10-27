@@ -1,7 +1,7 @@
 import { Component, ElementRef, AfterViewInit, ViewChild, HostListener, Output, EventEmitter, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Draw } from '../draw.service';
-import { FormObject, FreeObject, FreeObjectCommand } from '../interfaces';
+import { Draw } from '../../draw.service';
+import { FormObject, FreeObject, FreeObjectCommand } from '../../interfaces';
 import * as THREE from 'three';
 
 @Component({

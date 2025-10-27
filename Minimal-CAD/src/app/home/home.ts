@@ -1,9 +1,9 @@
 import { Component, HostListener, ViewChild, OnInit } from '@angular/core';
-import { SidebarLeftComponent } from '../sidebar-left/sidebar-left.component';
-import { SidebarRightComponent } from '../sidebar-right/sidebar-right.component';
-import { ViewcubeComponent } from '../viewcube/viewcube.component';
+import { SidebarLeftComponent } from '../edit/sidebar-left/sidebar-left.component';
+import { SidebarRightComponent } from '../edit/sidebar-right/sidebar-right.component';
+import { ViewcubeComponent } from '../edit/viewcube/viewcube.component';
 import { CommonModule } from '@angular/common';
-import { MainViewComponent } from '../main-view/main-view.component';
+import { MainViewComponent } from '../edit/main-view/main-view.component';
 import { FormObject, FreeObject } from '../interfaces';
 import { Draw } from '../draw.service';
 import * as THREE from 'three';

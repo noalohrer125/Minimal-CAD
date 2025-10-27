@@ -1,6 +1,6 @@
 import { Component, ElementRef, AfterViewInit, ViewChild, HostListener, Input, Output, EventEmitter, SimpleChanges } from '@angular/core';
 import * as THREE from 'three';
-import { Draw } from '../draw.service';
+import { Draw } from '../../draw.service';
 
 @Component({
   selector: 'app-viewcube',

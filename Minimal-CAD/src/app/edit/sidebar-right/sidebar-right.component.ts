@@ -1,10 +1,10 @@
 import { Component, Input, Output, EventEmitter, HostListener, ElementRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormGroup, FormControl, FormArray, Validators } from '@angular/forms';
-import { FormObject, FreeObject, FreeObjectCommand } from '../interfaces';
+import { FormObject, FreeObject, FreeObjectCommand } from '../../interfaces';
 import { MatIconModule } from '@angular/material/icon';
 import { debounceTime } from 'rxjs';
-import { Draw } from '../draw.service';
+import { Draw } from '../../draw.service';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
