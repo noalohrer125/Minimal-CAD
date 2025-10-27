@@ -1,2 +1,6 @@
-<app-header [isAuthenticated]="isAuthenticated" class="header"></app-header>
-<router-outlet></router-outlet>
+@if (isAuthLoading) {
+    <div class="loading-spinner">Loading...</div>
+} @else {
+    <app-header [isAuthenticated]="isAuthenticated" class="header"></app-header>
+    <router-outlet></router-outlet>
+}

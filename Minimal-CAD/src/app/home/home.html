@@ -1,5 +1,7 @@
 <main class="main-app">
-    @if (isAuthenticated) {
+    @if (isAuthLoading) {
+        <div class="loading-spinner">Loading...</div>
+    } @else if (isAuthenticated) {
         <app-main-view
             class="main-view"
             (rotationChange)="onRotationChanged($event)"

@@ -35,6 +35,7 @@ export class Home implements OnInit {
   public selectedObject: FormObject | FreeObject | null = null;
   public currentRotation = new THREE.Euler();
   public isAuthenticated: boolean = false;
+  public isAuthLoading: boolean = true;
 
   ngOnInit(): void {
     const modelData = this.drawservice.loadObjects();
@@ -42,6 +43,7 @@ export class Home implements OnInit {
     // Reactively update isAuthenticated when auth state changes
     this.authService.$user.subscribe(user => {
       this.isAuthenticated = user !== null;
+      this.isAuthLoading = false;
     });
   }
 

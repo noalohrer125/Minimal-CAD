@@ -16,6 +16,7 @@ import { HeaderComponent } from './header/header.component';
 export class AppComponent implements OnInit{
   authService = inject(AuthService);
   isAuthenticated: boolean = false;
+  public isAuthLoading: boolean = true;
 
   ngOnInit(): void {
     this.authService.$user.subscribe(user => {
@@ -31,6 +32,7 @@ export class AppComponent implements OnInit{
     // Reactively update isAuthenticated when auth state changes
     this.authService.$user.subscribe(user => {
       this.isAuthenticated = user !== null;
+      this.isAuthLoading = false;
     });
   }
 }
