@@ -67,7 +67,8 @@ export class Draw {
   }
 
   async loadProjectFromFirebase(): Promise<void> {
-    throw new Error('Method not implemented.');
+    // TODO: implement
+    throw new Error('Not implemented yet');
   }
 
   async saveProjectToFirebase(): Promise<void> {
