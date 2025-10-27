@@ -20,15 +20,15 @@
         <button matTooltip="add Freeform" mat-icon-button (click)="freeform()">
             <mat-icon>interests</mat-icon>
         </button>
+        <hr>
     } @else {
         <button matButton (click)="login()">Login</button>
         <button matButton (click)="register()">Register</button>
-        <button matButton (click)="logout()">Logout</button>
     }
-    <hr>
     <div class="right-align">
         @if (isAuthenticated) {
             <span class="user-span">{{ authService.currentUserSignal()?.username }}</span>
+            <button matButton (click)="logout()">Logout</button>
         } @else {
             <span class="user-span">Please login to use this app!</span>
         }

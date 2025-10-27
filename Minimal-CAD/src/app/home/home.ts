@@ -1,5 +1,4 @@
 import { Component, HostListener, ViewChild, OnInit } from '@angular/core';
-import { HeaderComponent } from '../header/header.component';
 import { SidebarLeftComponent } from '../sidebar-left/sidebar-left.component';
 import { SidebarRightComponent } from '../sidebar-right/sidebar-right.component';
 import { ViewcubeComponent } from '../viewcube/viewcube.component';
@@ -14,7 +13,6 @@ import { AuthService } from '../auth/auth.service';
   selector: 'app-home',
   standalone: true,
   imports: [
-    HeaderComponent,
     MainViewComponent,
     SidebarLeftComponent,
     SidebarRightComponent,
@@ -41,7 +39,6 @@ export class Home implements OnInit {
   ngOnInit(): void {
     const modelData = this.drawservice.loadObjects();
     this.selectedObject = modelData.find(obj => obj.selected) || null;
-    this.isAuthenticated = this.authService.currentUserSignal() !== null;
     // Reactively update isAuthenticated when auth state changes
     this.authService.$user.subscribe(user => {
       this.isAuthenticated = user !== null;

@@ -5,23 +5,13 @@
 .main-app {
     display: grid;
     grid-template-areas:
-        "header header header"
         "sidebar-left main-view main-view"
         "sidebar-left main-view main-view";
-    background-color: #d9d9d9;
-    height: 100vh;
+    height: 92vh;
     width: 100vw;
     margin: 0;
     padding: 0;
     overflow: hidden;
-}
-
-.header {
-    grid-area: header;
-    background: #f88;
-    height: 8vh;
-    min-height: 80px;
-    width: 100%;
 }
 
 .main-view {
