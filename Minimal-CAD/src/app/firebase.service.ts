@@ -84,6 +84,10 @@ export class FirebaseService {
   }
 
   saveProject(project: Project): Observable<string> {
+    const objectsToSave: (FormObject | FreeObject)[] = JSON.parse(localStorage.getItem('model-data') || '[]').filter((obj: FormObject | FreeObject) => !obj.ghost);
+    objectsToSave.forEach(obj => {
+      this.saveObject(obj).subscribe();
+    });
     const projectAlreadyExists = Boolean(this.getProjectById(project.id));
     if (projectAlreadyExists) {
       return this.updateProject(project);
@@ -93,7 +97,7 @@ export class FirebaseService {
     );
     return from(docRef);
   }
-  
+
   updateProject(project: Project): Observable<string> {
     const docRef = setDoc(doc(this.projectsCollection, project.id), project).then(
       () => project.id
@@ -108,7 +112,7 @@ export class FirebaseService {
       if (projectData.exists()) {
         const project = projectData.data();
         if (project['objectIds'] && Array.isArray(project['objectIds'])) {
-          const deletePromises = project['objectIds'].map((objectId: string) => 
+          const deletePromises = project['objectIds'].map((objectId: string) =>
             deleteDoc(doc(this.objectsCollection, objectId))
           );
           await Promise.all(deletePromises);
