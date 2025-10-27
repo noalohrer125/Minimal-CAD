@@ -1,6 +1,10 @@
 .main {
+    box-sizing: border-box;
     display: flex;
     flex-direction: row;
+    height: 8vh;
+    min-height: 80px;
+    align-items: center;
     margin-left: 3%;
     gap: 1%;
 }
@@ -17,7 +21,7 @@ mat-icon:hover {
     color: rgb(255, 255, 255);
 }
 
-h1 {
+#titel {
     text-shadow: #fff 2px 1px 5px;
     margin-left: auto;
 }

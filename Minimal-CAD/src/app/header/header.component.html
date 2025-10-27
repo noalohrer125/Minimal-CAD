@@ -1,24 +1,30 @@
 <div class="main">
-    <button matTooltip="Save project to Firebase" mat-icon-button (click)="saveProjectToFirebase()">
-        <mat-icon>cloud_upload</mat-icon>
-    </button>
+    @if (isAuthenticated) {
+        <button matTooltip="Save project to Firebase" mat-icon-button (click)="saveProjectToFirebase()">
+            <mat-icon>cloud_upload</mat-icon>
+        </button>
+        <hr>
+        <button matTooltip="Save to local File" mat-icon-button (click)="saveToLocalFile()">
+            <mat-icon>save</mat-icon>
+        </button>
+        <button matTooltip="Open from local File" mat-icon-button (click)="uploadFromLocalFile()">
+            <mat-icon>upload</mat-icon>
+        </button>
+        <hr>
+        <button matTooltip="add Square/Cube" mat-icon-button (click)="rectangle()">
+            <mat-icon>square</mat-icon>
+        </button>
+        <button matTooltip="add Circle/Cylinder" mat-icon-button (click)="circle()">
+            <mat-icon>circle</mat-icon>
+        </button>
+        <button matTooltip="add Freeform" mat-icon-button (click)="freeform()">
+            <mat-icon>interests</mat-icon>
+        </button>
+    } @else {
+        <button matButton (click)="login()">Login</button>
+        <button matButton (click)="register()">Register</button>
+        <button matButton (click)="logout()">Logout</button>
+    }
     <hr>
-    <button matTooltip="Save to local File" mat-icon-button (click)="saveToLocalFile()">
-        <mat-icon>save</mat-icon>
-    </button>
-    <button matTooltip="Open from local File" mat-icon-button (click)="uploadFromLocalFile()">
-        <mat-icon>upload</mat-icon>
-    </button>
-    <hr>
-    <button matTooltip="add Square/Cube" mat-icon-button (click)="rectangle()">
-        <mat-icon>square</mat-icon>
-    </button>
-    <button matTooltip="add Circle/Cylinder" mat-icon-button (click)="circle()">
-        <mat-icon>circle</mat-icon>
-    </button>
-    <button matTooltip="add Freeform" mat-icon-button (click)="freeform()">
-        <mat-icon>interests</mat-icon>
-    </button>
-    <hr>
-    <h1>Minimal CAD</h1>
+    <button id="titel" matButton (click)="home()"><h1>Minimal CAD</h1></button>
 </div>

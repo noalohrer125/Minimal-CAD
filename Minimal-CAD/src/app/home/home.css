@@ -1,0 +1,57 @@
+.main-app *:not(.main-view) {
+    padding: var(--main-padding);
+}
+
+.main-app {
+    display: grid;
+    grid-template-areas:
+        "header header header"
+        "sidebar-left main-view main-view"
+        "sidebar-left main-view main-view";
+    background-color: #d9d9d9;
+    height: 100vh;
+    width: 100vw;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.header {
+    grid-area: header;
+    background: #f88;
+    height: 8vh;
+    min-height: 80px;
+    width: 100%;
+}
+
+.main-view {
+    grid-area: main-view;
+    background: #d9d9d9;
+    width: 90vw;
+    height: 92vh;
+}
+
+.sidebar-left {
+    grid-area: sidebar-left;
+    background: #fff;
+    margin: 0;
+    justify-self: start;
+    width: 10vw;
+    height: 92vh;
+    padding: 0 !important;
+}
+
+.sidebar-right {
+    background: #afafaf;
+    position: absolute;
+    top: 30vh;
+    right: 1vw;
+    max-width: 450px;
+}
+
+.viewcube {
+    background: transparent;
+    position: absolute;
+    top: max(8vh, 80px);
+    right: 0;
+}

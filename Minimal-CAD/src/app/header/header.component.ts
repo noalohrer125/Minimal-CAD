@@ -1,10 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, Input, input } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { Draw } from '../draw.service';
 import { File  as FileService } from '../file.service';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-header',
@@ -19,7 +20,9 @@ import { MatTooltipModule } from '@angular/material/tooltip';
   styleUrls: ['./header.component.css']
 })
 export class HeaderComponent {
-  constructor(private drawService: Draw, private fileService: FileService) { }
+  @Input() isAuthenticated: boolean = false;
+
+  constructor(private drawService: Draw, private fileService: FileService, private router: Router) { }
 
   saveProjectToFirebase() {
     this.drawService.saveProjectToFirebase();
@@ -43,5 +46,21 @@ export class HeaderComponent {
 
   freeform() {
     this.drawService.freeform();
+  }
+
+  login(): void {
+    this.router.navigate(['/login']);
+  }
+
+  register(): void {
+    this.router.navigate(['/register']);
+  }
+
+  logout(): void {
+    console.log('Logout clicked');
+  }
+
+  home(): void {
+    this.router.navigate(['/home']);
   }
 }
