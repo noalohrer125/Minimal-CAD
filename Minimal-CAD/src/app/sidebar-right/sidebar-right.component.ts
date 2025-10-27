@@ -33,7 +33,10 @@ export class SidebarRightComponent implements OnInit {
   @Input() selectedObjectInput: (FormObject | FreeObject)[] = [];
   @Output() positionChange = new EventEmitter<[number, number, number]>();
 
-  constructor(public elementRef: ElementRef, private drawService: Draw) { }
+  constructor(
+    public elementRef: ElementRef,
+    private drawService: Draw
+  ) { }
 
   public selectedObject: FormObject | FreeObject | any = {};
   public selectedObjectType!: 'Square' | 'Circle' | 'Freeform';

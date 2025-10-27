@@ -8,7 +8,7 @@ import { MainViewComponent } from '../main-view/main-view.component';
 import { FormObject, FreeObject } from '../interfaces';
 import { Draw } from '../draw.service';
 import * as THREE from 'three';
-import { Router } from '@angular/router';
+import { AuthService } from '../auth/auth.service';
 
 @Component({
   selector: 'app-home',
@@ -28,17 +28,20 @@ export class Home implements OnInit {
   @ViewChild(MainViewComponent) mainView!: MainViewComponent;
   cameraResetValue: any = null;
 
-  constructor(private drawservice: Draw, private router: Router) { }
+  constructor(
+    private drawservice: Draw,
+    private authService: AuthService
+  ) { }
 
   sidebarRightPosition: [number, number, number] = [0, 0, 0];
   public selectedObject: FormObject | FreeObject | null = null;
   public currentRotation = new THREE.Euler();
-  // TODO: replace with actual authentication status
-  public isAuthenticated = false;
+  public isAuthenticated: boolean = false;
 
   ngOnInit(): void {
     const modelData = this.drawservice.loadObjects();
     this.selectedObject = modelData.find(obj => obj.selected) || null;
+    this.isAuthenticated = this.authService.currentUserSignal() !== null;
   }
 
   onRotationChanged(rot: THREE.Euler) {

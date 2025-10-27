@@ -6,6 +6,7 @@ import { Draw } from '../draw.service';
 import { File  as FileService } from '../file.service';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
+import { AuthService } from '../auth/auth.service';
 
 @Component({
   selector: 'app-header',
@@ -22,7 +23,12 @@ import { Router } from '@angular/router';
 export class HeaderComponent {
   @Input() isAuthenticated: boolean = false;
 
-  constructor(private drawService: Draw, private fileService: FileService, private router: Router) { }
+  constructor(
+    private drawService: Draw,
+    private fileService: FileService,
+    private router: Router,
+    public authService: AuthService
+  ) { }
 
   saveProjectToFirebase() {
     this.drawService.saveProjectToFirebase();
@@ -57,7 +63,8 @@ export class HeaderComponent {
   }
 
   logout(): void {
-    console.log('Logout clicked');
+    this.authService.logout();
+    this.router.navigate(['/home']);
   }
 
   home(): void {

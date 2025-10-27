@@ -1,5 +1,10 @@
 import { Vector3 } from "three";
 
+export interface User {
+    email: string;
+    username: string;
+}
+
 export interface Project {
     id: string;
     name: string;

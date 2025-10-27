@@ -26,5 +26,12 @@
         <button matButton (click)="logout()">Logout</button>
     }
     <hr>
-    <button id="titel" matButton (click)="home()"><h1>Minimal CAD</h1></button>
+    <div class="right-align">
+        @if (isAuthenticated) {
+            <span class="user-span">{{ authService.currentUserSignal()?.username }}</span>
+        } @else {
+            <span class="user-span">Please login to use this app!</span>
+        }
+        <button matButton (click)="home()"><h1 id="title">Minimal CAD</h1></button>
+    </div>
 </div>

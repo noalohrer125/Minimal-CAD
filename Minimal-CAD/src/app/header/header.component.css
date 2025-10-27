@@ -21,7 +21,14 @@ mat-icon:hover {
     color: rgb(255, 255, 255);
 }
 
-#titel {
+#title {
     text-shadow: #fff 2px 1px 5px;
+}
+
+.right-align {
     margin-left: auto;
+
+    .user-span {
+        margin-right: 20px;
+    }
 }
