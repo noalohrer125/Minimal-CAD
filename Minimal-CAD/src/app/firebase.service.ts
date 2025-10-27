@@ -83,19 +83,16 @@ export class FirebaseService {
     return from(projectData);
   }
 
-  saveProject(project: Project): Observable<string> {
-    const objectsToSave: (FormObject | FreeObject)[] = JSON.parse(localStorage.getItem('model-data') || '[]').filter((obj: FormObject | FreeObject) => !obj.ghost);
-    objectsToSave.forEach(obj => {
-      this.saveObject(obj).subscribe();
-    });
-    const projectAlreadyExists = Boolean(this.getProjectById(project.id));
-    if (projectAlreadyExists) {
-      return this.updateProject(project);
+  async saveProject(project: Project): Promise<Observable<string>> {
+    const docRef = doc(this.projectsCollection, project.id);
+    const snapshot = await getDoc(docRef);
+    if (snapshot.exists()) {
+      await setDoc(docRef, project);
+      return from(Promise.resolve(project.id));
+    } else {
+      const response = await addDoc(this.projectsCollection, project);
+      return from(Promise.resolve(response.id));
     }
-    const docRef = addDoc(this.projectsCollection, project).then(
-      (response) => response.id
-    );
-    return from(docRef);
   }
 
   updateProject(project: Project): Observable<string> {

@@ -66,7 +66,7 @@ export class Draw {
     localStorage.setItem('model-data', JSON.stringify(modelData));
   }
 
-  saveProjectToFirebase(): void {
+  async saveProjectToFirebase(): Promise<void> {
     const isExistingProject = localStorage.getItem('project-id') || 'notExisting';
     const modelData = this.loadObjects().filter(obj => !obj.ghost);
     modelData.forEach(obj => obj.selected = false);
@@ -82,7 +82,7 @@ export class Draw {
       createdAt: new Date(),
       objectIds: modelData.map(obj => obj.id)
     };
-    this.firebaseService.saveProject(project).subscribe({
+    (await this.firebaseService.saveProject(project)).subscribe({
       next: (projectId) => {
         modelData.forEach(obj => {
           this.firebaseService.saveObject(obj).subscribe();
