@@ -90,10 +90,17 @@ export class Draw {
       projectId = isExistingProject;
     }
     const projectName = window.prompt('Enter a (new) name for your project:', 'Unnamed Project') || 'Unnamed Project';
+    const publicProject = window.confirm(`
+      Make this project PUBLIC?\n\n
+      - OK = Public (no licence key required)\n
+      - Cancel = Private (licence key will be generated)
+    `);
+    const currentUserEmail = this.firebaseService.getCurrentUserEmail();
     const project = {
       id: projectId ? projectId : this.generateId(),
       name: projectName,
-      licenceKey: this.generateHash(this.generateId()),
+      licenceKey: !publicProject ? this.generateHash(this.generateId()) : 'public',
+      ownerEmail: currentUserEmail,
       createdAt: new Date(),
       objectIds: modelData.map(obj => obj.id)
     };
@@ -102,7 +109,17 @@ export class Draw {
         modelData.forEach(obj => {
           this.firebaseService.saveObject(obj).subscribe();
         });
-        window.alert(`Project saved with ID: ${projectId}.\n\nYour Licence Key to this project is: ${project.licenceKey}.\nMake sure to save it! Or else you won't be able to access your project later again.`);
+        if (publicProject) {
+          window.alert(`
+            Project saved with ID: ${projectId}.
+            Your project is saved as public.
+          `);
+        }
+        window.alert(`
+          Project saved with ID: ${projectId}.
+          Your Licence Key to this project: ${project.licenceKey}.
+          Make sure to save this Key! Else you won't be able to access your project later again.
+        `);
       },
       error: (err) => {
         console.error('Failed to save project to Firebase', err);

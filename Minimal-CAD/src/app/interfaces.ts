@@ -9,6 +9,7 @@ export interface Project {
     id: string;
     name: string;
     licenceKey: string;
+    ownerEmail: string;
     createdAt: Date;
     updatedAt?: Date;
     objectIds: string[];

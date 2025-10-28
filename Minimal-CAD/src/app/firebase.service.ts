@@ -7,6 +7,12 @@ import { FormObject, FreeObject, Project } from './interfaces';
   providedIn: 'root'
 })
 export class FirebaseService {
+  getCurrentUserEmail() {
+    const currentUser = (this as any).firestore._authCredentials.auth.auth.currentUser.email ?
+    (this as any).firestore._authCredentials.auth.auth.currentUser.email :
+    null;
+    return currentUser;
+  }
   firestore = inject(Firestore);
   objectsCollection = collection(this.firestore, 'objects');
   projectsCollection = collection(this.firestore, 'projects');
