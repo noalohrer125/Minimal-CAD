@@ -7,11 +7,11 @@ Minimal CAD ist eine einfache 3D-CAD-Anwendung zum Erstellen und Bearbeiten von 
 WICHTIG:
 Die Version dieser Applikation welche auf Github-Pages gehostet wird, erhällt keine Updates mehr.
 Die neue Version der Software wird voraussichtlich ab Ende 2025 verfügbar sein.
-    Preview der neuen Features:
-    - Realtimedata
-    - Authentication
-    - Multiuser-Support
-    - Multi-Project-UI
+#### Preview der neuen Features:
+- **Realtimedata**
+- **Authentication**
+- **Multiuser-Support**
+- **Multi-Project-UI**
 
 ## Benutzeroberfläche
 
