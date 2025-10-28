@@ -155,7 +155,7 @@ export class MainViewComponent implements AfterViewInit {
   }
 
   loadModels() {
-    const modelData = this.drawservice.loadObjectsByProjectId(this.projectId);
+    const modelData = this.drawservice.loadObjects();
 
     const objectColor = { color: 0x8cb9d4, roughness: 0.5, metalness: 0.5, flatShading: true };
     const selectedObjectColor = { color: 0x7ec8e3, roughness: 0.5, metalness: 0.1, flatShading: true };
@@ -413,7 +413,7 @@ export class MainViewComponent implements AfterViewInit {
   }
 
   onClick(event: MouseEvent) {
-    const modelData = this.drawservice.loadObjectsByProjectId(this.projectId);
+    const modelData = this.drawservice.loadObjects();
     const rect = this.canvasRef.nativeElement.getBoundingClientRect();
     this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
     this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
