@@ -10,16 +10,21 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 24px;
+    background: #fafafa;
 }
 
 .new-project-btn {
-    background: #0078d4;
     color: #fff;
     border: none;
     padding: 10px 22px;
     border-radius: 4px;
     font-size: 1rem;
     cursor: pointer;
+    background: rgb(255, 136, 136);
+}
+
+.new-project-btn:hover {
+    background: #66bb6a;
 }
 
 .project-filters {
@@ -30,7 +35,7 @@
 }
 
 .filter-btn {
-    background: #f3f3f3;
+    background: #f0f0f0;
     border: none;
     padding: 8px 16px;
     border-radius: 20px;
@@ -38,9 +43,13 @@
     font-size: 1rem;
 }
 
+.filter-btn:hover {
+    background: #e0e0e0;
+}
+
 .filter-btn.active {
-    background: #0078d4;
     color: #fff;
+    background: rgb(255, 138, 138);
 }
 
 .search-input {
@@ -49,16 +58,18 @@
     border-radius: 20px;
     border: 1px solid #ccc;
     font-size: 1rem;
+    border: 1px solid #afafaf;
+    background: #fafafa;
 }
 
 .projects-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 24px;
 }
 
 .project-card {
-    background: #fff;
+    background: #ffcbcb;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     display: flex;
@@ -73,11 +84,7 @@
 
 .project-thumb {
     height: 120px;
-    background: linear-gradient(135deg, #e3e3e3 60%, #c7e0f4 100%);
-}
-
-.project-thumb.public {
-    background: linear-gradient(135deg, #f9d423 60%, #ff4e50 100%);
+    background: linear-gradient(135deg, #fafafa 60%, #afafaf 100%);
 }
 
 .project-info {
@@ -86,6 +93,18 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+}
+
+.project-card-header {
+    display: flex;
+    justify-content: space-between;
+
+    & > *:hover {
+        text-decoration: underline;
+        cursor: pointer;
+        background-color: #ffc0c0;
+        border-radius: 10px;
+    }
 }
 
 .project-title {
@@ -97,31 +116,4 @@
     color: #888;
     font-size: 0.95rem;
     margin-bottom: 12px;
-}
-
-.project-actions {
-    display: flex;
-    gap: 8px;
-}
-
-.open-btn,
-.share-btn,
-.fork-btn,
-.more-btn {
-    background: #f3f3f3;
-    border: none;
-    border-radius: 4px;
-    padding: 6px 12px;
-    cursor: pointer;
-    font-size: 0.98rem;
-}
-
-.open-btn {
-    background: #0078d4;
-    color: #fff;
-}
-
-.fork-btn {
-    background: #ffb900;
-    color: #fff;
 }
