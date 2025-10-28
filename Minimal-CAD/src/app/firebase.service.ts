@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { Firestore, addDoc, collection, collectionData, deleteDoc, doc, getDoc, setDoc } from '@angular/fire/firestore';
+import { Firestore, addDoc, collection, collectionData, deleteDoc, doc, getDoc, query, setDoc, where } from '@angular/fire/firestore';
 import { from, Observable } from 'rxjs';
 import { FormObject, FreeObject, Project } from './interfaces';
 
@@ -75,6 +75,16 @@ export class FirebaseService {
     return collectionData(this.projectsCollection, {
       idField: 'id'
     }) as Observable<Project[]>;
+  }
+
+  getPublicProjects(): Observable<Project[]> {
+    const publicProjectsQuery = query(this.projectsCollection, where('licenceKey', '==', 'public'));
+    return collectionData(publicProjectsQuery, { idField: 'id' }) as Observable<Project[]>;
+  }
+
+  getProjectsByOwner(ownerEmail: string): Observable<Project[]> {
+    const ownerProjectsQuery = query(this.projectsCollection, where('ownerEmail', '==', ownerEmail));
+    return collectionData(ownerProjectsQuery, { idField: 'id' }) as Observable<Project[]>;
   }
 
   getProjectById(projectId: string): Observable<Project | null> {

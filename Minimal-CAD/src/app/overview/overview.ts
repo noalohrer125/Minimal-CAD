@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { Project } from '../interfaces';
 import { Router } from '@angular/router';
+import { FirebaseService } from '../firebase.service';
 
 @Component({
   selector: 'app-overview',
@@ -12,19 +13,20 @@ import { Router } from '@angular/router';
   styleUrl: './overview.css'
 })
 export class Overview {
-  public projects: Project[] = [
-    {
-      id: '1',
-      name: 'Sample Project',
-      licenceKey: 'public',
-      ownerEmail: 'you@example.com',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      objectIds: []
-    }
-  ];
+  constructor(private router: Router, private firebaseService: FirebaseService) {}
 
-  constructor(private router: Router) {}
+  public publicProjects: Project[] = [];
+  public myProjects: Project[] = [];
+  public showMyProjects: boolean = true;
+
+  ngOnInit() {
+    this.firebaseService.getPublicProjects().subscribe(projects => {
+      this.publicProjects = projects
+    })
+    this.firebaseService.getProjectsByOwner(this.firebaseService.getCurrentUserEmail()).subscribe(projects => {
+      this.myProjects = projects
+    })
+  }
 
   openProject(projectId: string) {
     this.router.navigate(['/project', projectId]);
@@ -32,5 +34,18 @@ export class Overview {
 
   openProjectActions() {
     throw new Error('Method not implemented.');
+  }
+
+  applyFilter(searchText: string): void {
+    this.myProjects = this.myProjects.filter(project =>
+      project.name.toLowerCase().includes(searchText.toLowerCase()) ||
+      project.ownerEmail.toLowerCase().includes(searchText.toLowerCase()) ||
+      project.createdAt.toLocaleDateString().includes(searchText.toLowerCase())
+    );
+    this.publicProjects = this.publicProjects.filter(project =>
+      project.name.toLowerCase().includes(searchText.toLowerCase()) ||
+      project.ownerEmail.toLowerCase().includes(searchText.toLowerCase()) ||
+      project.updatedAt?.toLocaleDateString().includes(searchText.toLowerCase())
+    );
   }
 }

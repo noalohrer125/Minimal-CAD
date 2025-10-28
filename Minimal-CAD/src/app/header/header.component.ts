@@ -68,6 +68,6 @@ export class HeaderComponent {
   }
 
   home(): void {
-    this.router.navigate(['/']);
+    this.router.navigate(['/overview']);
   }
 }

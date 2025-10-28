@@ -5,31 +5,46 @@
     </header>
 
     <section class="project-filters">
-        <button class="filter-btn">My Projects</button>
-        <button class="filter-btn">Public</button>
+        <button class="filter-btn" [class.active]="showMyProjects" (click)="showMyProjects = true">My Projects</button>
+        <button class="filter-btn" [class.active]="!showMyProjects" (click)="showMyProjects = false">Public</button>
         <input type="text" class="search-input" placeholder="Search projects...">
     </section>
 
     <section class="projects-grid">
         <!-- Private Project card -->
-        @for (project of projects; track $index) {
-            <div class="project-card">
-                <div class="project-thumb"></div>
-                <div class="project-info">
-                    <div class="project-card-header">
-                        <h2 class="project-title" (click)="openProject(project.id)">{{ project.name }}</h2>
-                        @if (project.licenceKey !== 'public') {
-                            <mat-icon (click)="openProjectActions()">more_vert</mat-icon>
-                        }
+        @if (showMyProjects) {
+            @for (project of myProjects; track $index) {
+                <div class="project-card">
+                    <div class="project-thumb">
+                        <img src="something" alt="something">
                     </div>
-                    <br>
-                    @if (project.licenceKey !== 'public') {
+                    <div class="project-info">
+                        <div class="project-card-header">
+                            <h2 class="project-title" (click)="openProject(project.id)">{{ project.name }}</h2>
+                            <mat-icon (click)="openProjectActions()">more_vert</mat-icon>
+                        </div>
+                        <br>
                         <p class="project-meta">Created at {{ project.createdAt.toLocaleDateString() }} • Updated {{ project.updatedAt?.toLocaleDateString() }}</p>
-                    } @else {
                         <p class="project-meta">Public Project • Owned by {{ project.ownerEmail }}</p>
-                    }
+                    </div>
                 </div>
-            </div>
+            }
+        } @else {
+            <!-- Public Project card -->
+            @for (project of publicProjects; track $index) {
+                <div class="project-card">
+                    <div class="project-thumb">
+                        <img src="something" alt="something">
+                    </div>
+                    <div class="project-info">
+                        <div class="project-card-header">
+                            <h2 class="project-title" (click)="openProject(project.id)">{{ project.name }}</h2>
+                        </div>
+                        <br>
+                        <p class="project-meta">Public Project • Owned by {{ project.ownerEmail }}</p>
+                    </div>
+                </div>
+            }
         }
     </section>
 </div>

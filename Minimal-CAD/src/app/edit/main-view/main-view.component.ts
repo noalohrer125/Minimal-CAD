@@ -470,4 +470,8 @@ export class MainViewComponent implements AfterViewInit {
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height);
   }
+
+  ngOnDestroy() {
+    localStorage.removeItem('model-data');
+  }
 }
