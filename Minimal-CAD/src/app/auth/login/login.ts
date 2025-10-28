@@ -29,7 +29,7 @@ export class Login {
       rawForm.email,
       rawForm.password
     ).subscribe({
-      next: () => this.router.navigate(['/home']),
+      next: () => this.router.navigate(['/overview']),
       error: (error) => this.errorMesssage = error.code
     });
   }

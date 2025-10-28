@@ -2,3 +2,12 @@
     box-sizing: border-box;
     --main-padding: 1vw;
 }
+
+.header {
+    height: 8vh;
+    min-height: 80px;
+    width: 100vw;
+    display: flex;
+    align-items: center;
+    grid-area: header;
+}

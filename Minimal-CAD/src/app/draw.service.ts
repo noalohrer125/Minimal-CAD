@@ -18,6 +18,21 @@ export class Draw {
     return [];
   }
 
+  loadObjectsByProjectId(projectId: string): (FormObject | FreeObject)[] {
+    if (projectId) {
+      // Load from Firebase if projectId is provided
+      this.loadObjectsFirebase().subscribe({
+        next: (firebaseData) => {
+          return firebaseData as (FormObject | FreeObject)[];
+        },
+        error: (err) => {
+          console.error('Error loading objects from Firebase:', err);
+        }
+      });
+    }
+    return [];
+  }
+
   loadObjectsFirebase(): Observable<(FormObject | FreeObject)[]> {
     return new Observable<(FormObject | FreeObject)[]>((observer) => {
       this.firebaseService.getObjects().subscribe({
