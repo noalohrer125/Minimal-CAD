@@ -11,6 +11,14 @@
     background: #f88;
 }
 
+.editor-menu {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 8vh;
+    gap: 2%;
+}
+
 hr {
     border: #d9d9d9 solid 1px;
     height: 35%;
@@ -30,6 +38,8 @@ mat-icon:hover {
 
 .right-align {
     margin-left: auto;
+    display: flex;
+    flex-direction: row;
 
     .user-span {
         margin-right: 20px;

@@ -26,7 +26,7 @@ export class HeaderComponent {
   constructor(
     private drawService: Draw,
     private fileService: FileService,
-    private router: Router,
+    public router: Router,
     public authService: AuthService
   ) { }
 
