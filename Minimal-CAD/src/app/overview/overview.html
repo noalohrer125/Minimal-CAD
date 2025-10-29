@@ -11,42 +11,46 @@
     </section>
 
     <section class="projects-grid">
-        <!-- Private Project card -->
-        @if (showMyProjects) {
-            @for (project of myProjects; track $index) {
-                <div class="project-card" (click)="openProject(project.id)">
-                    <div class="project-thumb">
-                        <img src="something" alt="something">
-                    </div>
-                    <div class="project-info">
-                        <div class="project-card-header">
-                            <h2 class="project-title">{{ project.name }}</h2>
-                            <mat-icon (click)="openProjectActions()">more_vert</mat-icon>
-                        </div>
-                        <br>
-                        <p class="project-meta">Created at {{ project.createdAt.toDate().toDateString() }}</p>
-                        @if (project.updatedAt) {
-                            <p class="project-meta">Updated at {{ project.updatedAt.toDate().toDateString() }}</p>
-                        }
-                    </div>
-                </div>
-            }
+        @if (projectsLoading) {
+            <p>Loading projects...</p>
         } @else {
-            <!-- Public Project card -->
-            @for (project of publicProjects; track $index) {
-                <div class="project-card" (click)="openProject(project.id)">
-                    <div class="project-thumb">
-                        <img src="something" alt="something">
-                    </div>
-                    <div class="project-info">
-                        <div class="project-card-header">
-                            <h2 class="project-title">{{ project.name }}</h2>
+            <!-- Private Project card -->
+            @if (showMyProjects) {
+                @for (project of myProjects; track $index) {
+                    <div class="project-card" (click)="openProject(project.id)">
+                        <div class="project-thumb">
+                            <img src="something" alt="something">
                         </div>
-                        <br>
-                        <p class="project-meta">Public Project</p>
-                        <p class="project-meta">Owned by {{ project.ownerEmail }}</p>
+                        <div class="project-info">
+                            <div class="project-card-header">
+                                <h2 class="project-title">{{ project.name }}</h2>
+                                <mat-icon (click)="openProjectActions()">more_vert</mat-icon>
+                            </div>
+                            <br>
+                            <p class="project-meta">Created at {{ project.createdAt.toDate().toLocaleDateString() }}</p>
+                            @if (project.updatedAt) {
+                                <p class="project-meta">Updated at {{ project.updatedAt.toDate().toLocaleDateString() }}</p>
+                            }
+                        </div>
                     </div>
-                </div>
+                }
+            } @else {
+                <!-- Public Project card -->
+                @for (project of publicProjects; track $index) {
+                    <div class="project-card" (click)="openProject(project.id)">
+                        <div class="project-thumb">
+                            <img src="something" alt="something">
+                        </div>
+                        <div class="project-info">
+                            <div class="project-card-header">
+                                <h2 class="project-title">{{ project.name }}</h2>
+                            </div>
+                            <br>
+                            <p class="project-meta">Public Project</p>
+                            <p class="project-meta">Owned by {{ project.ownerEmail }}</p>
+                        </div>
+                    </div>
+                }
             }
         }
     </section>

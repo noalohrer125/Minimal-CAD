@@ -19,14 +19,17 @@ export class Overview {
   public publicProjects: Project[] = [];
   public myProjects: Project[] = [];
   public showMyProjects: boolean = true;
+  public projectsLoading: boolean = false;
 
   ngOnInit() {
+    this.projectsLoading = true;
     this.firebaseService.getPublicProjects().subscribe(projects => {
       this.publicProjects = projects
-    })
+    });
     this.firebaseService.getProjectsByOwner(this.firebaseService.getCurrentUserEmail()).subscribe(projects => {
-      this.myProjects = projects
-    })
+      this.myProjects = projects;
+      this.projectsLoading = false;
+    });
   }
 
   addProject() {
