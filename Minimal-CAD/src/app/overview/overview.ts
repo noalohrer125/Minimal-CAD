@@ -30,7 +30,7 @@ export class Overview {
   }
 
   addProject() {
-    this.drawService.saveProjectToFirebase();
+    this.drawService.saveProjectToFirebase(true);
   }
 
   openProject(projectId: string) {

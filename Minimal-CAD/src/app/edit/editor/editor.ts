@@ -47,6 +47,7 @@ export class Editor {
       const id = params.get('id');
       if (id) {
         this.projectId = id;
+        localStorage.setItem('project-id', id);
       }
     });
     const modelData = this.drawservice.loadObjects();

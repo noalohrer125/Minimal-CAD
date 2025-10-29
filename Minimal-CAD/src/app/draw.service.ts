@@ -82,12 +82,12 @@ export class Draw {
     localStorage.setItem('model-data', JSON.stringify(modelData));
   }
 
-  async saveProjectToFirebase(): Promise<void> {
+  async saveProjectToFirebase(newProject: boolean = false): Promise<void> {
     const isExistingProject = localStorage.getItem('project-id') || 'notExisting';
     const modelData = this.loadObjects().filter(obj => !obj.ghost);
     modelData.forEach(obj => obj.selected = false);
     let projectId: string | null = null;
-    if (isExistingProject !== 'notExisting') {
+    if (isExistingProject !== 'notExisting' && !newProject) {
       projectId = isExistingProject;
     }
     const projectName = window.prompt('Enter a (new) name for your project:', 'Unnamed Project') || 'Unnamed Project';

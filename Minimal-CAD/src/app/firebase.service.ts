@@ -31,7 +31,6 @@ export class FirebaseService {
   }
 
   saveObject(object: FormObject | FreeObject): Observable<string> {
-    // Prüfe, ob das Objekt existiert, und speichere/aktualisiere entsprechend
     const objectDocRef = doc(this.objectsCollection, object.id);
     const checkAndSave = async () => {
       const snapshot = await getDoc(objectDocRef);
