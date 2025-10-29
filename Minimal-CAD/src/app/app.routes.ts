@@ -12,4 +12,5 @@ export const appRoutes: Routes = [
     { path: 'register', component: Register },
     { path: 'overview', component: Overview, canActivate: [AngularFireAuthGuard], data: { authGuardPipe: redirectUnauthorizedToLogin } },
     { path: 'editor/:id', component: Editor, canActivate: [AngularFireAuthGuard], data: { authGuardPipe: redirectUnauthorizedToLogin } },
+    { path: '**', redirectTo: '/overview' }
 ];
