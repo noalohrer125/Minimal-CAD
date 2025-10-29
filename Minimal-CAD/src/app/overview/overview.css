@@ -79,7 +79,7 @@
 }
 
 .project-card:hover {
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 4px 16px rgb(255, 160, 160);
 }
 
 .project-thumb {
@@ -99,11 +99,8 @@
     display: flex;
     justify-content: space-between;
 
-    & > *:hover {
-        text-decoration: underline;
+    mat-icon:hover {
         cursor: pointer;
-        background-color: #ffc0c0;
-        border-radius: 10px;
     }
 }
 

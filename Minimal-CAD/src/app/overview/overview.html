@@ -1,7 +1,7 @@
 <div class="overview-container">
     <header class="overview-header">
         <h1>Overview</h1>
-        <button class="new-project-btn">New Project</button>
+        <button class="new-project-btn" (click)="addProject()">New Project</button>
     </header>
 
     <section class="project-filters">
@@ -14,34 +14,37 @@
         <!-- Private Project card -->
         @if (showMyProjects) {
             @for (project of myProjects; track $index) {
-                <div class="project-card">
+                <div class="project-card" (click)="openProject(project.id)">
                     <div class="project-thumb">
                         <img src="something" alt="something">
                     </div>
                     <div class="project-info">
                         <div class="project-card-header">
-                            <h2 class="project-title" (click)="openProject(project.id)">{{ project.name }}</h2>
+                            <h2 class="project-title">{{ project.name }}</h2>
                             <mat-icon (click)="openProjectActions()">more_vert</mat-icon>
                         </div>
                         <br>
-                        <p class="project-meta">Created at {{ project.createdAt.toLocaleDateString() }} • Updated {{ project.updatedAt?.toLocaleDateString() }}</p>
-                        <p class="project-meta">Public Project • Owned by {{ project.ownerEmail }}</p>
+                        <p class="project-meta">Created at {{ project.createdAt.toDate().toDateString() }}</p>
+                        @if (project.updatedAt) {
+                            <p class="project-meta">Updated at {{ project.updatedAt.toDate().toDateString() }}</p>
+                        }
                     </div>
                 </div>
             }
         } @else {
             <!-- Public Project card -->
             @for (project of publicProjects; track $index) {
-                <div class="project-card">
+                <div class="project-card" (click)="openProject(project.id)">
                     <div class="project-thumb">
                         <img src="something" alt="something">
                     </div>
                     <div class="project-info">
                         <div class="project-card-header">
-                            <h2 class="project-title" (click)="openProject(project.id)">{{ project.name }}</h2>
+                            <h2 class="project-title">{{ project.name }}</h2>
                         </div>
                         <br>
-                        <p class="project-meta">Public Project • Owned by {{ project.ownerEmail }}</p>
+                        <p class="project-meta">Public Project</p>
+                        <p class="project-meta">Owned by {{ project.ownerEmail }}</p>
                     </div>
                 </div>
             }

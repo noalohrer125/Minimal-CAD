@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { DEFAULT_VIEW, FormObject, FreeObject, view } from './interfaces';
+import { DEFAULT_VIEW, FormObject, FreeObject, Project, view } from './interfaces';
 import { FirebaseService } from './firebase.service';
 import { Observable } from 'rxjs';
+import { Timestamp } from '@angular/fire/firestore';
 
 
 @Injectable({
@@ -96,12 +97,12 @@ export class Draw {
       - Cancel = Private (licence key will be generated)
     `);
     const currentUserEmail = this.firebaseService.getCurrentUserEmail();
-    const project = {
+    const project: Project = {
       id: projectId ? projectId : this.generateId(),
       name: projectName,
       licenceKey: !publicProject ? this.generateHash(this.generateId()) : 'public',
       ownerEmail: currentUserEmail,
-      createdAt: new Date(),
+      createdAt: Timestamp.now(),
       objectIds: modelData.map(obj => obj.id)
     };
     (await this.firebaseService.saveProject(project)).subscribe({

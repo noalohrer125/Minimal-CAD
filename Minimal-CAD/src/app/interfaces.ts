@@ -1,3 +1,4 @@
+import { Timestamp } from "@angular/fire/firestore";
 import { Vector3 } from "three";
 
 export interface User {
@@ -10,8 +11,8 @@ export interface Project {
     name: string;
     licenceKey: string;
     ownerEmail: string;
-    createdAt: Date;
-    updatedAt?: Date;
+    createdAt: Timestamp;
+    updatedAt?: Timestamp;
     objectIds: string[];
 }
 

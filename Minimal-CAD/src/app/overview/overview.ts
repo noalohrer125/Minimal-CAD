@@ -3,6 +3,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { Project } from '../interfaces';
 import { Router } from '@angular/router';
 import { FirebaseService } from '../firebase.service';
+import { Draw } from '../draw.service';
 
 @Component({
   selector: 'app-overview',
@@ -13,7 +14,7 @@ import { FirebaseService } from '../firebase.service';
   styleUrl: './overview.css'
 })
 export class Overview {
-  constructor(private router: Router, private firebaseService: FirebaseService) {}
+  constructor(private router: Router, private firebaseService: FirebaseService, private drawService: Draw) {}
 
   public publicProjects: Project[] = [];
   public myProjects: Project[] = [];
@@ -28,8 +29,12 @@ export class Overview {
     })
   }
 
+  addProject() {
+    this.drawService.saveProjectToFirebase();
+  }
+
   openProject(projectId: string) {
-    this.router.navigate(['/project', projectId]);
+    this.router.navigate(['/editor', projectId]);
   }
 
   openProjectActions() {
@@ -40,12 +45,12 @@ export class Overview {
     this.myProjects = this.myProjects.filter(project =>
       project.name.toLowerCase().includes(searchText.toLowerCase()) ||
       project.ownerEmail.toLowerCase().includes(searchText.toLowerCase()) ||
-      project.createdAt.toLocaleDateString().includes(searchText.toLowerCase())
+      project.createdAt.toDate().toString().includes(searchText.toLowerCase())
     );
     this.publicProjects = this.publicProjects.filter(project =>
       project.name.toLowerCase().includes(searchText.toLowerCase()) ||
       project.ownerEmail.toLowerCase().includes(searchText.toLowerCase()) ||
-      project.updatedAt?.toLocaleDateString().includes(searchText.toLowerCase())
+      project.updatedAt?.toDate().toString().includes(searchText.toLowerCase())
     );
   }
 }
