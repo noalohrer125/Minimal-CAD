@@ -16,7 +16,9 @@ import { Draw } from '../draw.service';
 export class Overview {
   constructor(private router: Router, private firebaseService: FirebaseService, private drawService: Draw) {}
 
+  private publicProjectsUnfiltered: Project[] = [];
   public publicProjects: Project[] = [];
+  private myProjectsUnfiltered: Project[] = [];
   public myProjects: Project[] = [];
   public showMyProjects: boolean = true;
   public projectsLoading: boolean = false;
@@ -24,9 +26,11 @@ export class Overview {
   ngOnInit() {
     this.projectsLoading = true;
     this.firebaseService.getPublicProjects().subscribe(projects => {
-      this.publicProjects = projects
+      this.publicProjectsUnfiltered = projects;
+      this.publicProjects = projects;
     });
     this.firebaseService.getProjectsByOwner(this.firebaseService.getCurrentUserEmail()).subscribe(projects => {
+      this.myProjectsUnfiltered = projects;
       this.myProjects = projects;
       this.projectsLoading = false;
     });
@@ -45,15 +49,14 @@ export class Overview {
   }
 
   applyFilter(searchText: string): void {
-    this.myProjects = this.myProjects.filter(project =>
+    console.log('Applying filter with search text:', searchText);
+    this.myProjects = this.myProjectsUnfiltered.filter(project =>
       project.name.toLowerCase().includes(searchText.toLowerCase()) ||
-      project.ownerEmail.toLowerCase().includes(searchText.toLowerCase()) ||
-      project.createdAt.toDate().toString().includes(searchText.toLowerCase())
+      project.createdAt.toDate().toLocaleDateString().includes(searchText.toLowerCase())
     );
-    this.publicProjects = this.publicProjects.filter(project =>
+    this.publicProjects = this.publicProjectsUnfiltered.filter(project =>
       project.name.toLowerCase().includes(searchText.toLowerCase()) ||
-      project.ownerEmail.toLowerCase().includes(searchText.toLowerCase()) ||
-      project.updatedAt?.toDate().toString().includes(searchText.toLowerCase())
+      project.ownerEmail.toLowerCase().includes(searchText.toLowerCase())
     );
   }
 }

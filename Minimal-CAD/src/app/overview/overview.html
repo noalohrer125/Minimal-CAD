@@ -7,7 +7,7 @@
     <section class="project-filters">
         <button class="filter-btn" [class.active]="showMyProjects" (click)="showMyProjects = true">My Projects</button>
         <button class="filter-btn" [class.active]="!showMyProjects" (click)="showMyProjects = false">Public</button>
-        <input type="text" class="search-input" placeholder="Search projects...">
+        <input #searchInput type="text" class="search-input" placeholder="Search projects..." (input)="applyFilter(searchInput.value)">
     </section>
 
     <section class="projects-grid">
