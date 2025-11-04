@@ -40,8 +40,18 @@ export class Overview {
     this.drawService.saveProjectToFirebase(true);
   }
 
-  openProject(projectId: string) {
-    this.router.navigate(['/editor', projectId]);
+  openProject(projectId: string, projectName: string, licenceKey: string) {
+    let userInput = '';
+    if (licenceKey !== 'public') {
+      userInput = prompt('Enter the license key for this project:', projectName) || '';
+    } else {
+      userInput = 'public';
+    }
+    if (userInput === licenceKey) {
+      this.router.navigate(['/editor', projectId]);
+    } else {
+      alert('Please enter the correct license key to open this project.');
+    }
   }
 
   openProjectActions() {

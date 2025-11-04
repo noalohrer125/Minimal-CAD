@@ -17,7 +17,7 @@
             <!-- Private Project card -->
             @if (showMyProjects) {
                 @for (project of myProjects; track $index) {
-                    <div class="project-card" (click)="openProject(project.id)">
+                    <div class="project-card" (click)="openProject(project.id, project.name, project.licenceKey)">
                         <div class="project-thumb">
                             <img src="something" alt="something">
                         </div>
@@ -37,7 +37,7 @@
             } @else {
                 <!-- Public Project card -->
                 @for (project of publicProjects; track $index) {
-                    <div class="project-card" (click)="openProject(project.id)">
+                    <div class="project-card" (click)="openProject(project.id, project.name, project.licenceKey)">
                         <div class="project-thumb">
                             <img src="something" alt="something">
                         </div>
