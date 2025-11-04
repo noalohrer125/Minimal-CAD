@@ -83,9 +83,23 @@ export class Draw {
   }
 
   async saveProjectToFirebase(newProject: boolean = false): Promise<void> {
+    // Save all objects first
     const isExistingProject = localStorage.getItem('project-id') || 'notExisting';
-    const modelData = this.loadObjects().filter(obj => !obj.ghost);
+    let modelData = this.loadObjects().filter(obj => !obj.ghost);
     modelData.forEach(obj => obj.selected = false);
+    await Promise.all(modelData.map(obj => {
+      return new Promise((resolve, reject) => {
+        this.firebaseService.saveObject(obj).subscribe({
+          next: () => resolve(true),
+          error: (err) => {
+            console.error('Failed to save object to Firebase: ', err);
+            reject(err);
+          }
+        });
+      });
+    }));
+
+    // Then save project
     let projectId: string | null = null;
     if (isExistingProject !== 'notExisting' && !newProject) {
       projectId = isExistingProject;
@@ -107,23 +121,21 @@ export class Draw {
     };
     (await this.firebaseService.saveProject(project)).subscribe({
       next: (projectId) => {
-        modelData.forEach(obj => {
-          this.firebaseService.saveObject(obj).subscribe();
-        });
         if (publicProject) {
           window.alert(`
             Project saved with ID: ${projectId}.
             Your project is saved as public.
           `);
+        } else {
+          window.alert(`
+            Project saved with ID: ${projectId}.
+            Your Licence Key to this project: ${project.licenceKey}.
+            Make sure to save this Key! Else you won't be able to access your project later again.
+          `);
         }
-        window.alert(`
-          Project saved with ID: ${projectId}.
-          Your Licence Key to this project: ${project.licenceKey}.
-          Make sure to save this Key! Else you won't be able to access your project later again.
-        `);
       },
       error: (err) => {
-        console.error('Failed to save project to Firebase', err);
+        console.error('Failed to save project to Firebase: ', err);
       }
     });
   }
