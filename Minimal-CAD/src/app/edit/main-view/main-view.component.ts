@@ -1,4 +1,4 @@
-import { Component, ElementRef, AfterViewInit, ViewChild, HostListener, Output, EventEmitter, Input } from '@angular/core';
+import { Component, ElementRef, AfterViewInit, ViewChild, HostListener, Output, EventEmitter, Input, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Draw } from '../../draw.service';
 import { FormObject, FreeObject, FreeObjectCommand } from '../../interfaces';
@@ -11,7 +11,7 @@ import * as THREE from 'three';
   template: `<canvas #canvas></canvas>`,
   styleUrl: './main-view.component.css'
 })
-export class MainViewComponent implements AfterViewInit {
+export class MainViewComponent implements OnInit, AfterViewInit, OnDestroy {
   @Output() rotationChange = new EventEmitter<THREE.Euler>();
   @ViewChild('canvas', { static: true }) canvasRef!: ElementRef;
   // Add cameraReset input for viewcube
@@ -50,6 +50,7 @@ export class MainViewComponent implements AfterViewInit {
   private renderer = new THREE.WebGLRenderer({ antialias: true });
   private rootGroup = new THREE.Group();
   private objects: THREE.Object3D[] = [];
+  public isLoading: boolean = true;
 
   private raycaster = new THREE.Raycaster();
   private mouse = new THREE.Vector2();
@@ -64,6 +65,15 @@ export class MainViewComponent implements AfterViewInit {
   public setRotation(rot: THREE.Euler) {
     this.targetRotation = rot.clone();
     this.isRotating = true;
+  }
+
+  async ngOnInit(): Promise<void> {
+    await this.drawservice.loadObjectsByProjectId(this.projectId);
+    this.isLoading = false;
+
+    this.drawservice.reload$.subscribe(() => {
+      this.onReload();
+    });
   }
 
   init() {
@@ -126,6 +136,7 @@ export class MainViewComponent implements AfterViewInit {
     gridHelper.rotation.x = Math.PI / 2;
     (gridHelper as any).castShadow = true;
     (gridHelper as any).receiveShadow = true;
+    (gridHelper as any).isGridHelper = true; // Mark as grid helper so it's not removed on reload
     this.rootGroup.add(gridHelper);
 
     const view = this.drawservice.getView();
@@ -448,18 +459,25 @@ export class MainViewComponent implements AfterViewInit {
     
     this.clearScene();
     this.loadModels();
-    location.reload();
+    this.drawservice.reload$.next();
   }
 
   clearScene() {
-    // Remove all objects from the rootGroup, not just from this.objects array
+    // Remove all objects from the rootGroup except the GridHelper
     const objectsToRemove = [...this.rootGroup.children];
     objectsToRemove.forEach(child => {
-      if (child !== this.rootGroup.children.find(c => (c as any).isGridHelper)) {
+      // Keep the GridHelper, remove everything else
+      if (!(child as any).isGridHelper) {
         this.rootGroup.remove(child);
       }
     });
     this.objects = [];
+  }
+
+  onReload() {
+    this.clearScene();
+    this.loadModels();
+    console.log('[MainView] Reloading models');
   }
 
   @HostListener('window:resize')

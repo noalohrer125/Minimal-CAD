@@ -36,7 +36,7 @@ export class File {
                 // Save uploaded file content to localStorage under 'model-data'
                 localStorage.setItem('model-data', text);
                 alert('File uploaded and data saved to localStorage as "model-data".');
-                location.reload();
+                this.drawService.reload$.next();
             } catch (e) {
                 alert('Invalid JSON file.');
             }

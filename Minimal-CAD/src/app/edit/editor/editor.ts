@@ -57,6 +57,11 @@ export class Editor {
       this.isAuthenticated = user !== null;
       this.isAuthLoading = false;
     });
+
+    this.drawservice.reload$.subscribe(() => {
+      this.onReload();
+      console.log('[Editor] Reload event received');
+    });
   }
 
   onRotationChanged(rot: THREE.Euler) {
@@ -87,5 +92,11 @@ export class Editor {
   @HostListener('contextmenu', ['$event'])
   onRightClick(event: MouseEvent) {
     event.preventDefault();
+  }
+
+  onReload() {
+    const modelData = this.drawservice.loadObjects();
+    this.selectedObject = modelData.find(obj => obj.selected) || null;
+    console.log('[Editor] Reloaded selectedObject:', this.selectedObject);
   }
 }

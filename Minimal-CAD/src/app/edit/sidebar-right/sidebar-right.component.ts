@@ -40,6 +40,8 @@ export class SidebarRightComponent implements OnInit {
 
   public selectedObject: FormObject | FreeObject | any = {};
   public selectedObjectType!: 'Square' | 'Circle' | 'Freeform';
+  private skipNextReload = false;
+  private isInitializing = false;
 
   public form: FormGroup = new FormGroup({
     name: new FormControl('New Object'),
@@ -86,7 +88,23 @@ export class SidebarRightComponent implements OnInit {
     });
 
     this.form.valueChanges.pipe(debounceTime(500)).subscribe(() => {
+      // Don't trigger preview update if we're initializing the form
+      if (this.isInitializing) {
+        console.log('[SidebarRight] Ignoring valueChanges during initialization');
+        return;
+      }
+      console.log('[SidebarRight] Form values changed, updating preview');
       this.updatePreview();
+    });
+
+    this.drawService.reload$.subscribe(() => {
+      if (this.skipNextReload) {
+        this.skipNextReload = false;
+        console.log('[SidebarRight] Skipping reload - preview update');
+        return;
+      }
+      this.initForm();
+      console.log('[SidebarRight] Reload event received');
     });
   }
 
@@ -110,6 +128,8 @@ export class SidebarRightComponent implements OnInit {
   }
 
   initForm(): void {
+    console.log('[SidebarRight] initForm called');
+    this.isInitializing = true;
     this.selectedObject = this.drawService.loadObjects().find(obj => obj.selected) || null;
     this.selectedObjectType = this.selectedObject?.type!;
 
@@ -139,7 +159,8 @@ export class SidebarRightComponent implements OnInit {
         patch.size = {
           height: this.selectedObject.h ?? 0
         };
-        // Patch commands
+        // Clear and repopulate commands
+        this.commands.clear();
         const cmds = this.selectedObject.commands ?? [];
         cmds.forEach((c: FreeObjectCommand) =>
           this.commands.push(this.createCommandGroup(c))
@@ -150,8 +171,11 @@ export class SidebarRightComponent implements OnInit {
         y: this.selectedObject.rotation?.[1] ?? 0,
         z: this.selectedObject.rotation?.[2] ?? 0
       };
-      this.form.patchValue(patch);
+      // Use emitEvent: false to prevent triggering valueChanges during initialization
+      this.form.patchValue(patch, { emitEvent: false });
     }
+    this.isInitializing = false;
+    console.log('[SidebarRight] initForm completed');
   }
 
   addCommand() {
@@ -165,7 +189,10 @@ export class SidebarRightComponent implements OnInit {
   private updatePreview() {
     if (!this.selectedObject) return;
     this.saveToLocalStorage();
-    window.location.reload();
+    // Set flag to skip the next reload event in this component
+    this.skipNextReload = true;
+    // Trigger reload for 3D view update
+    this.drawService.reload$.next();
   }
 
   private saveToLocalStorage() {
@@ -261,24 +288,27 @@ export class SidebarRightComponent implements OnInit {
     localStorage.setItem('model-data', JSON.stringify(modelData));
   }
 
-  onSubmit() {
+  async onSubmit() {
     if (!this.selectedObject) return;
-    
-    // Save the final object and clean up ghosts
+    // Save current form state to localStorage first
     this.saveToLocalStorage();
-    this.drawService.saveObject(this.selectedObject);
-    window.location.reload();
+    // Load the updated object from localStorage (which has the current form values)
+    const modelData = this.drawService.loadObjects();
+    const updatedObject = modelData.find(obj => obj.id === this.selectedObject.id && !obj.ghost);
+    if (updatedObject) {
+      await this.drawService.saveObject(updatedObject);
+    }
+    this.drawService.reload$.next();
   }
 
-  onClose() {
-    // Remove ghost objects and deselect all
+  async onClose() {
     this.drawService.removeGhostObjects();
-    this.drawService.deselectAllObjects();
     this.selectedObject = null;
-    location.reload();
+    await this.drawService.deselectAllObjects();
+    this.drawService.reload$.next();
   }
 
-  onDelete() {
+  async onDelete() {
     if (
       window.confirm(
         `You are about to delete ${this.selectedObject.name}. Proceed?`
@@ -288,9 +318,9 @@ export class SidebarRightComponent implements OnInit {
       models = models.filter(
         (model) => model.id !== this.selectedObject.id
       );
-      localStorage.setItem('model-data', JSON.stringify(models));
       this.selectedObject = null;
-      location.reload();
+      await localStorage.setItem('model-data', JSON.stringify(models));
+      this.drawService.reload$.next();
     }
   }
 

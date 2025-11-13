@@ -19,6 +19,11 @@ export class SidebarLeftComponent {
   ngOnInit() {
     this.objects = this.drawService.loadObjects();
     this.selectedObject = this.drawService.loadObjects().find(obj => obj.selected) || {};
+
+    this.drawService.reload$.subscribe(() => {
+      this.onReload();
+      console.log('[SidebarLeft] Reload event received');
+    });
   }
 
   onClick(object: FormObject | FreeObject) {
@@ -26,6 +31,12 @@ export class SidebarLeftComponent {
     const modelData = this.drawService.loadObjects();
     modelData.find(obj => obj.id === object.id)!.selected = true;
     localStorage.setItem('model-data', JSON.stringify(modelData));
-    location.reload();
+    this.drawService.reload$.next();
+  }
+
+  onReload() {
+    this.objects = this.drawService.loadObjects();
+    this.selectedObject = this.drawService.loadObjects().find(obj => obj.selected) || {};
+    console.log('[SidebarLeft] Reloaded objects');
   }
 }

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { DEFAULT_VIEW, FormObject, FreeObject, Project, view } from './interfaces';
 import { FirebaseService } from './firebase.service';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { Timestamp } from '@angular/fire/firestore';
 
 
@@ -10,6 +10,9 @@ import { Timestamp } from '@angular/fire/firestore';
 })
 export class Draw {
   constructor(private firebaseService: FirebaseService) {}
+
+  public reload$: BehaviorSubject<void> = new BehaviorSubject<void>(undefined);
+
   loadObjects(): (FormObject | FreeObject)[] {
     const modelDataString = localStorage.getItem('model-data');
     const data = modelDataString ? JSON.parse(modelDataString) as (FormObject | FreeObject)[] : [];
@@ -24,6 +27,7 @@ export class Draw {
       // Load from Firebase if projectId is provided
       this.loadObjectsFirebase().subscribe({
         next: (firebaseData) => {
+          localStorage.setItem('model-data', JSON.stringify(firebaseData as (FormObject | FreeObject)[]));
           return firebaseData as (FormObject | FreeObject)[];
         },
         error: (err) => {
@@ -190,7 +194,7 @@ export class Draw {
       selected: true
     };
     localStorage.setItem('model-data', JSON.stringify([...this.loadObjects(), newObject]));
-    location.reload();
+    this.reload$.next();
   }
 
   circle() {
@@ -206,7 +210,7 @@ export class Draw {
       selected: true
     };
     localStorage.setItem('model-data', JSON.stringify([...this.loadObjects(), newObject]));
-    location.reload();
+    this.reload$.next();
   }
 
   freeform() {
@@ -240,6 +244,6 @@ export class Draw {
       selected: true
     };
     localStorage.setItem('model-data', JSON.stringify([...this.loadObjects(), newObject]));
-    location.reload();
+    this.reload$.next();
   }
 }
