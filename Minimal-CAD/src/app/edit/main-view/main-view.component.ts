@@ -26,11 +26,15 @@ export class MainViewComponent implements OnInit, AfterViewInit, OnDestroy {
     if (val) {
       this.camera.position.set(val.position.x, val.position.y, val.position.z);
       this.camera.rotation.set(val.rotation.x, val.rotation.y, val.rotation.z);
-      this.rootGroup.scale.set(val.scale.x, val.scale.y, val.scale.z);
+      // Trigger smooth zoom animation instead of instant change
+      this.targetScale = new THREE.Vector3(val.scale.x, val.scale.y, val.scale.z);
+      this.isScaling = true;
+      // Trigger smooth position animation instead of instant change
       if (val.rootGroupPosition) {
-        this.rootGroup.position.set(val.rootGroupPosition.x, val.rootGroupPosition.y, val.rootGroupPosition.z);
+        this.targetPosition = new THREE.Vector3(val.rootGroupPosition.x, val.rootGroupPosition.y, val.rootGroupPosition.z);
+        this.isPositioning = true;
       }
-      // Optionally update view in drawservice if needed
+      // Update view in drawservice
       const view = this.drawservice.getView();
       view.camera.position = { ...val.position };
       view.camera.rotation = { ...val.rotation };
@@ -61,6 +65,16 @@ export class MainViewComponent implements OnInit, AfterViewInit, OnDestroy {
   private targetRotation: THREE.Euler | null = null;
   private rotationLerpAlpha = 0.1; // Adjust for speed (0.1-0.2 is smooth)
   private isRotating = false;
+
+  // Smooth zoom animation
+  private targetScale: THREE.Vector3 | null = null;
+  private scaleLerpAlpha = 0.1; // Adjust for speed (0.1-0.2 is smooth)
+  private isScaling = false;
+
+  // Smooth position animation
+  private targetPosition: THREE.Vector3 | null = null;
+  private positionLerpAlpha = 0.1; // Adjust for speed (0.1-0.2 is smooth)
+  private isPositioning = false;
 
   public setRotation(rot: THREE.Euler) {
     this.targetRotation = rot.clone();
@@ -361,6 +375,48 @@ export class MainViewComponent implements OnInit, AfterViewInit, OnDestroy {
         this.targetRotation = null;
       }
       this.rotationChange.emit(this.rootGroup.rotation.clone());
+    }
+
+    // Smooth zoom/scale animation
+    if (this.isScaling && this.targetScale) {
+      const current = this.rootGroup.scale;
+      const target = this.targetScale;
+      // Lerp each axis
+      current.x += (target.x - current.x) * this.scaleLerpAlpha;
+      current.y += (target.y - current.y) * this.scaleLerpAlpha;
+      current.z += (target.z - current.z) * this.scaleLerpAlpha;
+
+      // If close enough, snap to target and stop animating
+      if (
+        Math.abs(current.x - target.x) < 0.001 &&
+        Math.abs(current.y - target.y) < 0.001 &&
+        Math.abs(current.z - target.z) < 0.001
+      ) {
+        this.rootGroup.scale.copy(target);
+        this.isScaling = false;
+        this.targetScale = null;
+      }
+    }
+
+    // Smooth position animation
+    if (this.isPositioning && this.targetPosition) {
+      const current = this.rootGroup.position;
+      const target = this.targetPosition;
+      // Lerp each axis
+      current.x += (target.x - current.x) * this.positionLerpAlpha;
+      current.y += (target.y - current.y) * this.positionLerpAlpha;
+      current.z += (target.z - current.z) * this.positionLerpAlpha;
+
+      // If close enough, snap to target and stop animating
+      if (
+        Math.abs(current.x - target.x) < 0.001 &&
+        Math.abs(current.y - target.y) < 0.001 &&
+        Math.abs(current.z - target.z) < 0.001
+      ) {
+        this.rootGroup.position.copy(target);
+        this.isPositioning = false;
+        this.targetPosition = null;
+      }
     }
 
     this.renderer.render(this.scene, this.camera);
