@@ -50,7 +50,7 @@ export class MainViewComponent implements OnInit, AfterViewInit, OnDestroy {
   private renderer = new THREE.WebGLRenderer({ antialias: true });
   private rootGroup = new THREE.Group();
   private objects: THREE.Object3D[] = [];
-  public isLoading: boolean = true;
+  public isLoading: boolean = false;
 
   private raycaster = new THREE.Raycaster();
   private mouse = new THREE.Vector2();
@@ -67,8 +67,9 @@ export class MainViewComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isRotating = true;
   }
 
-  async ngOnInit(): Promise<void> {
-    await this.drawservice.loadObjectsByProjectId(this.projectId);
+  ngOnInit(): void {
+    this.isLoading = true;
+    this.drawservice.loadObjectsByProjectId(this.projectId);
     this.isLoading = false;
 
     this.drawservice.reload$.subscribe(() => {
@@ -366,6 +367,9 @@ export class MainViewComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
+    while (this.isLoading === true) {
+      this.ngAfterViewInit();
+    }
     this.init();
     this.loadModels();
     this.animate();
@@ -475,6 +479,7 @@ export class MainViewComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onReload() {
+    if (this.isLoading) return;
     this.clearScene();
     this.loadModels();
     console.log('[MainView] Reloading models');

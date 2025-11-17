@@ -22,20 +22,20 @@ export class Draw {
     return [];
   }
 
-  loadObjectsByProjectId(projectId: string): (FormObject | FreeObject)[] {
+  async loadObjectsByProjectId(projectId: string): Promise<(FormObject | FreeObject)[]> {
+    let result: (FormObject | FreeObject)[] = [];
     if (projectId) {
-      // Load from Firebase if projectId is provided
-      this.loadObjectsFirebase().subscribe({
+      await this.loadObjectsFirebase().subscribe({
         next: (firebaseData) => {
           localStorage.setItem('model-data', JSON.stringify(firebaseData as (FormObject | FreeObject)[]));
-          return firebaseData as (FormObject | FreeObject)[];
+          result = firebaseData as (FormObject | FreeObject)[];
         },
         error: (err) => {
           console.error('Error loading objects from Firebase:', err);
         }
       });
     }
-    return [];
+    return result;
   }
 
   loadObjectsFirebase(): Observable<(FormObject | FreeObject)[]> {
