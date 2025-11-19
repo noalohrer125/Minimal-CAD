@@ -1,6 +1,6 @@
 import { Component, ElementRef, AfterViewInit, ViewChild, HostListener, Output, EventEmitter, Input, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Draw } from '../../draw.service';
+import { Draw } from '../../shared/draw.service';
 import { FormObject, FreeObject, FreeObjectCommand } from '../../interfaces';
 import * as THREE from 'three';
 

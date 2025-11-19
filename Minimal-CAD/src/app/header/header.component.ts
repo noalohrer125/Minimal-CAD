@@ -2,8 +2,9 @@ import { CommonModule } from '@angular/common';
 import { Component, Input, input } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { Draw } from '../draw.service';
-import { File  as FileService } from '../file.service';
+import { MatMenuModule } from '@angular/material/menu';
+import { Draw } from '../shared/draw.service';
+import { File  as FileService } from '../shared/file.service';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
 import { AuthService } from '../auth/auth.service';
@@ -16,7 +17,8 @@ import { GlobalService } from '../shared/global.service';
     CommonModule,
     MatIconModule,
     MatButtonModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatMenuModule
   ],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css']
@@ -38,6 +40,18 @@ export class HeaderComponent {
 
   saveToLocalFile() {
     this.fileService.save();
+  }
+
+  exportAsJSON() {
+    this.fileService.save();
+  }
+
+  exportAsSTEP() {
+    this.fileService.saveAsSTEP();
+  }
+
+  exportAsSTL() {
+    this.fileService.saveAsSTL();
   }
 
   uploadFromLocalFile() {

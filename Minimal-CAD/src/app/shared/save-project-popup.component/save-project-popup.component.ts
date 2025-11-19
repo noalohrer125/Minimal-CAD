@@ -10,9 +10,9 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { GlobalService } from '../global.service';
 import { Subscription } from 'rxjs';
-import { Draw } from '../../draw.service';
+import { Draw } from '../draw.service';
 import { projectSavingResult } from '../../interfaces';
-import { FirebaseService } from '../../firebase.service';
+import { FirebaseService } from '../firebase.service';
 
 @Component({
   selector: 'app-save-project-popup',

@@ -2,9 +2,9 @@ import { Component } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { Project } from '../interfaces';
 import { Router } from '@angular/router';
-import { FirebaseService } from '../firebase.service';
+import { FirebaseService } from '../shared/firebase.service';
 import { GlobalService } from '../shared/global.service';
-import { Draw } from '../draw.service';
+import { Draw } from '../shared/draw.service';
 
 @Component({
   selector: 'app-overview',

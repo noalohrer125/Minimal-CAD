@@ -7,7 +7,7 @@ import { ViewcubeComponent } from '../viewcube/viewcube.component';
 import { HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormObject, FreeObject } from '../../interfaces';
-import { Draw } from '../../draw.service';
+import { Draw } from '../../shared/draw.service';
 import * as THREE from 'three';
 import { AuthService } from '../../auth/auth.service';
 

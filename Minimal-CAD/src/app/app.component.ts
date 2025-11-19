@@ -4,7 +4,7 @@ import { AuthService } from './auth/auth.service';
 import { HeaderComponent } from './header/header.component';
 import { GlobalService } from './shared/global.service';
 import { SaveProjectPopupComponent } from './shared/save-project-popup.component/save-project-popup.component';
-import { Draw } from './draw.service';
+import { Draw } from './shared/draw.service';
 
 @Component({
   selector: 'app-root',

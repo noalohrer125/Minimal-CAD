@@ -2,14 +2,28 @@
     @if (isAuthenticated) {
             @if (router.url.includes('/editor')) {
             <div class="editor-menu">
-                <button matTooltip="Save project to Firebase" mat-icon-button (click)="saveProjectToFirebase()">
-                    <mat-icon>cloud_upload</mat-icon>
-                </button>
-                <hr>
-                <button matTooltip="Save to local File" mat-icon-button (click)="saveToLocalFile()">
+                <button matTooltip="Save project" mat-icon-button (click)="saveProjectToFirebase()">
                     <mat-icon>save</mat-icon>
                 </button>
-                <button matTooltip="Open from local File" mat-icon-button (click)="uploadFromLocalFile()">
+                <hr>
+                <button matTooltip="Export to File" mat-icon-button [matMenuTriggerFor]="exportMenu">
+                    <mat-icon>download</mat-icon>
+                </button>
+                <mat-menu #exportMenu="matMenu">
+                    <button mat-menu-item (click)="exportAsJSON()">
+                        <mat-icon>code</mat-icon>
+                        <span>Export as JSON</span>
+                    </button>
+                    <button mat-menu-item (click)="exportAsSTEP()">
+                        <mat-icon>precision_manufacturing</mat-icon>
+                        <span>Export as STEP</span>
+                    </button>
+                    <button mat-menu-item (click)="exportAsSTL()">
+                        <mat-icon>view_in_ar</mat-icon>
+                        <span>Export as STL</span>
+                    </button>
+                </mat-menu>
+                <button matTooltip="Open project from File" mat-icon-button (click)="uploadFromLocalFile()">
                     <mat-icon>upload</mat-icon>
                 </button>
                 <hr>

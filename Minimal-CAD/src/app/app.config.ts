@@ -5,7 +5,7 @@ import { provideClientHydration } from '@angular/platform-browser';
 import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
 import { getAnalytics, provideAnalytics } from '@angular/fire/analytics';
 import { provideFirestore, getFirestore } from '@angular/fire/firestore';
-import { firebaseConfig } from './firebase-credentials';
+import { firebaseConfig } from './shared/firebase-credentials';
 import { provideAuth, getAuth } from '@angular/fire/auth';
 import { AngularFireModule } from '@angular/fire/compat';
 

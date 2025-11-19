@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { DEFAULT_VIEW, FormObject, FreeObject, Project, projectSavingResult, view } from './interfaces';
+import { DEFAULT_VIEW, FormObject, FreeObject, Project, projectSavingResult, view } from '../interfaces';
 import { FirebaseService } from './firebase.service';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Timestamp } from '@angular/fire/firestore';

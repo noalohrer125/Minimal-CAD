@@ -1,5 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Draw } from './draw.service';
+import * as THREE from 'three';
+import { STLExporter } from 'three-stdlib';
+import { FormObject, FreeObject, FreeObjectCommand } from '../interfaces';
 
 @Injectable({
     providedIn: 'root'
@@ -16,6 +19,16 @@ export class File {
         });
         a.click();
         URL.revokeObjectURL(a.href);
+    }
+
+    saveAsSTEP() {
+        alert('STEP export requires a backend API.\n\nRecommendation: Set up a Python backend with pythonOCC to convert your JSON parameters to STEP format.');
+        console.log('For STEP export, consider using: pythonOCC-core (Python + OpenCASCADE)');
+    }
+
+    saveAsSTL() {
+        alert('STL export requires a backend API.\n\nRecommendation: Set up a Python backend using numpy-stl to convert your JSON parameters to STL format.');
+        console.log('For STL export, consider using: numpy-stl (Python)');
     }
 
     upload() {

@@ -4,7 +4,7 @@ import { FormsModule, ReactiveFormsModule, FormGroup, FormControl, FormArray, Va
 import { FormObject, FreeObject, FreeObjectCommand } from '../../interfaces';
 import { MatIconModule } from '@angular/material/icon';
 import { debounceTime } from 'rxjs';
-import { Draw } from '../../draw.service';
+import { Draw } from '../../shared/draw.service';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';

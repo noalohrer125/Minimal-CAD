@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { Firestore, addDoc, collection, collectionData, deleteDoc, doc, getDoc, query, setDoc, where } from '@angular/fire/firestore';
 import { from, Observable } from 'rxjs';
-import { FormObject, FreeObject, Project } from './interfaces';
+import { FormObject, FreeObject, Project } from '../interfaces';
 
 @Injectable({
   providedIn: 'root'

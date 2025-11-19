@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { Draw } from '../draw.service';
+import { Draw } from './draw.service';
 
 @Injectable({
   providedIn: 'root'
