@@ -3,12 +3,16 @@ import { Draw } from './draw.service';
 import * as THREE from 'three';
 import { STLExporter } from 'three-stdlib';
 import { FormObject, FreeObject, FreeObjectCommand } from '../interfaces';
+import { StlService } from './stl.service';
 
 @Injectable({
     providedIn: 'root'
 })
 export class File {
-    constructor(private drawService: Draw) { }
+    constructor(
+        private drawService: Draw,
+        private stlService: StlService
+    ) { }
 
     save() {
         const modelDataString = JSON.stringify(this.drawService.loadObjects());
@@ -27,8 +31,7 @@ export class File {
     }
 
     saveAsSTL() {
-        alert('STL export requires a backend API.\n\nRecommendation: Set up a Python backend using numpy-stl to convert your JSON parameters to STL format.');
-        console.log('For STL export, consider using: numpy-stl (Python)');
+        this.stlService.downloadStlFromJsonString(JSON.stringify(this.drawService.loadObjects()), 'model.stl');
     }
 
     upload() {
