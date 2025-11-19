@@ -50,13 +50,10 @@ export class StlService {
       let geom: THREE.BufferGeometry | null = null;
 
       if (obj.type === 'Square') {
-        // Three.BoxGeometry(width, height, depth) where depth corresponds to l
-        const w = (obj.w ?? 1) * 10; // cm -> mm
-        const h = (obj.h ?? 1) * 10;
-        const l = (obj.l ?? 1) * 10;
-        geom = new THREE.BoxGeometry(w, h, l);
-        // BoxGeometry centers on origin; we want corner-origin as earlier examples?
-        // The previous implementation treated position as translation of whole mesh.
+        const l = (obj.l ?? 1) * 10; // X-width (cm -> mm)
+        const w = (obj.w ?? 1) * 10; // Y-depth (cm -> mm)
+        const h = (obj.h ?? 1) * 10; // Z-height (cm -> mm)
+        geom = new THREE.BoxGeometry(l, w, h);
       } else if (obj.type === 'Circle') {
         const r = (obj.r ?? 1) * 10;
         const h = (obj.h ?? 1) * 10;
@@ -65,16 +62,27 @@ export class StlService {
         continue; // unsupported type
       }
 
-      // apply rotation (degrees -> radians) and translation (cm->mm)
+      // apply rotation and translation to match editor rendering
       const mesh = new THREE.Mesh(geom);
-      const rx = THREE.MathUtils.degToRad((obj.rotation?.[0] ?? 0));
-      const ry = THREE.MathUtils.degToRad((obj.rotation?.[1] ?? 0));
-      const rz = THREE.MathUtils.degToRad((obj.rotation?.[2] ?? 0));
-      mesh.rotation.set(rx, ry, rz);
+      
+      // For cylinders, apply -90° X rotation to convert Y-up to Z-up
+      if (obj.type === 'Circle') {
+        const rx = THREE.MathUtils.degToRad((obj.rotation?.[0] ?? 0) - 90);
+        const ry = THREE.MathUtils.degToRad((obj.rotation?.[1] ?? 0));
+        const rz = THREE.MathUtils.degToRad((obj.rotation?.[2] ?? 0));
+        mesh.rotation.set(rx, ry, rz);
+      } else {
+        const rx = THREE.MathUtils.degToRad((obj.rotation?.[0] ?? 0));
+        const ry = THREE.MathUtils.degToRad((obj.rotation?.[1] ?? 0));
+        const rz = THREE.MathUtils.degToRad((obj.rotation?.[2] ?? 0));
+        mesh.rotation.set(rx, ry, rz);
+      }
 
+      // Position with h/2 Z-offset (objects are positioned at their base, not center)
+      const h_mm = (obj.h ?? 1) * 10;
       const px = (obj.position?.[0] ?? 0) * 10;
       const py = (obj.position?.[1] ?? 0) * 10;
-      const pz = (obj.position?.[2] ?? 0) * 10;
+      const pz = ((obj.position?.[2] ?? 0) + (obj.h ?? 1) / 2) * 10;
       mesh.position.set(px, py, pz);
 
       mesh.updateMatrix();
