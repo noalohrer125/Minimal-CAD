@@ -1,6 +1,12 @@
-@if (isAuthLoading) {
-    <div class="loading-spinner">Loading...</div>
-} @else {
-    <app-header [isAuthenticated]="isAuthenticated" class="header"></app-header>
-    <router-outlet></router-outlet>
+@if (isSaveProjectPopupOpen) {
+    <div class="overlay"></div>
+    <app-save-project-popup class="save-project-popup"></app-save-project-popup>
 }
+<div id="app">
+    @if (isAuthLoading) {
+        <div class="loading-spinner">Loading...</div>
+    } @else {
+        <app-header [isAuthenticated]="isAuthenticated" class="header"></app-header>
+        <router-outlet></router-outlet>
+    }
+</div>

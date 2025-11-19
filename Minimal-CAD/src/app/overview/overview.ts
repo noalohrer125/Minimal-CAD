@@ -3,6 +3,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { Project } from '../interfaces';
 import { Router } from '@angular/router';
 import { FirebaseService } from '../firebase.service';
+import { GlobalService } from '../shared/global.service';
 import { Draw } from '../draw.service';
 
 @Component({
@@ -14,7 +15,12 @@ import { Draw } from '../draw.service';
   styleUrl: './overview.css'
 })
 export class Overview {
-  constructor(private router: Router, private firebaseService: FirebaseService, private drawService: Draw) {}
+  constructor(
+    private router: Router,
+    private firebaseService: FirebaseService,
+    private globalService: GlobalService,
+    private drawService: Draw
+  ) {}
 
   private publicProjectsUnfiltered: Project[] = [];
   public publicProjects: Project[] = [];
@@ -37,7 +43,7 @@ export class Overview {
   }
 
   addProject() {
-    this.drawService.saveProjectToFirebase(true);
+    this.globalService.openSaveProjectPopup(true);
   }
 
   openProject(projectId: string, projectName: string, licenceKey: string) {

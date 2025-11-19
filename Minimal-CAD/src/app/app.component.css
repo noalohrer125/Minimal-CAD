@@ -11,3 +11,22 @@
     align-items: center;
     grid-area: header;
 }
+
+.save-project-popup {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #e8e8e8;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.2);
+}

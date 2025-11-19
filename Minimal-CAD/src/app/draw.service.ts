@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { DEFAULT_VIEW, FormObject, FreeObject, Project, view } from './interfaces';
+import { DEFAULT_VIEW, FormObject, FreeObject, Project, projectSavingResult, view } from './interfaces';
 import { FirebaseService } from './firebase.service';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Timestamp } from '@angular/fire/firestore';
@@ -86,7 +86,7 @@ export class Draw {
     localStorage.setItem('model-data', JSON.stringify(modelData));
   }
 
-  async saveProjectToFirebase(newProject: boolean = false): Promise<void> {
+  async saveProjectToFirebase(projectName: string, isPrivate: boolean, newProject: boolean = false): Promise<projectSavingResult> {
     // Save all objects first
     const isExistingProject = localStorage.getItem('project-id') || 'notExisting';
     let modelData = this.loadObjects().filter(obj => !obj.ghost);
@@ -108,40 +108,33 @@ export class Draw {
     if (isExistingProject !== 'notExisting' && !newProject) {
       projectId = isExistingProject;
     }
-    const projectName = window.prompt('Enter a (new) name for your project:', 'Unnamed Project') || 'Unnamed Project';
-    const publicProject = window.confirm(`
-      Make this project PUBLIC?\n\n
-      - OK = Public (no licence key required)\n
-      - Cancel = Private (licence key will be generated)
-    `);
     const currentUserEmail = this.firebaseService.getCurrentUserEmail();
     const project: Project = {
       id: projectId ? projectId : this.generateId(),
       name: projectName,
-      licenceKey: !publicProject ? this.generateHash(this.generateId()) : 'public',
+      licenceKey: !isPrivate ? this.generateHash(this.generateId()) : 'public',
       ownerEmail: currentUserEmail,
       createdAt: Timestamp.now(),
       objectIds: modelData.map(obj => obj.id)
     };
+    let success: boolean = false;
+    let error: string = '';
     (await this.firebaseService.saveProject(project)).subscribe({
-      next: (projectId) => {
-        if (publicProject) {
-          window.alert(`
-            Project saved with ID: ${projectId}.
-            Your project is saved as public.
-          `);
-        } else {
-          window.alert(`
-            Project saved with ID: ${projectId}.
-            Your Licence Key to this project: ${project.licenceKey}.
-            Make sure to save this Key! Else you won't be able to access your project later again.
-          `);
-        }
+      next: () => {
+        success = true;
       },
       error: (err) => {
-        console.error('Failed to save project to Firebase: ', err);
+        error = err;
+        success = false;
       }
     });
+    return {
+      success: success,
+      projectName: project.name,
+      licenceKey: project.licenceKey,
+      projectId: project.id,
+      error: error
+    };
   }
 
   createGhostObject(objectId: string): void {

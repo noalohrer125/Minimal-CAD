@@ -1,0 +1,48 @@
+<div class="content">
+    <form [formGroup]="form">
+        <mat-form-field appearance="outline">
+            <mat-label>Project name</mat-label>
+            <input matInput type="text"
+                formControlName="projectName" />
+        </mat-form-field>
+        <div class="toggle-container">
+            <label class="toggle-label">Private</label>
+            <mat-slide-toggle formControlName="isPrivate"></mat-slide-toggle>
+        </div>
+    </form>
+    @if (saved) {
+    <div class="output-message">
+        @if (!projectSavingResult.success) {
+        <div class="success">
+            <div class="success-message">
+                <mat-icon>check_circle</mat-icon>
+                <span>Project "{{ projectSavingResult.projectName }}" saved
+                    successfully!</span>
+            </div>
+            <div class="licence">
+                @if (projectSavingResult.licenceKey !== 'public') {
+                <span>
+                    Your project is saved as private with the following access-key: <b>{{ projectSavingResult.licenceKey }}</b>
+                    <mat-icon (click)="copyLicenceKey()" [class.copied]="licenceCopied">{{ licenceCopied ? 'check' : 'content_copy' }}</mat-icon><br>
+                    Make sure you save this key, or else you wont be able to access your project anymore.
+                </span>
+                } @else {
+                <span>Your project is now saved as <b>public</b>.</span>
+                }
+            </div>
+        </div>
+        } @else {
+        <div class="error">
+            <mat-icon>error</mat-icon>
+            <span>Error by saving your project: {{ projectSavingResult.error }}</span>
+        </div>
+        }
+    </div>
+    }
+    <div class="form-actions">
+        @if (!saved) {
+        <button mat-raised-button color="primary" type="submit" (click)="onSubmit()">Apply</button>
+        }
+        <button mat-raised-button color="warn" type="button" (click)="onClose()">Close</button>
+    </div>
+</div>

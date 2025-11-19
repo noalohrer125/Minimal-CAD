@@ -7,6 +7,7 @@ import { File  as FileService } from '../file.service';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
 import { AuthService } from '../auth/auth.service';
+import { GlobalService } from '../shared/global.service';
 
 @Component({
   selector: 'app-header',
@@ -25,13 +26,14 @@ export class HeaderComponent {
 
   constructor(
     private drawService: Draw,
+    private globalService: GlobalService,
     private fileService: FileService,
     public router: Router,
     public authService: AuthService
   ) { }
 
   saveProjectToFirebase() {
-    this.drawService.saveProjectToFirebase();
+    this.globalService.openSaveProjectPopup();
   }
 
   saveToLocalFile() {

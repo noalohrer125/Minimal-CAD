@@ -16,6 +16,14 @@ export interface Project {
     objectIds: string[];
 }
 
+export interface projectSavingResult {
+    success: boolean;
+    projectName: string;
+    licenceKey: string;
+    projectId: string;
+    error: string;
+}
+
 export interface FormObject {
     id: string;
     name: string;
