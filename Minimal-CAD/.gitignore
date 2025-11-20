@@ -43,3 +43,6 @@ Thumbs.db
 
 # Local secrets (Firebase config)
 src/app/firebase-credentials.ts
+
+# Temporary files
+src/app/shared/stl-to-step_api/__pycache__/

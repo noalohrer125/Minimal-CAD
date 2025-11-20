@@ -1,10 +1,12 @@
 import { Injectable } from '@angular/core';
 import * as THREE from 'three';
+import { HttpClient } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
 })
 export class StlService {
+  constructor(private http: HttpClient) {}
 
   fmt(n: number) { return n.toFixed(6); }
 
@@ -43,7 +45,7 @@ export class StlService {
    * - units: input positions/sizes assumed in cm -> exported in mm (multiplied by 10)
    * - supported types: "Square" (box), "Circle" (cylinder)
    */
-  downloadStlFromJsonString(jsonString: string, filename = 'model.stl') {
+  downloadStlFromJsonString(jsonString: string, filename = 'model.stl', saveToServer = false): void {
     const arr = JSON.parse(jsonString);
     let body = '';
     for (const obj of arr) {
@@ -95,14 +97,29 @@ export class StlService {
     const headerName = 'exported_model';
     const stl = `solid ${headerName}\n` + body + `endsolid ${headerName}\n`;
 
-    const blob = new Blob([stl], { type: 'application/sla' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    if (saveToServer) {
+      const blob = new Blob([stl], { type: 'application/sla' });
+      const formData = new FormData();
+      formData.append('file', blob, 'model.stl');
+
+      this.http.post('http://localhost:5000/uploadStlToServer', formData).subscribe({
+        next: (response) => {
+          console.log('STL uploaded to server:', response);
+        },
+        error: (error) => {
+          console.error('Error uploading STL to server:', error);
+        }
+      });
+    } else {
+      const blob = new Blob([stl], { type: 'application/sla' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
   }
 }

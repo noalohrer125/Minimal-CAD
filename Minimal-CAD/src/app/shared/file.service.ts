@@ -1,9 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Draw } from './draw.service';
-import * as THREE from 'three';
-import { STLExporter } from 'three-stdlib';
-import { FormObject, FreeObject, FreeObjectCommand } from '../interfaces';
 import { StlService } from './stl.service';
+import { StepService } from './step.service';
 
 @Injectable({
     providedIn: 'root'
@@ -11,7 +9,8 @@ import { StlService } from './stl.service';
 export class File {
     constructor(
         private drawService: Draw,
-        private stlService: StlService
+        private stlService: StlService,
+        private stepService: StepService
     ) { }
 
     save() {
@@ -26,8 +25,7 @@ export class File {
     }
 
     saveAsSTEP() {
-        alert('STEP export requires a backend API.\n\nRecommendation: Set up a Python backend with pythonOCC to convert your JSON parameters to STEP format.');
-        console.log('For STEP export, consider using: pythonOCC-core (Python + OpenCASCADE)');
+        this.stepService.convertAndDownload();
     }
 
     saveAsSTL() {
