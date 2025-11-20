@@ -46,3 +46,5 @@ src/app/firebase-credentials.ts
 
 # Temporary files
 src/app/shared/stl-to-step_api/__pycache__/
+src/app/shared/stl-to-step_api/*.stl
+src/app/shared/stl-to-step_api/*.step
