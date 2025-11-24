@@ -98,7 +98,7 @@ export class SaveProjectPopupComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           console.error('Error loading project data:', err);
-          alert('Fehler beim Laden der Projektdaten. Bitte versuchen Sie es erneut.');
+          alert('Error loading project data. Please try again.');
         }
       });
     }
@@ -119,7 +119,7 @@ export class SaveProjectPopupComponent implements OnInit, OnDestroy {
       }, 2000);
     }).catch((error) => {
       console.error('Error copying to clipboard:', error);
-      alert('Fehler beim Kopieren des Lizenzschlüssels. Bitte kopieren Sie ihn manuell.');
+      alert('Error copying license key. Please copy it manually.');
     });
   }
 
@@ -133,7 +133,7 @@ export class SaveProjectPopupComponent implements OnInit, OnDestroy {
       }
     }).catch((error) => {
       console.error('Error saving project:', error);
-      alert('Fehler beim Speichern des Projekts. Bitte versuchen Sie es erneut.');
+      alert('Error saving project. Please try again.');
     });
   }
 

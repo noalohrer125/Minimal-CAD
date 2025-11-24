@@ -286,7 +286,7 @@ export class SidebarRightComponent implements OnInit {
       this.drawService.reload$.next();
     } catch (error) {
       console.error('Error submitting changes:', error);
-      alert('Fehler beim Speichern der Änderungen. Bitte versuchen Sie es erneut.');
+      alert('Error saving changes. Please try again.');
     }
   }
 
@@ -298,7 +298,7 @@ export class SidebarRightComponent implements OnInit {
       this.drawService.reload$.next();
     } catch (error) {
       console.error('Error closing sidebar:', error);
-      alert('Fehler beim Schließen. Bitte versuchen Sie es erneut.');
+      alert('Error closing. Please try again.');
     }
   }
 
@@ -318,7 +318,7 @@ export class SidebarRightComponent implements OnInit {
         this.drawService.reload$.next();
       } catch (error) {
         console.error('Error deleting object:', error);
-        alert('Fehler beim Löschen des Objekts. Bitte versuchen Sie es erneut.');
+        alert('Error deleting object. Please try again.');
       }
     }
   }

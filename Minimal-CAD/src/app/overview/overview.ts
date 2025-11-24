@@ -38,7 +38,7 @@ export class Overview {
       },
       error: (error) => {
         console.error('Error loading public projects:', error);
-        alert('Fehler beim Laden der öffentlichen Projekte. Bitte versuchen Sie es erneut.');
+        alert('Error loading public projects. Please try again.');
         this.projectsLoading = false;
       }
     });
@@ -50,7 +50,7 @@ export class Overview {
       },
       error: (error) => {
         console.error('Error loading user projects:', error);
-        alert('Fehler beim Laden Ihrer Projekte. Bitte versuchen Sie es erneut.');
+        alert('Error loading your projects. Please try again.');
         this.projectsLoading = false;
       }
     });

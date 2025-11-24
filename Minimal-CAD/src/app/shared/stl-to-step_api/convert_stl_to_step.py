@@ -1,52 +1,52 @@
 import Mesh
 import Part
 
-# STL laden
+# Load STL
 mesh = Mesh.Mesh('model.stl')
-print(f"Mesh geladen: {mesh.CountFacets} Facetten")
+print(f"Mesh loaded: {mesh.CountFacets} facets")
 
-# Mesh reparieren
-print("Repariere Mesh...")
+# Repair mesh
+print("Repairing mesh...")
 try:
     mesh.fillHoles()
     mesh.removeDuplicateFaces()
     mesh.removeDegenerateFaces()
     mesh.harmonizeNormals()
 except AttributeError:
-    print("Mesh-Reparatur übersprungen (Methode nicht verfügbar)")
+    print("Mesh repair skipped (method not available)")
 
-# Mesh zu Shape konvertieren mit niedrigerer Toleranz
-print("Konvertiere zu Shape...")
+# Convert mesh to shape with lower tolerance
+print("Converting to shape...")
 shape = Part.Shape()
-shape.makeShapeFromMesh(mesh.Topology, 0.01)  # Niedrigere Toleranz für bessere Qualität
+shape.makeShapeFromMesh(mesh.Topology, 0.01)  # Lower tolerance for better quality
 
 if not shape.isValid():
-    print("WARNUNG: Shape ist nicht valide, versuche zu reparieren...")
+    print("WARNING: Shape is not valid, attempting to repair...")
     shape = shape.removeSplitter()
 
-# Versuche Solid zu erstellen
-print("Erstelle Solid...")
+# Try to create solid
+print("Creating solid...")
 if shape.isClosed():
     try:
         solid = Part.Solid(shape)
-        print("Solid erfolgreich erstellt")
+        print("Solid created successfully")
     except:
-        print("Solid-Erstellung fehlgeschlagen, exportiere als Shell")
+        print("Solid creation failed, exporting as shell")
         solid = shape
 else:
-    print("Shape ist nicht geschlossen, exportiere als Shell")
+    print("Shape is not closed, exporting as shell")
     solid = shape
 
-# Als STEP exportieren
-print("Exportiere STEP...")
-# Alternative Methode: Compound erstellen
+# Export as STEP
+print("Exporting STEP...")
+# Alternative method: Create compound
 import Part
 comp = Part.makeCompound([solid])
 comp.exportStep('output.step')
-print("STEP exportiert nach output.step")
+print("STEP exported to output.step")
 
-# Validierung
-print(f"Shape-Typ: {solid.ShapeType}")
-print(f"Anzahl Faces: {len(solid.Faces)}")
-print(f"Anzahl Edges: {len(solid.Edges)}")
-print(f"Ist geschlossen: {solid.isClosed() if hasattr(solid, 'isClosed') else 'N/A'}")
+# Validation
+print(f"Shape type: {solid.ShapeType}")
+print(f"Number of faces: {len(solid.Faces)}")
+print(f"Number of edges: {len(solid.Edges)}")
+print(f"Is closed: {solid.isClosed() if hasattr(solid, 'isClosed') else 'N/A'}")

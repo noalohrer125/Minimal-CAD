@@ -36,13 +36,13 @@ export class Draw {
           },
           error: (err) => {
             console.error('Error loading objects from Firebase:', err);
-            reject(new Error('Fehler beim Laden der Objekte. Bitte versuchen Sie es erneut.'));
+            reject(new Error('Error loading objects. Please try again.'));
           }
         });
       });
     } catch (error) {
       console.error('Error loading objects by project ID:', error);
-      throw new Error('Fehler beim Laden der Objekte. Bitte versuchen Sie es erneut.');
+      throw new Error('Error loading objects. Please try again.');
     }
   }
 
@@ -152,7 +152,7 @@ export class Draw {
         projectName: projectName,
         licenceKey: '',
         projectId: '',
-        error: 'Fehler beim Speichern des Projekts. Bitte versuchen Sie es erneut.'
+        error: 'Error saving project. Please try again.'
       };
     }
   }

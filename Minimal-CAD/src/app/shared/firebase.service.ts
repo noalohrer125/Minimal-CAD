@@ -76,7 +76,7 @@ export class FirebaseService {
         }
       } catch (error) {
         console.error('Error saving object to Firebase:', error);
-        throw new Error('Fehler beim Speichern des Objekts. Bitte versuchen Sie es erneut.');
+        throw new Error('Error saving object. Please try again.');
       }
     };
     return from(checkAndSave());
@@ -106,7 +106,7 @@ export class FirebaseService {
         }
       } catch (error) {
         console.error('Error deleting object from Firebase:', error);
-        throw new Error('Fehler beim Löschen des Objekts. Bitte versuchen Sie es erneut.');
+        throw new Error('Error deleting object. Please try again.');
       }
     });
     return from(promise);
@@ -153,7 +153,7 @@ export class FirebaseService {
       }
     } catch (error) {
       console.error('Error saving project to Firebase:', error);
-      throw new Error('Fehler beim Speichern des Projekts. Bitte versuchen Sie es erneut.');
+      throw new Error('Error saving project. Please try again.');
     }
   }
 
@@ -181,7 +181,7 @@ export class FirebaseService {
         await deleteDoc(docRef);
       } catch (error) {
         console.error('Error deleting project from Firebase:', error);
-        throw new Error('Fehler beim Löschen des Projekts. Bitte versuchen Sie es erneut.');
+        throw new Error('Error deleting project. Please try again.');
       }
     };
     return from(deleteProjectAndObjects());

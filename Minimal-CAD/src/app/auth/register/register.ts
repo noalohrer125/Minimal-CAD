@@ -34,7 +34,7 @@ export class Register {
       next: () => this.router.navigate(['/login']),
       error: (error) => {
         console.error('Registration error:', error);
-        this.errorMesssage = 'Registrierungsfehler: ' + (error.message || 'Bitte überprüfen Sie Ihre Eingaben.');
+        this.errorMesssage = 'Registration error: ' + (error.message || 'Please check your input.');
       }
     });
   }

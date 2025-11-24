@@ -55,7 +55,7 @@ export class File {
                 this.drawService.reload$.next();
             } catch (error) {
                 console.error('Error uploading file:', error);
-                alert('Ungültige JSON-Datei. Bitte überprüfen Sie das Format.');
+                alert('Invalid JSON file. Please check the format.');
             }
         };
         input.click();

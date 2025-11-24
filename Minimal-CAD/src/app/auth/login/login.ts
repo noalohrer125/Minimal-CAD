@@ -33,13 +33,13 @@ export class Login {
       error: (error) => {
         console.error('Login error:', error);
         const errorMessages: { [key: string]: string } = {
-          'auth/invalid-email': 'Ungültige E-Mail-Adresse.',
-          'auth/user-disabled': 'Dieser Benutzer wurde deaktiviert.',
-          'auth/user-not-found': 'Benutzer nicht gefunden.',
-          'auth/wrong-password': 'Falsches Passwort.',
-          'auth/invalid-credential': 'Ungültige Anmeldedaten.'
+          'auth/invalid-email': 'Invalid email address.',
+          'auth/user-disabled': 'This user has been disabled.',
+          'auth/user-not-found': 'User not found.',
+          'auth/wrong-password': 'Incorrect password.',
+          'auth/invalid-credential': 'Invalid credentials.'
         };
-        this.errorMesssage = errorMessages[error.code] || 'Anmeldefehler: Bitte versuchen Sie es erneut.';
+        this.errorMesssage = errorMessages[error.code] || 'Login error: Please try again.';
       }
     });
   }
