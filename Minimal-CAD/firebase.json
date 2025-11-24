@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "public": "public",
+    "public": "dist/Minimal-CAD/browser",
     "ignore": [
       "firebase.json",
       "**/.*",
