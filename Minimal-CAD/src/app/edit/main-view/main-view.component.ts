@@ -274,6 +274,7 @@ export class MainViewComponent implements OnInit, AfterViewInit, OnDestroy {
     };
     const renderFreeFormObject = (element: FreeObject, isSelected: boolean, isGhost: boolean = false) => {
       const shape = new THREE.Shape();
+      shape.autoClose = true; // Ensure the shape is automatically closed
       let lastX = 0, lastY = 0;
 
       const renderCommand = (cmd: FreeObjectCommand) => {

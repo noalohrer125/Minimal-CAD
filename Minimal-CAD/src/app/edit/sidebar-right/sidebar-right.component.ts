@@ -118,12 +118,11 @@ export class SidebarRightComponent implements OnInit {
       type: new FormControl({value: cmd?.type ?? 'lineTo', disabled: false}, Validators.required),
       new: new FormControl(cmd?.new ?? false),
       x: new FormControl((cmd as any)?.x ?? 0),
-      y: new FormControl((cmd as any)?.y ?? 0)
+      y: new FormControl((cmd as any)?.y ?? 0),
+      // Always include cpX and cpY for quadraticCurveTo support
+      cpX: new FormControl((cmd as any)?.cpX ?? 0),
+      cpY: new FormControl((cmd as any)?.cpY ?? 0)
     };
-    if (cmd?.type === 'quadraticCurveTo') {
-      group.cpX = new FormControl((cmd as any)?.cpX ?? 0);
-      group.cpY = new FormControl((cmd as any)?.cpY ?? 0);
-    }
     return new FormGroup(group);
   }
 
@@ -243,18 +242,9 @@ export class SidebarRightComponent implements OnInit {
             y: Number(cmd.y),
             new: !!cmd.new
           };
-        } else if (cmd.type === 'bezierCurveTo') {
-          return {
-            type: 'bezierCurveTo',
-            cp1X: Number(cmd.cp1X ?? cmd.cp1x),
-            cp1Y: Number(cmd.cp1Y ?? cmd.cp1y),
-            cp2X: Number(cmd.cp2X ?? cmd.cp2x),
-            cp2Y: Number(cmd.cp2Y ?? cmd.cp2y),
-            x: Number(cmd.x),
-            y: Number(cmd.y),
-            new: !!cmd.new
-          };
         }
+        // Remove bezierCurveTo handling - not supported
+        console.warn('[SidebarRight] Unknown command type:', cmd.type);
         return null;
       }).filter((c: any) => !!c);
       localStorageData = {
