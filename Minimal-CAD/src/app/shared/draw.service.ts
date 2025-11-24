@@ -23,26 +23,29 @@ export class Draw {
   }
 
   async loadObjectsByProjectId(projectId: string): Promise<(FormObject | FreeObject)[]> {
-    let result: (FormObject | FreeObject)[] = [];
-    if (projectId) {
-      await this.loadObjectsFirebase().subscribe({
+    if (!projectId) {
+      return [];
+    }
+    
+    return new Promise((resolve, reject) => {
+      this.loadObjectsFirebase(projectId).subscribe({
         next: (firebaseData) => {
           localStorage.setItem('model-data', JSON.stringify(firebaseData as (FormObject | FreeObject)[]));
-          result = firebaseData as (FormObject | FreeObject)[];
+          resolve(firebaseData as (FormObject | FreeObject)[]);
         },
         error: (err) => {
           console.error('Error loading objects from Firebase:', err);
+          reject(err);
         }
       });
-    }
-    return result;
+    });
   }
 
-  loadObjectsFirebase(): Observable<(FormObject | FreeObject)[]> {
+  loadObjectsFirebase(projectId: string): Observable<(FormObject | FreeObject)[]> {
     return new Observable<(FormObject | FreeObject)[]>((observer) => {
-      this.firebaseService.getObjects().subscribe({
-        next: (firebaseObjects) => {
-          const normalized = (firebaseObjects as (FormObject | FreeObject)[]).map(obj => ({
+      this.firebaseService.getObjectsByProjectId(projectId).subscribe({
+        next: (firebaseObjects: (FormObject | FreeObject)[]) => {
+          const normalized = firebaseObjects.map(obj => ({
             ...obj,
             selected: false,
             ghost: false

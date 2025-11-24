@@ -60,7 +60,6 @@ export class Editor {
 
     this.drawservice.reload$.subscribe(() => {
       this.onReload();
-      console.log('[Editor] Reload event received');
     });
   }
 
@@ -97,6 +96,5 @@ export class Editor {
   onReload() {
     const modelData = this.drawservice.loadObjects();
     this.selectedObject = modelData.find(obj => obj.selected) || null;
-    console.log('[Editor] Reloaded selectedObject:', this.selectedObject);
   }
 }

@@ -30,6 +30,38 @@ export class FirebaseService {
     }) as Observable<FormObject[] | FreeObject[]>;
   }
 
+  getObjectsByProjectId(projectId: string): Observable<(FormObject | FreeObject)[]> {
+    return new Observable<(FormObject | FreeObject)[]>((observer) => {
+      this.getProjectById(projectId).subscribe({
+        next: (project) => {
+          if (!project || !project.objectIds || project.objectIds.length === 0) {
+            observer.next([]);
+            observer.complete();
+            return;
+          }
+          // Get all objects and filter by project's objectIds
+          this.getObjects().subscribe({
+            next: (allObjects) => {
+              const projectObjects = allObjects.filter(obj => 
+                project.objectIds.includes(obj.id as string)
+              ) as (FormObject | FreeObject)[];
+              observer.next(projectObjects);
+              observer.complete();
+            },
+            error: (err) => {
+              console.error('Error loading objects:', err);
+              observer.error(err);
+            }
+          });
+        },
+        error: (err) => {
+          console.error('Error loading project:', err);
+          observer.error(err);
+        }
+      });
+    });
+  }
+
   saveObject(object: FormObject | FreeObject): Observable<string> {
     const objectDocRef = doc(this.objectsCollection, object.id);
     const checkAndSave = async () => {
