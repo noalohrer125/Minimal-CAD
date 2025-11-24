@@ -43,7 +43,7 @@ export class StlService {
   /**
    * Parses a JSON-string in your format and triggers download of an ASCII STL.
    * - units: input positions/sizes assumed in cm -> exported in mm (multiplied by 10)
-   * - supported types: "Square" (box), "Circle" (cylinder)
+   * - supported types: "Square" (box), "Circle" (cylinder), "Freeform" (extruded shape)
    */
   downloadStlFromJsonString(jsonString: string, filename = 'model.stl', saveToServer = false): void {
     const arr = JSON.parse(jsonString);
@@ -59,7 +59,45 @@ export class StlService {
       } else if (obj.type === 'Circle') {
         const r = (obj.r ?? 1) * 10;
         const h = (obj.h ?? 1) * 10;
-        geom = new THREE.CylinderGeometry(r, r, h, obj.curveSegments ?? 64);
+        geom = new THREE.CylinderGeometry(r, r, h, obj.curveSegments ?? 200);
+      } else if (obj.type === 'Freeform') {
+        // Build shape from commands
+        const shape = new THREE.Shape();
+        shape.autoClose = true;
+        let lastX = 0, lastY = 0;
+
+        for (const cmd of obj.commands || []) {
+          switch (cmd.type) {
+            case 'moveTo':
+              shape.moveTo(cmd.x * 10, cmd.y * 10); // cm -> mm
+              lastX = cmd.x; lastY = cmd.y;
+              break;
+            case 'lineTo':
+              shape.lineTo(cmd.x * 10, cmd.y * 10); // cm -> mm
+              lastX = cmd.x; lastY = cmd.y;
+              break;
+            case 'quadraticCurveTo':
+              // Convert control point to THREE.js format
+              const P0 = new THREE.Vector2(lastX, lastY);
+              const P1 = new THREE.Vector2(cmd.cpX, cmd.cpY);
+              const P2 = new THREE.Vector2(cmd.x, cmd.y);
+              const C = new THREE.Vector2(
+                2 * P1.x - 0.5 * (P0.x + P2.x),
+                2 * P1.y - 0.5 * (P0.y + P2.y)
+              );
+              shape.quadraticCurveTo(C.x * 10, C.y * 10, P2.x * 10, P2.y * 10); // cm -> mm
+              lastX = cmd.x; lastY = cmd.y;
+              break;
+          }
+        }
+
+        const h_mm = (obj.h ?? 1) * 10;
+        const extrudeSettings = {
+          curveSegments: 1000,
+          depth: h_mm,
+          bevelEnabled: false
+        };
+        geom = new THREE.ExtrudeGeometry(shape, extrudeSettings);
       } else {
         continue; // unsupported type
       }
@@ -67,7 +105,7 @@ export class StlService {
       // apply rotation and translation to match editor rendering
       const mesh = new THREE.Mesh(geom);
       
-      // For cylinders, apply -90° X rotation to convert Y-up to Z-up
+      // Apply rotation
       if (obj.type === 'Circle') {
         const rx = THREE.MathUtils.degToRad((obj.rotation?.[0] ?? 0) - 90);
         const ry = THREE.MathUtils.degToRad((obj.rotation?.[1] ?? 0));
@@ -80,11 +118,18 @@ export class StlService {
         mesh.rotation.set(rx, ry, rz);
       }
 
-      // Position with h/2 Z-offset (objects are positioned at their base, not center)
-      const h_mm = (obj.h ?? 1) * 10;
+      // Apply position
       const px = (obj.position?.[0] ?? 0) * 10;
       const py = (obj.position?.[1] ?? 0) * 10;
-      const pz = ((obj.position?.[2] ?? 0) + (obj.h ?? 1) / 2) * 10;
+      let pz = (obj.position?.[2] ?? 0) * 10;
+      
+      // For Box and Cylinder geometries, add h/2 Z-offset (they're centered, but positioned at base)
+      // For Freeform (ExtrudeGeometry), no offset needed as extrusion already starts at base
+      if (obj.type === 'Square' || obj.type === 'Circle') {
+        const h_mm = (obj.h ?? 1) * 10;
+        pz += h_mm / 2;
+      }
+      
       mesh.position.set(px, py, pz);
 
       mesh.updateMatrix();
