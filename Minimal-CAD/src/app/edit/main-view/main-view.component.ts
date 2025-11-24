@@ -423,10 +423,8 @@ export class MainViewComponent implements OnInit, AfterViewInit, OnDestroy {
     this.renderer.render(this.scene, this.camera);
   }
 
-  ngAfterViewInit(): void {
-    while (this.isLoading === true) {
-      this.ngAfterViewInit();
-    }
+  async ngAfterViewInit(): Promise<void> {
+    await this.isLoading === false;
     this.init();
     this.loadModels();
     this.animate();
