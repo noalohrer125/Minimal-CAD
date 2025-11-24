@@ -18,6 +18,9 @@
       }
     ]
   },
+  "overrides": {
+    "gh-pages": "^5.0.0"
+  },
   "private": true,
   "dependencies": {
     "@angular/cdk": "20.1.4",
