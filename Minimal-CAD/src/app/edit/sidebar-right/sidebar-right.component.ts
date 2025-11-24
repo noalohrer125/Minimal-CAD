@@ -187,6 +187,7 @@ export class SidebarRightComponent implements OnInit {
 
   private updatePreview() {
     if (!this.selectedObject) return;
+    console.log('[SidebarRight] updatePreview - Form values:', JSON.stringify(this.form.value, null, 2));
     this.saveToLocalStorage();
     // Set flag to skip the next reload event in this component
     this.skipNextReload = true;
@@ -225,6 +226,7 @@ export class SidebarRightComponent implements OnInit {
       };
     } else if (this.selectedObjectType === 'Freeform') {
       // Mapping der Commands entsprechend dem Interface
+      console.log('[SidebarRight] saveToLocalStorage - Raw commands:', JSON.stringify(this.form.value.commands, null, 2));
       const commands = (this.form.value.commands || []).map((cmd: any) => {
         if (cmd.type === 'moveTo' || cmd.type === 'lineTo') {
           return {
@@ -288,6 +290,8 @@ export class SidebarRightComponent implements OnInit {
     if (updatedObject) {
       await this.drawService.saveObject(updatedObject);
     }
+    // Don't reload form after submit, just update the 3D view
+    this.skipNextReload = true;
     this.drawService.reload$.next();
   }
 

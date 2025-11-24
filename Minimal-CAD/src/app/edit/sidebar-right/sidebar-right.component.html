@@ -34,20 +34,20 @@
                         </mat-form-field>
                         <mat-form-field appearance="outline">
                             <mat-label>X</mat-label>
-                            <input matInput type="number" formControlName="x" />
+                            <input matInput type="number" step="0.1" formControlName="x" />
                         </mat-form-field>
                         <mat-form-field appearance="outline">
                             <mat-label>Y</mat-label>
-                            <input matInput type="number" formControlName="y" />
+                            <input matInput type="number" step="0.1" formControlName="y" />
                         </mat-form-field>
                         @if (item.value.type === 'quadraticCurveTo') {
                         <mat-form-field appearance="outline">
                             <mat-label>Control X</mat-label>
-                            <input matInput type="number" formControlName="cpX" />
+                            <input matInput type="number" step="0.1" formControlName="cpX" />
                         </mat-form-field>
                         <mat-form-field appearance="outline">
                             <mat-label>Control Y</mat-label>
-                            <input matInput type="number" formControlName="cpY" />
+                            <input matInput type="number" step="0.1" formControlName="cpY" />
                         </mat-form-field>
                         }
                         <button mat-icon-button type="button"
@@ -90,7 +90,6 @@
             </mat-form-field>
             }
         </mat-expansion-panel>
-        @if (selectedObject.type !== 'Freeform') {
         <mat-expansion-panel formGroupName="position">
             <mat-expansion-panel-header>
                 <mat-panel-title>Position</mat-panel-title>
@@ -108,7 +107,6 @@
                 <input matInput type="number" step="0.1" formControlName="z" />
             </mat-form-field>
         </mat-expansion-panel>
-        }
         <mat-expansion-panel formGroupName="rotation">
             <mat-expansion-panel-header>
                 <mat-panel-title>Rotation</mat-panel-title>
