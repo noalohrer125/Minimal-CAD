@@ -60,20 +60,21 @@ export class MainViewComponent implements OnInit, AfterViewInit, OnDestroy {
   private mouse = new THREE.Vector2();
   private rightClick = false;
   private middleClick = false;
+  private animationFrameId: number | null = null;
 
   // Smooth rotation animation
   private targetRotation: THREE.Euler | null = null;
-  private rotationLerpAlpha = 0.1; // Adjust for speed (0.1-0.2 is smooth)
+  private rotationSpeed = 0.1; // Adjust for speed (0.1-0.2 is smooth)
   private isRotating = false;
 
   // Smooth zoom animation
   private targetScale: THREE.Vector3 | null = null;
-  private scaleLerpAlpha = 0.1; // Adjust for speed (0.1-0.2 is smooth)
+  private scaleSpeed = 0.1; // Adjust for speed (0.1-0.2 is smooth)
   private isScaling = false;
 
   // Smooth position animation
   private targetPosition: THREE.Vector3 | null = null;
-  private positionLerpAlpha = 0.1; // Adjust for speed (0.1-0.2 is smooth)
+  private positionSpeed = 0.1; // Adjust for speed (0.1-0.2 is smooth)
   private isPositioning = false;
 
   public setRotation(rot: THREE.Euler) {
@@ -149,8 +150,8 @@ export class MainViewComponent implements OnInit, AfterViewInit, OnDestroy {
 
     gridHelper.position.set(0, 0, 0);
     gridHelper.rotation.x = Math.PI / 2;
-    (gridHelper as any).castShadow = true;
-    (gridHelper as any).receiveShadow = true;
+    (gridHelper as THREE.GridHelper).castShadow = true;
+    (gridHelper as THREE.GridHelper).receiveShadow = true;
     (gridHelper as any).isGridHelper = true; // Mark as grid helper so it's not removed on reload
     this.rootGroup.add(gridHelper);
 
@@ -353,7 +354,7 @@ export class MainViewComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   animate() {
-    requestAnimationFrame(() => this.animate());
+    this.animationFrameId = requestAnimationFrame(() => this.animate());
 
     // Smooth rotation animation
     if (this.isRotating && this.targetRotation) {
@@ -361,9 +362,9 @@ export class MainViewComponent implements OnInit, AfterViewInit, OnDestroy {
       const current = this.rootGroup.rotation;
       const target = this.targetRotation;
       // Lerp each axis
-      current.x += (target.x - current.x) * this.rotationLerpAlpha;
-      current.y += (target.y - current.y) * this.rotationLerpAlpha;
-      current.z += (target.z - current.z) * this.rotationLerpAlpha;
+      current.x += (target.x - current.x) * this.rotationSpeed;
+      current.y += (target.y - current.y) * this.rotationSpeed;
+      current.z += (target.z - current.z) * this.rotationSpeed;
 
       // If close enough, snap to target and stop animating
       if (
@@ -383,9 +384,9 @@ export class MainViewComponent implements OnInit, AfterViewInit, OnDestroy {
       const current = this.rootGroup.scale;
       const target = this.targetScale;
       // Lerp each axis
-      current.x += (target.x - current.x) * this.scaleLerpAlpha;
-      current.y += (target.y - current.y) * this.scaleLerpAlpha;
-      current.z += (target.z - current.z) * this.scaleLerpAlpha;
+      current.x += (target.x - current.x) * this.scaleSpeed;
+      current.y += (target.y - current.y) * this.scaleSpeed;
+      current.z += (target.z - current.z) * this.scaleSpeed;
 
       // If close enough, snap to target and stop animating
       if (
@@ -404,9 +405,9 @@ export class MainViewComponent implements OnInit, AfterViewInit, OnDestroy {
       const current = this.rootGroup.position;
       const target = this.targetPosition;
       // Lerp each axis
-      current.x += (target.x - current.x) * this.positionLerpAlpha;
-      current.y += (target.y - current.y) * this.positionLerpAlpha;
-      current.z += (target.z - current.z) * this.positionLerpAlpha;
+      current.x += (target.x - current.x) * this.positionSpeed;
+      current.y += (target.y - current.y) * this.positionSpeed;
+      current.z += (target.z - current.z) * this.positionSpeed;
 
       // If close enough, snap to target and stop animating
       if (
@@ -550,6 +551,9 @@ export class MainViewComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    if (this.animationFrameId !== null) {
+      cancelAnimationFrame(this.animationFrameId);
+    }
     localStorage.removeItem('model-data');
   }
 }
