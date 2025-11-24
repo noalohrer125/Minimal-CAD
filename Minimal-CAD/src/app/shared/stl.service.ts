@@ -143,18 +143,24 @@ export class StlService {
     const stl = `solid ${headerName}\n` + body + `endsolid ${headerName}\n`;
 
     if (saveToServer) {
-      const blob = new Blob([stl], { type: 'application/sla' });
-      const formData = new FormData();
-      formData.append('file', blob, 'model.stl');
+      try {
+        const blob = new Blob([stl], { type: 'application/sla' });
+        const formData = new FormData();
+        formData.append('file', blob, 'model.stl');
 
-      this.http.post('http://localhost:5000/uploadStlToServer', formData).subscribe({
-        next: (response) => {
-          console.log('STL uploaded to server:', response);
-        },
-        error: (error) => {
-          console.error('Error uploading STL to server:', error);
-        }
-      });
+        this.http.post('http://localhost:5000/uploadStlToServer', formData).subscribe({
+          next: (response) => {
+            console.log('STL uploaded to server:', response);
+          },
+          error: (error) => {
+            console.error('Error uploading STL to server:', error);
+            alert('Fehler beim Hochladen der STL-Datei zum Server.');
+          }
+        });
+      } catch (error) {
+        console.error('Error preparing STL upload:', error);
+        alert('Fehler beim Vorbereiten der STL-Datei.');
+      }
     } else {
       const blob = new Blob([stl], { type: 'application/sla' });
       const url = URL.createObjectURL(blob);

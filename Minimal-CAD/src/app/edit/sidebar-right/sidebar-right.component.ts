@@ -282,24 +282,34 @@ export class SidebarRightComponent implements OnInit {
 
   async onSubmit() {
     if (!this.selectedObject) return;
-    // Save current form state to localStorage first
-    this.saveToLocalStorage();
-    // Load the updated object from localStorage (which has the current form values)
-    const modelData = this.drawService.loadObjects();
-    const updatedObject = modelData.find(obj => obj.id === this.selectedObject.id && !obj.ghost);
-    if (updatedObject) {
-      await this.drawService.saveObject(updatedObject);
+    try {
+      // Save current form state to localStorage first
+      this.saveToLocalStorage();
+      // Load the updated object from localStorage (which has the current form values)
+      const modelData = this.drawService.loadObjects();
+      const updatedObject = modelData.find(obj => obj.id === this.selectedObject.id && !obj.ghost);
+      if (updatedObject) {
+        await this.drawService.saveObject(updatedObject);
+      }
+      // Don't reload form after submit, just update the 3D view
+      this.skipNextReload = true;
+      this.drawService.reload$.next();
+    } catch (error) {
+      console.error('Error submitting changes:', error);
+      alert('Fehler beim Speichern der Änderungen. Bitte versuchen Sie es erneut.');
     }
-    // Don't reload form after submit, just update the 3D view
-    this.skipNextReload = true;
-    this.drawService.reload$.next();
   }
 
   async onClose() {
-    this.drawService.removeGhostObjects();
-    this.selectedObject = null;
-    await this.drawService.deselectAllObjects();
-    this.drawService.reload$.next();
+    try {
+      this.drawService.removeGhostObjects();
+      this.selectedObject = null;
+      await this.drawService.deselectAllObjects();
+      this.drawService.reload$.next();
+    } catch (error) {
+      console.error('Error closing sidebar:', error);
+      alert('Fehler beim Schließen. Bitte versuchen Sie es erneut.');
+    }
   }
 
   async onDelete() {
@@ -308,13 +318,18 @@ export class SidebarRightComponent implements OnInit {
         `You are about to delete ${this.selectedObject.name}. Proceed?`
       )
     ) {
-      let models = this.drawService.loadObjects();
-      models = models.filter(
-        (model) => model.id !== this.selectedObject.id
-      );
-      this.selectedObject = null;
-      await localStorage.setItem('model-data', JSON.stringify(models));
-      this.drawService.reload$.next();
+      try {
+        let models = this.drawService.loadObjects();
+        models = models.filter(
+          (model) => model.id !== this.selectedObject.id
+        );
+        this.selectedObject = null;
+        await localStorage.setItem('model-data', JSON.stringify(models));
+        this.drawService.reload$.next();
+      } catch (error) {
+        console.error('Error deleting object:', error);
+        alert('Fehler beim Löschen des Objekts. Bitte versuchen Sie es erneut.');
+      }
     }
   }
 

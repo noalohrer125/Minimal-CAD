@@ -47,12 +47,15 @@ export class File {
 
             try {
                 const text = await file.text();
+                // Validate JSON before saving
+                JSON.parse(text);
                 // Save uploaded file content to localStorage under 'model-data'
                 localStorage.setItem('model-data', text);
                 alert('File uploaded and data saved to localStorage as "model-data".');
                 this.drawService.reload$.next();
-            } catch (e) {
-                alert('Invalid JSON file.');
+            } catch (error) {
+                console.error('Error uploading file:', error);
+                alert('Ungültige JSON-Datei. Bitte überprüfen Sie das Format.');
             }
         };
         input.click();

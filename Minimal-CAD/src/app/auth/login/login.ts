@@ -30,7 +30,17 @@ export class Login {
       rawForm.password
     ).subscribe({
       next: () => this.router.navigate(['/overview']),
-      error: (error) => this.errorMesssage = error.code
+      error: (error) => {
+        console.error('Login error:', error);
+        const errorMessages: { [key: string]: string } = {
+          'auth/invalid-email': 'Ungültige E-Mail-Adresse.',
+          'auth/user-disabled': 'Dieser Benutzer wurde deaktiviert.',
+          'auth/user-not-found': 'Benutzer nicht gefunden.',
+          'auth/wrong-password': 'Falsches Passwort.',
+          'auth/invalid-credential': 'Ungültige Anmeldedaten.'
+        };
+        this.errorMesssage = errorMessages[error.code] || 'Anmeldefehler: Bitte versuchen Sie es erneut.';
+      }
     });
   }
 }

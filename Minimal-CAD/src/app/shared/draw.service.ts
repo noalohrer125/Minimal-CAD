@@ -27,18 +27,23 @@ export class Draw {
       return [];
     }
     
-    return new Promise((resolve, reject) => {
-      this.loadObjectsFirebase(projectId).subscribe({
-        next: (firebaseData) => {
-          localStorage.setItem('model-data', JSON.stringify(firebaseData as (FormObject | FreeObject)[]));
-          resolve(firebaseData as (FormObject | FreeObject)[]);
-        },
-        error: (err) => {
-          console.error('Error loading objects from Firebase:', err);
-          reject(err);
-        }
+    try {
+      return new Promise((resolve, reject) => {
+        this.loadObjectsFirebase(projectId).subscribe({
+          next: (firebaseData) => {
+            localStorage.setItem('model-data', JSON.stringify(firebaseData as (FormObject | FreeObject)[]));
+            resolve(firebaseData as (FormObject | FreeObject)[]);
+          },
+          error: (err) => {
+            console.error('Error loading objects from Firebase:', err);
+            reject(new Error('Fehler beim Laden der Objekte. Bitte versuchen Sie es erneut.'));
+          }
+        });
       });
-    });
+    } catch (error) {
+      console.error('Error loading objects by project ID:', error);
+      throw new Error('Fehler beim Laden der Objekte. Bitte versuchen Sie es erneut.');
+    }
   }
 
   loadObjectsFirebase(projectId: string): Observable<(FormObject | FreeObject)[]> {
@@ -90,54 +95,66 @@ export class Draw {
   }
 
   async saveProjectToFirebase(projectName: string, isPrivate: boolean, newProject: boolean = false): Promise<projectSavingResult> {
-    // Save all objects first
-    const isExistingProject = localStorage.getItem('project-id') || 'notExisting';
-    let modelData = this.loadObjects().filter(obj => !obj.ghost);
-    modelData.forEach(obj => obj.selected = false);
-    await Promise.all(modelData.map(obj => {
-      return new Promise((resolve, reject) => {
-        this.firebaseService.saveObject(obj).subscribe({
-          next: () => resolve(true),
-          error: (err) => {
-            console.error('Failed to save object to Firebase: ', err);
-            reject(err);
-          }
+    try {
+      // Save all objects first
+      const isExistingProject = localStorage.getItem('project-id') || 'notExisting';
+      let modelData = this.loadObjects().filter(obj => !obj.ghost);
+      modelData.forEach(obj => obj.selected = false);
+      await Promise.all(modelData.map(obj => {
+        return new Promise((resolve, reject) => {
+          this.firebaseService.saveObject(obj).subscribe({
+            next: () => resolve(true),
+            error: (err) => {
+              console.error('Failed to save object to Firebase: ', err);
+              reject(err);
+            }
+          });
         });
-      });
-    }));
+      }));
 
-    // Then save project
-    let projectId: string | null = null;
-    if (isExistingProject !== 'notExisting' && !newProject) {
-      projectId = isExistingProject;
-    }
-    const currentUserEmail = this.firebaseService.getCurrentUserEmail();
-    const project: Project = {
-      id: projectId ? projectId : this.generateId(),
-      name: projectName,
-      licenceKey: !isPrivate ? this.generateHash(this.generateId()) : 'public',
-      ownerEmail: currentUserEmail,
-      createdAt: Timestamp.now(),
-      objectIds: modelData.map(obj => obj.id)
-    };
-    let success: boolean = false;
-    let error: string = '';
-    (await this.firebaseService.saveProject(project)).subscribe({
-      next: () => {
-        success = true;
-      },
-      error: (err) => {
-        error = err;
-        success = false;
+      // Then save project
+      let projectId: string | null = null;
+      if (isExistingProject !== 'notExisting' && !newProject) {
+        projectId = isExistingProject;
       }
-    });
-    return {
-      success: success,
-      projectName: project.name,
-      licenceKey: project.licenceKey,
-      projectId: project.id,
-      error: error
-    };
+      const currentUserEmail = this.firebaseService.getCurrentUserEmail();
+      const project: Project = {
+        id: projectId ? projectId : this.generateId(),
+        name: projectName,
+        licenceKey: !isPrivate ? this.generateHash(this.generateId()) : 'public',
+        ownerEmail: currentUserEmail,
+        createdAt: Timestamp.now(),
+        objectIds: modelData.map(obj => obj.id)
+      };
+      let success: boolean = false;
+      let error: string = '';
+      (await this.firebaseService.saveProject(project)).subscribe({
+        next: () => {
+          success = true;
+        },
+        error: (err) => {
+          error = err;
+          console.error('Failed to save project: ', err);
+        }
+      });
+      localStorage.setItem('project-id', project.id);
+      return {
+        success: success,
+        projectName: project.name,
+        licenceKey: project.licenceKey,
+        projectId: project.id,
+        error: error
+      };
+    } catch (error) {
+      console.error('Error saving project to Firebase:', error);
+      return {
+        success: false,
+        projectName: projectName,
+        licenceKey: '',
+        projectId: '',
+        error: 'Fehler beim Speichern des Projekts. Bitte versuchen Sie es erneut.'
+      };
+    }
   }
 
   createGhostObject(objectId: string): void {

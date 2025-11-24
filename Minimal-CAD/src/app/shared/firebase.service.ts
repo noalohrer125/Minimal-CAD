@@ -65,13 +65,18 @@ export class FirebaseService {
   saveObject(object: FormObject | FreeObject): Observable<string> {
     const objectDocRef = doc(this.objectsCollection, object.id);
     const checkAndSave = async () => {
-      const snapshot = await getDoc(objectDocRef);
-      if (snapshot.exists()) {
-        await setDoc(objectDocRef, object);
-        return object.id;
-      } else {
-        const response = await addDoc(this.objectsCollection, object);
-        return response.id;
+      try {
+        const snapshot = await getDoc(objectDocRef);
+        if (snapshot.exists()) {
+          await setDoc(objectDocRef, object);
+          return object.id;
+        } else {
+          const response = await addDoc(this.objectsCollection, object);
+          return response.id;
+        }
+      } catch (error) {
+        console.error('Error saving object to Firebase:', error);
+        throw new Error('Fehler beim Speichern des Objekts. Bitte versuchen Sie es erneut.');
       }
     };
     return from(checkAndSave());
@@ -88,15 +93,20 @@ export class FirebaseService {
     // Hard delete: remove object from 'objects' and from any project referencing it
     const docRef = doc(this.objectsCollection, objectId);
     const promise = deleteDoc(docRef).then(async () => {
-      // Remove objectId from all projects' objectIds arrays
-      const projectsSnap = await collectionData(this.projectsCollection, { idField: 'id' }).toPromise();
-      if (projectsSnap) {
-        for (const project of projectsSnap) {
-          if (project['objectIds'] && Array.isArray(project['objectIds']) && project['objectIds'].includes(objectId)) {
-            const updatedObjectIds = project['objectIds'].filter((id: string) => id !== objectId);
-            await setDoc(doc(this.projectsCollection, project.id), { ...project, objectIds: updatedObjectIds });
+      try {
+        // Remove objectId from all projects' objectIds arrays
+        const projectsSnap = await collectionData(this.projectsCollection, { idField: 'id' }).toPromise();
+        if (projectsSnap) {
+          for (const project of projectsSnap) {
+            if (project['objectIds'] && Array.isArray(project['objectIds']) && project['objectIds'].includes(objectId)) {
+              const updatedObjectIds = project['objectIds'].filter((id: string) => id !== objectId);
+              await setDoc(doc(this.projectsCollection, project.id), { ...project, objectIds: updatedObjectIds });
+            }
           }
         }
+      } catch (error) {
+        console.error('Error deleting object from Firebase:', error);
+        throw new Error('Fehler beim Löschen des Objekts. Bitte versuchen Sie es erneut.');
       }
     });
     return from(promise);
@@ -131,14 +141,19 @@ export class FirebaseService {
   }
 
   async saveProject(project: Project): Promise<Observable<string>> {
-    const docRef = doc(this.projectsCollection, project.id);
-    const snapshot = await getDoc(docRef);
-    if (snapshot.exists()) {
-      await setDoc(docRef, project);
-      return from(Promise.resolve(project.id));
-    } else {
-      const response = await addDoc(this.projectsCollection, project);
-      return from(Promise.resolve(response.id));
+    try {
+      const docRef = doc(this.projectsCollection, project.id);
+      const snapshot = await getDoc(docRef);
+      if (snapshot.exists()) {
+        await setDoc(docRef, project);
+        return from(Promise.resolve(project.id));
+      } else {
+        const response = await addDoc(this.projectsCollection, project);
+        return from(Promise.resolve(response.id));
+      }
+    } catch (error) {
+      console.error('Error saving project to Firebase:', error);
+      throw new Error('Fehler beim Speichern des Projekts. Bitte versuchen Sie es erneut.');
     }
   }
 
@@ -152,17 +167,22 @@ export class FirebaseService {
   async deleteProject(projectId: string): Promise<Observable<void>> {
     const docRef = doc(this.projectsCollection, projectId);
     const deleteProjectAndObjects = async () => {
-      const projectData = await getDoc(docRef);
-      if (projectData.exists()) {
-        const project = projectData.data();
-        if (project['objectIds'] && Array.isArray(project['objectIds'])) {
-          const deletePromises = project['objectIds'].map((objectId: string) =>
-            deleteDoc(doc(this.objectsCollection, objectId))
-          );
-          await Promise.all(deletePromises);
+      try {
+        const projectData = await getDoc(docRef);
+        if (projectData.exists()) {
+          const project = projectData.data();
+          if (project['objectIds'] && Array.isArray(project['objectIds'])) {
+            const deletePromises = project['objectIds'].map((objectId: string) =>
+              deleteDoc(doc(this.objectsCollection, objectId))
+            );
+            await Promise.all(deletePromises);
+          }
         }
+        await deleteDoc(docRef);
+      } catch (error) {
+        console.error('Error deleting project from Firebase:', error);
+        throw new Error('Fehler beim Löschen des Projekts. Bitte versuchen Sie es erneut.');
       }
-      await deleteDoc(docRef);
     };
     return from(deleteProjectAndObjects());
   }

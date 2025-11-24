@@ -31,14 +31,28 @@ export class Overview {
 
   ngOnInit() {
     this.projectsLoading = true;
-    this.firebaseService.getPublicProjects().subscribe(projects => {
-      this.publicProjectsUnfiltered = projects;
-      this.publicProjects = projects;
+    this.firebaseService.getPublicProjects().subscribe({
+      next: (projects) => {
+        this.publicProjectsUnfiltered = projects;
+        this.publicProjects = projects;
+      },
+      error: (error) => {
+        console.error('Error loading public projects:', error);
+        alert('Fehler beim Laden der öffentlichen Projekte. Bitte versuchen Sie es erneut.');
+        this.projectsLoading = false;
+      }
     });
-    this.firebaseService.getProjectsByOwner(this.firebaseService.getCurrentUserEmail()).subscribe(projects => {
-      this.myProjectsUnfiltered = projects;
-      this.myProjects = projects;
-      this.projectsLoading = false;
+    this.firebaseService.getProjectsByOwner(this.firebaseService.getCurrentUserEmail()).subscribe({
+      next: (projects) => {
+        this.myProjectsUnfiltered = projects;
+        this.myProjects = projects;
+        this.projectsLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading user projects:', error);
+        alert('Fehler beim Laden Ihrer Projekte. Bitte versuchen Sie es erneut.');
+        this.projectsLoading = false;
+      }
     });
   }
 

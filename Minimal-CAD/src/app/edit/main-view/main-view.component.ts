@@ -425,30 +425,35 @@ export class MainViewComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async ngAfterViewInit(): Promise<void> {
-    await this.isLoading === false;
-    this.init();
-    this.loadModels();
-    this.animate();
-    this.canvasRef.nativeElement.addEventListener(
-      'click',
-      this.onClick.bind(this)
-    );
-    this.canvasRef.nativeElement.addEventListener('mousedown', (event: MouseEvent) => {
-      if (event.button === 2) { event.preventDefault(); this.rightClick = true; }
-      if (event.button === 1) { this.middleClick = true; }
-    });
-    this.canvasRef.nativeElement.addEventListener('mouseup', (event: MouseEvent) => {
-      if (event.button === 2) { this.rightClick = false; }
-      if (event.button === 1) { this.middleClick = false; }
-    });
-    this.canvasRef.nativeElement.addEventListener('wheel', (event: WheelEvent) => {
-      event.preventDefault();
-      this.onMouseWheel(event);
-    });
-    this.canvasRef.nativeElement.addEventListener('mousemove', (event: MouseEvent) => {
-      if (this.rightClick) { this.onMouseMove(event, 'right'); }
-      if (this.middleClick) { this.onMouseMove(event, 'middle'); }
-    });
+    try {
+      await this.isLoading === false;
+      this.init();
+      this.loadModels();
+      this.animate();
+      this.canvasRef.nativeElement.addEventListener(
+        'click',
+        this.onClick.bind(this)
+      );
+      this.canvasRef.nativeElement.addEventListener('mousedown', (event: MouseEvent) => {
+        if (event.button === 2) { event.preventDefault(); this.rightClick = true; }
+        if (event.button === 1) { this.middleClick = true; }
+      });
+      this.canvasRef.nativeElement.addEventListener('mouseup', (event: MouseEvent) => {
+        if (event.button === 2) { this.rightClick = false; }
+        if (event.button === 1) { this.middleClick = false; }
+      });
+      this.canvasRef.nativeElement.addEventListener('wheel', (event: WheelEvent) => {
+        event.preventDefault();
+        this.onMouseWheel(event);
+      });
+      this.canvasRef.nativeElement.addEventListener('mousemove', (event: MouseEvent) => {
+        if (this.rightClick) { this.onMouseMove(event, 'right'); }
+        if (this.middleClick) { this.onMouseMove(event, 'middle'); }
+      });
+    } catch (error) {
+      console.error('Error initializing view:', error);
+      alert('Fehler beim Initialisieren der Ansicht. Bitte laden Sie die Seite neu.');
+    }
   }
 
   onMouseMove(event: MouseEvent, button: string) {

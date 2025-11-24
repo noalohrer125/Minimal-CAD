@@ -32,7 +32,10 @@ export class Register {
       rawForm.password
     ).subscribe({
       next: () => this.router.navigate(['/login']),
-      error: (error) => this.errorMesssage = 'Registration error: ' + error.message
+      error: (error) => {
+        console.error('Registration error:', error);
+        this.errorMesssage = 'Registrierungsfehler: ' + (error.message || 'Bitte überprüfen Sie Ihre Eingaben.');
+      }
     });
   }
 }
