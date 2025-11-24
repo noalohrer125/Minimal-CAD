@@ -1,7 +1,10 @@
 import { Component, ElementRef, AfterViewInit, ViewChild, HostListener, Output, EventEmitter, Input, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Draw } from '../../shared/draw.service';
-import { FormObject, FreeObject, FreeObjectCommand } from '../../interfaces';
+import { ThreeSceneService } from '../../shared/three-scene.service';
+import { ModelRenderService } from '../../shared/model-render.service';
+import { InteractionService } from '../../shared/interaction.service';
+import { AnimationService } from '../../shared/animation.service';
 import * as THREE from 'three';
 
 @Component({
@@ -14,7 +17,8 @@ import * as THREE from 'three';
 export class MainViewComponent implements OnInit, AfterViewInit, OnDestroy {
   @Output() rotationChange = new EventEmitter<THREE.Euler>();
   @ViewChild('canvas', { static: true }) canvasRef!: ElementRef;
-  // Add cameraReset input for viewcube
+  @Input() projectId: string = '';
+  
   private _cameraReset: any;
   @Input() set cameraReset(val: {
     position: { x: number, y: number, z: number },
@@ -24,17 +28,14 @@ export class MainViewComponent implements OnInit, AfterViewInit, OnDestroy {
   }) {
     this._cameraReset = val;
     if (val) {
-      this.camera.position.set(val.position.x, val.position.y, val.position.z);
-      this.camera.rotation.set(val.rotation.x, val.rotation.y, val.rotation.z);
-      // Trigger smooth zoom animation instead of instant change
-      this.targetScale = new THREE.Vector3(val.scale.x, val.scale.y, val.scale.z);
-      this.isScaling = true;
-      // Trigger smooth position animation instead of instant change
+      this.sceneService.setCameraPosition(val.position.x, val.position.y, val.position.z);
+      this.sceneService.setCameraRotation(val.rotation.x, val.rotation.y, val.rotation.z);
+      this.animationService.setTargetScale(new THREE.Vector3(val.scale.x, val.scale.y, val.scale.z));
+      
       if (val.rootGroupPosition) {
-        this.targetPosition = new THREE.Vector3(val.rootGroupPosition.x, val.rootGroupPosition.y, val.rootGroupPosition.z);
-        this.isPositioning = true;
+        this.animationService.setTargetPosition(new THREE.Vector3(val.rootGroupPosition.x, val.rootGroupPosition.y, val.rootGroupPosition.z));
       }
-      // Update view in drawservice
+      
       const view = this.drawservice.getView();
       view.camera.position = { ...val.position };
       view.camera.rotation = { ...val.rotation };
@@ -45,41 +46,19 @@ export class MainViewComponent implements OnInit, AfterViewInit, OnDestroy {
       this.drawservice.setView(view);
     }
   }
-  @Input() projectId: string = '';
 
-  constructor(private drawservice: Draw) { }
-
-  private scene = new THREE.Scene();
-  private camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-  private renderer = new THREE.WebGLRenderer({ antialias: true });
-  private rootGroup = new THREE.Group();
-  private objects: THREE.Object3D[] = [];
   public isLoading: boolean = false;
 
-  private raycaster = new THREE.Raycaster();
-  private mouse = new THREE.Vector2();
-  private rightClick = false;
-  private middleClick = false;
-  private animationFrameId: number | null = null;
-
-  // Smooth rotation animation
-  private targetRotation: THREE.Euler | null = null;
-  private rotationSpeed = 0.1; // Adjust for speed (0.1-0.2 is smooth)
-  private isRotating = false;
-
-  // Smooth zoom animation
-  private targetScale: THREE.Vector3 | null = null;
-  private scaleSpeed = 0.1; // Adjust for speed (0.1-0.2 is smooth)
-  private isScaling = false;
-
-  // Smooth position animation
-  private targetPosition: THREE.Vector3 | null = null;
-  private positionSpeed = 0.1; // Adjust for speed (0.1-0.2 is smooth)
-  private isPositioning = false;
+  constructor(
+    private drawservice: Draw,
+    private sceneService: ThreeSceneService,
+    private modelRenderService: ModelRenderService,
+    private interactionService: InteractionService,
+    private animationService: AnimationService
+  ) { }
 
   public setRotation(rot: THREE.Euler) {
-    this.targetRotation = rot.clone();
-    this.isRotating = true;
+    this.animationService.setTargetRotation(rot);
   }
 
   ngOnInit(): void {
@@ -93,446 +72,66 @@ export class MainViewComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   init() {
-    this.renderer = new THREE.WebGLRenderer({
-      canvas: this.canvasRef.nativeElement,
-      antialias: true,
-    });
-    const withOffset = window.innerWidth * 0.1;
-    const heightOffset = Math.max(window.innerHeight * 0.08, 80);
-    this.renderer.setSize(window.innerWidth - withOffset, window.innerHeight - heightOffset);
-    this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
-    const loader = new THREE.TextureLoader();
-    // Resolve the texture path relative to the document base (works for GitHub Pages sub-paths)
-    const textureUrl = new URL('bg-gray.png', document.baseURI).href;
-    loader.load(
-      textureUrl,
-      (texture) => {
-        try {
-          // Darken the texture via an offscreen canvas
-            const canvas = document.createElement('canvas');
-            canvas.width = texture.image.width;
-            canvas.height = texture.image.height;
-            const ctx = canvas.getContext('2d');
-            if (!ctx) {
-              console.warn('[MainView] 2D context unavailable; using original texture as background');
-              this.scene.background = texture;
-              return;
-            }
-            ctx.drawImage(texture.image, 0, 0);
-            ctx.globalAlpha = 0.6; // 0 = original, 1 = fully black overlay
-            ctx.fillStyle = '#000';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            const darkTexture = new THREE.Texture(canvas);
-            darkTexture.needsUpdate = true;
-            this.scene.background = darkTexture;
-        } catch (e) {
-          this.scene.background = texture;
-        }
-      },
-      undefined,
-      (err) => {
-        // Fallback: set a solid color so we can visually tell the texture failed
-        this.scene.background = new THREE.Color(0x202830);
-      }
-    );
-
-    const size = 10;
-    const divisions = 10;
-    const gridColor = 0xf5f8fa;
-    const gridCenterLineColor = 0xb9cee4;
-    const gridHelper = new THREE.GridHelper(size, divisions, gridCenterLineColor, gridColor);
-
-    gridHelper.position.set(0, 0, 0);
-    gridHelper.rotation.x = Math.PI / 2;
-    (gridHelper as THREE.GridHelper).castShadow = true;
-    (gridHelper as THREE.GridHelper).receiveShadow = true;
-    (gridHelper as any).isGridHelper = true; // Mark as grid helper so it's not removed on reload
-    this.rootGroup.add(gridHelper);
-
+    this.sceneService.initScene(this.canvasRef.nativeElement);
+    
     const view = this.drawservice.getView();
-    this.camera.position.set(view.camera.position.x, view.camera.position.y, view.camera.position.z);
-    this.camera.rotation.set(view.camera.rotation.x, view.camera.rotation.y, view.camera.rotation.z);
-    this.rootGroup.position.set(view.rootGroup.position.x, view.rootGroup.position.y, view.rootGroup.position.z);
-    this.rootGroup.rotation.set(view.rootGroup.rotation.x, view.rootGroup.rotation.y, view.rootGroup.rotation.z);
-    this.camera.up.set(0, 1, 0);
-    this.camera.lookAt(0, 0, 0);
-
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
-
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
-    directionalLight.position.set(10, 15, 5);
-    directionalLight.castShadow = true;
-    directionalLight.shadow.mapSize.width = 2048;
-    directionalLight.shadow.mapSize.height = 2048;
-
-    const fillLight = new THREE.PointLight(0xffffff, 100);
-    fillLight.position.set(-10, -10, 5);
-
-    this.scene.add(ambientLight);
-    this.scene.add(directionalLight);
-    this.scene.add(fillLight);
-
-    this.scene.add(this.rootGroup);
+    this.sceneService.setCameraPosition(view.camera.position.x, view.camera.position.y, view.camera.position.z);
+    this.sceneService.setCameraRotation(view.camera.rotation.x, view.camera.rotation.y, view.camera.rotation.z);
+    this.sceneService.setRootGroupPosition(view.rootGroup.position.x, view.rootGroup.position.y, view.rootGroup.position.z);
+    this.sceneService.setRootGroupRotation(view.rootGroup.rotation.x, view.rootGroup.rotation.y, view.rootGroup.rotation.z);
   }
 
   loadModels() {
     const modelData = this.drawservice.loadObjects();
-
-    const objectColor = { color: 0x8cb9d4, roughness: 0.5, metalness: 0.5, flatShading: true };
-    const selectedObjectColor = { color: 0x7ec8e3, roughness: 0.5, metalness: 0.1, flatShading: true };
-    const ghostObjectColor = { color: 0x8cb9d4, roughness: 0.5, metalness: 0.5, flatShading: true, transparent: true, opacity: 0.5 };
-    const edgeColor = 0x253238;
-    const selectedEdgeColor = 0xffb347;
-    const ghostEdgeColor = 0x888888;
-
-    const renderFormObject = (element: FormObject, isSelected: boolean, isGhost: boolean = false) => {
-      if (element.type === 'Square') {
-        const geometry = new THREE.BoxGeometry(element.l, element.w, element.h);
-        let material: THREE.MeshPhysicalMaterial;
-        if (isGhost) {
-          material = new THREE.MeshPhysicalMaterial(ghostObjectColor);
-        } else if (isSelected) {
-          material = new THREE.MeshPhysicalMaterial(selectedObjectColor);
-        } else {
-          material = new THREE.MeshPhysicalMaterial(objectColor);
-        }
-        const mesh = new THREE.Mesh(geometry, material);
-        mesh.position.set(
-          element.position[0],
-          element.position[1],
-          (element.position[2] || 0) + element.h / 2
-        );
-        // Convert degrees to radians for rotation
-        mesh.rotation.x = element.rotation ? element.rotation[0] * Math.PI / 180 : 0;
-        mesh.rotation.y = element.rotation ? element.rotation[1] * Math.PI / 180 : 0;
-        mesh.rotation.z = element.rotation ? element.rotation[2] * Math.PI / 180 : 0;
-        mesh.userData = element;
-        mesh.castShadow = !isGhost;
-        mesh.receiveShadow = true;
-        this.rootGroup.add(mesh);
-        if (!isGhost) {
-          this.objects.push(mesh);
-        }
-
-        const edges = new THREE.EdgesGeometry(geometry);
-        const edgeColorToUse = isGhost ? ghostEdgeColor : (isSelected ? selectedEdgeColor : edgeColor);
-        const line = new THREE.LineSegments(
-          edges,
-          new THREE.LineBasicMaterial({ color: edgeColorToUse })
-        );
-        line.position.copy(mesh.position);
-        line.rotation.copy(mesh.rotation);
-        this.rootGroup.add(line);
-      } else if (element.type === 'Circle') {
-        const geometry = new THREE.CylinderGeometry(
-          element.r,
-          element.r,
-          element.h,
-          element.curveSegments! <= 10000 && element.curveSegments! > 2 ? element.curveSegments : 10000,
-        );
-        let material: THREE.MeshPhysicalMaterial;
-        if (isGhost) {
-          material = new THREE.MeshPhysicalMaterial(ghostObjectColor);
-        } else if (isSelected) {
-          material = new THREE.MeshPhysicalMaterial(selectedObjectColor);
-        } else {
-          material = new THREE.MeshPhysicalMaterial(objectColor);
-        }
-        const mesh = new THREE.Mesh(geometry, material);
-        mesh.position.set(
-          element.position[0],
-          element.position[1],
-          (element.position[2] || 0) + element.h / 2
-        );
-        // Convert degrees to radians for rotation, and subtract 90deg for x as before
-        mesh.rotation.x = element.rotation ? (element.rotation[0] - 90) * Math.PI / 180 : Math.PI / 2;
-        mesh.rotation.y = element.rotation ? element.rotation[1] * Math.PI / 180 : 0;
-        mesh.rotation.z = element.rotation ? element.rotation[2] * Math.PI / 180 : 0;
-        mesh.userData = element;
-        mesh.castShadow = !isGhost;
-        mesh.receiveShadow = true;
-        this.rootGroup.add(mesh);
-        if (!isGhost) {
-          this.objects.push(mesh);
-        }
-
-        const edges = new THREE.EdgesGeometry(geometry);
-        const edgeColorToUse = isGhost ? ghostEdgeColor : (isSelected ? selectedEdgeColor : edgeColor);
-        const line = new THREE.LineSegments(
-          edges,
-          new THREE.LineBasicMaterial({ color: edgeColorToUse })
-        );
-        line.position.copy(mesh.position);
-        line.rotation.copy(mesh.rotation);
-        this.rootGroup.add(line);
-      }
-    };
-    const renderFreeFormObject = (element: FreeObject, isSelected: boolean, isGhost: boolean = false) => {
-      const shape = new THREE.Shape();
-      shape.autoClose = true; // Ensure the shape is automatically closed
-      let lastX = 0, lastY = 0;
-
-      const renderCommand = (cmd: FreeObjectCommand) => {
-        switch (cmd.type) {
-          case 'moveTo':
-            shape.moveTo(cmd.x, cmd.y);
-            lastX = cmd.x; lastY = cmd.y;
-            break;
-          case 'lineTo':
-            shape.lineTo(cmd.x, cmd.y);
-            lastX = cmd.x; lastY = cmd.y;
-            break;
-          case 'quadraticCurveTo':
-            let P0 = new THREE.Vector2(lastX, lastY);
-            let P1 = new THREE.Vector2(cmd.cpX, cmd.cpY);
-            let P2 = new THREE.Vector2(cmd.x, cmd.y);
-
-            const C = new THREE.Vector2(
-              2 * P1.x - 0.5 * (P0.x + P2.x),
-              2 * P1.y - 0.5 * (P0.y + P2.y)
-            );
-            shape.quadraticCurveTo(C.x, C.y, P2.x, P2.y);
-            lastX = cmd.x; lastY = cmd.y;
-            break;
-        }
-      };
-
-      element.commands.forEach((cmd) => renderCommand(cmd));
-
-      const extrudeSettings = {
-        curveSegments: 10000,
-        depth: element.h, // Use element.h as height, default to 1 if not set
-        bevelEnabled: false
-      };
-      const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-      let material: THREE.MeshPhysicalMaterial;
-      if (isGhost) {
-        material = new THREE.MeshPhysicalMaterial({
-          ...ghostObjectColor,
-          side: THREE.DoubleSide
-        });
-      } else {
-        material = new THREE.MeshPhysicalMaterial({
-          ...(isSelected ? selectedObjectColor : objectColor),
-          side: THREE.DoubleSide
-        });
-      }
-      const mesh = new THREE.Mesh(geometry, material);
-      mesh.position.set(...element.position);
-      mesh.rotation.x = element.rotation[0] * Math.PI / 180;
-      mesh.rotation.y = element.rotation[1] * Math.PI / 180;
-      mesh.rotation.z = element.rotation[2] * Math.PI / 180;
-      mesh.userData = element;
-      mesh.castShadow = !isGhost;
-      mesh.receiveShadow = true;
-      this.rootGroup.add(mesh);
-      if (!isGhost) {
-        this.objects.push(mesh);
-      }
-
-      // Add edge lines for the entire extruded geometry (not just bottom outline)
-      const edgeColorToUse = isGhost ? ghostEdgeColor : (isSelected ? selectedEdgeColor : edgeColor);
-      const edges = new THREE.EdgesGeometry(geometry);
-      const edgeLines = new THREE.LineSegments(
-        edges,
-        new THREE.LineBasicMaterial({ color: edgeColorToUse })
-      );
-      edgeLines.position.copy(mesh.position);
-      edgeLines.rotation.copy(mesh.rotation);
-      this.rootGroup.add(edgeLines);
-    };
+    const rootGroup = this.sceneService.getRootGroup();
 
     modelData.forEach(el => {
-      el.type === 'Freeform' ? renderFreeFormObject(el, el.selected, el.ghost || false) : renderFormObject(el, el.selected, el.ghost || false);
+      if (el.type === 'Freeform') {
+        this.modelRenderService.renderFreeFormObject(el, rootGroup, el.selected, el.ghost || false);
+      } else {
+        this.modelRenderService.renderFormObject(el, rootGroup, el.selected, el.ghost || false);
+      }
     });
   }
 
-  animate() {
-    this.animationFrameId = requestAnimationFrame(() => this.animate());
 
-    // Smooth rotation animation
-    if (this.isRotating && this.targetRotation) {
-      // Slerp each axis separately (Euler angles)
-      const current = this.rootGroup.rotation;
-      const target = this.targetRotation;
-      // Lerp each axis
-      current.x += (target.x - current.x) * this.rotationSpeed;
-      current.y += (target.y - current.y) * this.rotationSpeed;
-      current.z += (target.z - current.z) * this.rotationSpeed;
-
-      // If close enough, snap to target and stop animating
-      if (
-        Math.abs(current.x - target.x) < 0.001 &&
-        Math.abs(current.y - target.y) < 0.001 &&
-        Math.abs(current.z - target.z) < 0.001
-      ) {
-        this.rootGroup.rotation.copy(target);
-        this.isRotating = false;
-        this.targetRotation = null;
-      }
-      this.rotationChange.emit(this.rootGroup.rotation.clone());
-    }
-
-    // Smooth zoom/scale animation
-    if (this.isScaling && this.targetScale) {
-      const current = this.rootGroup.scale;
-      const target = this.targetScale;
-      // Lerp each axis
-      current.x += (target.x - current.x) * this.scaleSpeed;
-      current.y += (target.y - current.y) * this.scaleSpeed;
-      current.z += (target.z - current.z) * this.scaleSpeed;
-
-      // If close enough, snap to target and stop animating
-      if (
-        Math.abs(current.x - target.x) < 0.001 &&
-        Math.abs(current.y - target.y) < 0.001 &&
-        Math.abs(current.z - target.z) < 0.001
-      ) {
-        this.rootGroup.scale.copy(target);
-        this.isScaling = false;
-        this.targetScale = null;
-      }
-    }
-
-    // Smooth position animation
-    if (this.isPositioning && this.targetPosition) {
-      const current = this.rootGroup.position;
-      const target = this.targetPosition;
-      // Lerp each axis
-      current.x += (target.x - current.x) * this.positionSpeed;
-      current.y += (target.y - current.y) * this.positionSpeed;
-      current.z += (target.z - current.z) * this.positionSpeed;
-
-      // If close enough, snap to target and stop animating
-      if (
-        Math.abs(current.x - target.x) < 0.001 &&
-        Math.abs(current.y - target.y) < 0.001 &&
-        Math.abs(current.z - target.z) < 0.001
-      ) {
-        this.rootGroup.position.copy(target);
-        this.isPositioning = false;
-        this.targetPosition = null;
-      }
-    }
-
-    this.renderer.render(this.scene, this.camera);
-  }
 
   async ngAfterViewInit(): Promise<void> {
     try {
       await this.isLoading === false;
       this.init();
       this.loadModels();
-      this.animate();
-      this.canvasRef.nativeElement.addEventListener(
-        'click',
-        this.onClick.bind(this)
+      
+      const onReloadCallback = () => {
+        this.clearScene();
+        this.loadModels();
+      };
+      
+      this.interactionService.setupEventListeners(
+        this.canvasRef.nativeElement,
+        this.sceneService.getCamera(),
+        this.sceneService.getRootGroup(),
+        () => this.modelRenderService.getObjects(),
+        (rotation: THREE.Euler) => this.rotationChange.emit(rotation),
+        onReloadCallback
       );
-      this.canvasRef.nativeElement.addEventListener('mousedown', (event: MouseEvent) => {
-        if (event.button === 2) { event.preventDefault(); this.rightClick = true; }
-        if (event.button === 1) { this.middleClick = true; }
-      });
-      this.canvasRef.nativeElement.addEventListener('mouseup', (event: MouseEvent) => {
-        if (event.button === 2) { this.rightClick = false; }
-        if (event.button === 1) { this.middleClick = false; }
-      });
-      this.canvasRef.nativeElement.addEventListener('wheel', (event: WheelEvent) => {
-        event.preventDefault();
-        this.onMouseWheel(event);
-      });
-      this.canvasRef.nativeElement.addEventListener('mousemove', (event: MouseEvent) => {
-        if (this.rightClick) { this.onMouseMove(event, 'right'); }
-        if (this.middleClick) { this.onMouseMove(event, 'middle'); }
-      });
+      
+      this.animationService.startAnimation(
+        this.sceneService.getRenderer(),
+        this.sceneService.getScene(),
+        this.sceneService.getCamera(),
+        this.sceneService.getRootGroup(),
+        (rotation: THREE.Euler) => this.rotationChange.emit(rotation)
+      );
     } catch (error) {
       console.error('Error initializing view:', error);
       alert('Fehler beim Initialisieren der Ansicht. Bitte laden Sie die Seite neu.');
     }
   }
 
-  onMouseMove(event: MouseEvent, button: string) {
-    const view = this.drawservice.getView();
-    if (button === 'right') {
-      this.rootGroup.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), event.movementX * 0.01);
-      this.rootGroup.rotation.x += event.movementY * 0.01;
-      this.rotationChange.emit(this.rootGroup.rotation.clone());
-      view.rootGroup.rotation.x = this.rootGroup.rotation.x;
-      view.rootGroup.rotation.y = this.rootGroup.rotation.y;
-      view.rootGroup.rotation.z = this.rootGroup.rotation.z;
-    } else if (button === 'middle') {
-      this.rootGroup.position.y -= event.movementY * 0.01;
-      this.rootGroup.position.x += event.movementX * 0.01;
-      view.rootGroup.position.x = this.rootGroup.position.x;
-      view.rootGroup.position.y = this.rootGroup.position.y;
-      view.rootGroup.position.z = this.rootGroup.position.z;
-    }
-    this.drawservice.setView(view);
-  }
-
-  onMouseWheel(event: WheelEvent) {
-    const zoomFactor = 1.1;
-    const view = this.drawservice.getView();
-    if (event.deltaY < 0) {
-      // Zoom in
-      this.rootGroup.scale.multiplyScalar(zoomFactor);
-    } else if (event.deltaY > 0) {
-      // Zoom out
-      this.rootGroup.scale.multiplyScalar(1 / zoomFactor);
-    }
-    this.drawservice.setView(view);
-  }
-
-  onClick(event: MouseEvent) {
-    const modelData = this.drawservice.loadObjects();
-    const rect = this.canvasRef.nativeElement.getBoundingClientRect();
-    this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-    this.raycaster.setFromCamera(this.mouse, this.camera);
-    const intersects = this.raycaster.intersectObjects(this.objects);
-    
-    if (intersects.length > 0) {
-      const selected = intersects[0].object;
-      const originalData = selected.userData as FormObject | FreeObject;
-      const selectedObject = modelData.find(obj => obj.selected && !obj.ghost);
-      
-      if (selectedObject && selectedObject.id === originalData.id) {
-        return; // Same object already selected
-      }
-      
-      // Clean up any existing ghost objects
-      this.drawservice.removeGhostObjects();
-      
-      // Deselect all objects and select the clicked one
-      modelData.forEach(obj => obj.selected = false);
-      const targetObject = modelData.find(obj => obj.id === originalData.id && !obj.ghost);
-      if (targetObject) {
-        targetObject.selected = true;
-      }
-      localStorage.setItem('model-data', JSON.stringify(modelData));
-    } else {
-      // Clicked on empty space - deselect all and clean up ghosts
-      this.drawservice.removeGhostObjects();
-      this.drawservice.deselectAllObjects();
-    }
-    
-    this.clearScene();
-    this.loadModels();
-    this.drawservice.reload$.next();
-  }
-
   clearScene() {
-    // Remove all objects from the rootGroup except the GridHelper
-    const objectsToRemove = [...this.rootGroup.children];
-    objectsToRemove.forEach(child => {
-      // Keep the GridHelper, remove everything else
-      if (!(child as any).isGridHelper) {
-        this.rootGroup.remove(child);
-      }
-    });
-    this.objects = [];
+    this.sceneService.clearScene();
+    this.modelRenderService.clearObjects();
   }
 
   onReload() {
@@ -543,17 +142,11 @@ export class MainViewComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @HostListener('window:resize')
   onResize() {
-    const width = window.innerWidth;
-    const height = window.innerHeight;
-    this.camera.aspect = width / height;
-    this.camera.updateProjectionMatrix();
-    this.renderer.setSize(width, height);
+    this.sceneService.onResize();
   }
 
   ngOnDestroy() {
-    if (this.animationFrameId !== null) {
-      cancelAnimationFrame(this.animationFrameId);
-    }
+    this.animationService.stopAnimation();
     localStorage.removeItem('model-data');
   }
 }
