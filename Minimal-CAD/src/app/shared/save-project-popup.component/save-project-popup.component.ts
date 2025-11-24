@@ -61,8 +61,24 @@ export class SaveProjectPopupComponent implements OnInit, OnDestroy {
       })
     );
     
-    // Load current project data and prefill the form
-    this.loadCurrentProjectData();
+    // Subscribe to popup state to detect when it opens
+    this.subscription.add(
+      this.globalService.isSaveProjectPopupOpen.subscribe((isOpen) => {
+        if (isOpen) {
+          // Check if this is a new project
+          if (this.globalService.getIsNewProject()) {
+            // Reset form to default values for new project
+            this.form.patchValue({
+              projectName: 'New Project',
+              isPrivate: false
+            });
+          } else {
+            // Load current project data and prefill the form
+            this.loadCurrentProjectData();
+          }
+        }
+      })
+    );
   }
 
   private loadCurrentProjectData(): void {
@@ -105,7 +121,7 @@ export class SaveProjectPopupComponent implements OnInit, OnDestroy {
   }
 
   onSubmit() {
-    this.drawService.saveProjectToFirebase(this.getDataFromForm().projectName, !this.getDataFromForm().isPrivate).then((result: projectSavingResult) => {
+    this.drawService.saveProjectToFirebase(this.getDataFromForm().projectName, !this.getDataFromForm().isPrivate, this.globalService.getIsNewProject()).then((result: projectSavingResult) => {
       this.projectSavingResult = result;
       this.saved = true;
       this.drawService.reload$.next();

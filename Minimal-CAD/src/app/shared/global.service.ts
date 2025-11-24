@@ -8,7 +8,6 @@ import { Draw } from './draw.service';
 export class GlobalService {
   private isSaveProjectPopupOpen$ = new BehaviorSubject<boolean>(false);
   private requestProjectData$ = new Subject<void>();
-  private projectDataResponse$ = new Subject<{ projectName: string; isPrivate: boolean }>();
   private isNewProject: boolean = false;
 
   // Observable for components to subscribe to
@@ -21,6 +20,10 @@ export class GlobalService {
 
   getSaveProjectPopupOpen(): boolean {
     return this.isSaveProjectPopupOpen$.getValue();
+  }
+
+  getIsNewProject(): boolean {
+    return this.isNewProject;
   }
 
   openSaveProjectPopup(isNewProject: boolean = false): void {
