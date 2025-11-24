@@ -108,7 +108,6 @@ export class SaveProjectPopupComponent implements OnInit, OnDestroy {
   public getDataFromForm(): { projectName: string; isPrivate: boolean } {
     const projectName = this.form.get('projectName')?.value;
     const isPrivate = this.form.get('isPrivate')?.value;
-    console.log('Form Data:', { projectName, isPrivate });
     return { projectName, isPrivate };
   }
 

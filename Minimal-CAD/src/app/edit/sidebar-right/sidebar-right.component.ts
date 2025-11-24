@@ -90,21 +90,17 @@ export class SidebarRightComponent implements OnInit {
     this.form.valueChanges.pipe(debounceTime(500)).subscribe(() => {
       // Don't trigger preview update if we're initializing the form
       if (this.isInitializing) {
-        console.log('[SidebarRight] Ignoring valueChanges during initialization');
         return;
       }
-      console.log('[SidebarRight] Form values changed, updating preview');
       this.updatePreview();
     });
 
     this.drawService.reload$.subscribe(() => {
       if (this.skipNextReload) {
         this.skipNextReload = false;
-        console.log('[SidebarRight] Skipping reload - preview update');
         return;
       }
       this.initForm();
-      console.log('[SidebarRight] Reload event received');
     });
   }
 
@@ -127,7 +123,6 @@ export class SidebarRightComponent implements OnInit {
   }
 
   initForm(): void {
-    console.log('[SidebarRight] initForm called');
     this.isInitializing = true;
     this.selectedObject = this.drawService.loadObjects().find(obj => obj.selected) || null;
     this.selectedObjectType = this.selectedObject?.type!;
@@ -174,7 +169,6 @@ export class SidebarRightComponent implements OnInit {
       this.form.patchValue(patch, { emitEvent: false });
     }
     this.isInitializing = false;
-    console.log('[SidebarRight] initForm completed');
   }
 
   addCommand() {
@@ -187,7 +181,6 @@ export class SidebarRightComponent implements OnInit {
 
   private updatePreview() {
     if (!this.selectedObject) return;
-    console.log('[SidebarRight] updatePreview - Form values:', JSON.stringify(this.form.value, null, 2));
     this.saveToLocalStorage();
     // Set flag to skip the next reload event in this component
     this.skipNextReload = true;
@@ -226,7 +219,6 @@ export class SidebarRightComponent implements OnInit {
       };
     } else if (this.selectedObjectType === 'Freeform') {
       // Mapping der Commands entsprechend dem Interface
-      console.log('[SidebarRight] saveToLocalStorage - Raw commands:', JSON.stringify(this.form.value.commands, null, 2));
       const commands = (this.form.value.commands || []).map((cmd: any) => {
         if (cmd.type === 'moveTo' || cmd.type === 'lineTo') {
           return {
@@ -245,8 +237,6 @@ export class SidebarRightComponent implements OnInit {
             new: !!cmd.new
           };
         }
-        // Remove bezierCurveTo handling - not supported
-        console.warn('[SidebarRight] Unknown command type:', cmd.type);
         return null;
       }).filter((c: any) => !!c);
       localStorageData = {

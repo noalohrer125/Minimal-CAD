@@ -22,7 +22,6 @@ export class SidebarLeftComponent {
 
     this.drawService.reload$.subscribe(() => {
       this.onReload();
-      console.log('[SidebarLeft] Reload event received');
     });
   }
 
@@ -37,6 +36,5 @@ export class SidebarLeftComponent {
   onReload() {
     this.objects = this.drawService.loadObjects();
     this.selectedObject = this.drawService.loadObjects().find(obj => obj.selected) || {};
-    console.log('[SidebarLeft] Reloaded objects');
   }
 }

@@ -106,11 +106,9 @@ export class MainViewComponent implements OnInit, AfterViewInit, OnDestroy {
     const loader = new THREE.TextureLoader();
     // Resolve the texture path relative to the document base (works for GitHub Pages sub-paths)
     const textureUrl = new URL('bg-gray.png', document.baseURI).href;
-    console.log('[MainView] Loading background texture from:', textureUrl);
     loader.load(
       textureUrl,
       (texture) => {
-        console.log('[MainView] Background texture loaded:', textureUrl, texture);
         try {
           // Darken the texture via an offscreen canvas
             const canvas = document.createElement('canvas');
@@ -130,13 +128,11 @@ export class MainViewComponent implements OnInit, AfterViewInit, OnDestroy {
             darkTexture.needsUpdate = true;
             this.scene.background = darkTexture;
         } catch (e) {
-          console.error('[MainView] Failed to process background texture; using original image', e);
           this.scene.background = texture;
         }
       },
       undefined,
       (err) => {
-        console.error('[MainView] Failed to load background texture:', textureUrl, err);
         // Fallback: set a solid color so we can visually tell the texture failed
         this.scene.background = new THREE.Color(0x202830);
       }
@@ -543,7 +539,6 @@ export class MainViewComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.isLoading) return;
     this.clearScene();
     this.loadModels();
-    console.log('[MainView] Reloading models');
   }
 
   @HostListener('window:resize')

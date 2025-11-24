@@ -79,7 +79,6 @@ export class Overview {
   }
 
   applyFilter(searchText: string): void {
-    console.log('Applying filter with search text:', searchText);
     this.myProjects = this.myProjectsUnfiltered.filter(project =>
       project.name.toLowerCase().includes(searchText.toLowerCase()) ||
       project.createdAt.toDate().toLocaleDateString().includes(searchText.toLowerCase())
