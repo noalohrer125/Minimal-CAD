@@ -1,0 +1,59 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user is the project owner
+    function isOwner(projectData) {
+      return request.auth.token.email == projectData.ownerEmail;
+    }
+    
+    // Helper function to check if project is public
+    function isPublicProject(projectData) {
+      return projectData.licenceKey == 'public';
+    }
+    
+    // Projects collection rules
+    match /projects/{projectId} {
+      // Allow read if:
+      // - User is authenticated AND
+      // - (Project is public OR user is the owner)
+      allow read: if isAuthenticated() && 
+                     (isPublicProject(resource.data) || isOwner(resource.data));
+      
+      // Allow create if:
+      // - User is authenticated AND
+      // - The ownerEmail in the new document matches the authenticated user's email
+      allow create: if isAuthenticated() && 
+                       request.resource.data.ownerEmail == request.auth.token.email;
+      
+      // Allow update/delete if:
+      // - User is authenticated AND
+      // - User is the owner
+      allow update, delete: if isAuthenticated() && isOwner(resource.data);
+      
+      // Project objects subcollection
+      match /objects/{objectId} {
+        // Allow read if parent project is readable
+        allow read: if isAuthenticated() && 
+                       (isPublicProject(get(/databases/$(database)/documents/projects/$(projectId)).data) || 
+                        isOwner(get(/databases/$(database)/documents/projects/$(projectId)).data));
+        
+        // Allow write if user owns the parent project
+        allow write: if isAuthenticated() && 
+                        isOwner(get(/databases/$(database)/documents/projects/$(projectId)).data);
+      }
+    }
+    
+    // Users collection (if you add one in the future)
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && request.auth.uid == userId;
+    }
+  }
+}
