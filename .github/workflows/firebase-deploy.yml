@@ -3,7 +3,7 @@ name: Deploy to Firebase Hosting
 on:
   push:
     branches:
-      - prod  # Only deploys when pushing to prod branch
+      - main  # Only deploys when pushing to main branch
 
 jobs:
   deploy:
