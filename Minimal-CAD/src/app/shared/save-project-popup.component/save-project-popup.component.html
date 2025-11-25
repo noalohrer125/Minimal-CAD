@@ -12,7 +12,7 @@
     </form>
     @if (saved) {
     <div class="output-message">
-        @if (!projectSavingResult.success) {
+        @if (projectSavingResult.success) {
         <div class="success">
             <div class="success-message">
                 <mat-icon>check_circle</mat-icon>
