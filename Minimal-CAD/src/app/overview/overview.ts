@@ -42,18 +42,23 @@ export class Overview {
         this.projectsLoading = false;
       }
     });
-    this.firebaseService.getProjectsByOwner(this.firebaseService.getCurrentUserEmail()).subscribe({
-      next: (projects) => {
-        this.myProjectsUnfiltered = projects;
-        this.myProjects = projects;
-        this.projectsLoading = false;
-      },
+    const userEmail = this.firebaseService.getCurrentUserEmail();
+    if (userEmail) {
+      this.firebaseService.getProjectsByOwner(userEmail).subscribe({
+        next: (projects) => {
+          this.myProjectsUnfiltered = projects;
+          this.myProjects = projects;
+          this.projectsLoading = false;
+        },
       error: (error) => {
-        console.error('Error loading user projects:', error);
-        alert('Error loading your projects. Please try again.');
-        this.projectsLoading = false;
-      }
-    });
+          console.error('Error loading my projects:', error);
+          alert('Error loading my projects. Please try again.');
+          this.projectsLoading = false;
+        }
+      });
+    } else {
+      this.projectsLoading = false;
+    }
   }
 
   addProject() {

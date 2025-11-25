@@ -106,6 +106,9 @@ export class Draw {
       }
       
       const currentUserEmail = this.firebaseService.getCurrentUserEmail();
+      if (!currentUserEmail) {
+        throw new Error('User not authenticated');
+      }
       const project: Project = {
         id: projectId,
         name: projectName,
