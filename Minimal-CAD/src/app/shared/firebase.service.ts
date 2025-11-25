@@ -2,76 +2,44 @@ import { inject, Injectable } from '@angular/core';
 import { Firestore, addDoc, collection, collectionData, deleteDoc, doc, getDoc, query, setDoc, where } from '@angular/fire/firestore';
 import { from, Observable } from 'rxjs';
 import { FormObject, FreeObject, Project } from '../interfaces';
+import { Auth } from '@angular/fire/auth';
 
 @Injectable({
   providedIn: 'root'
 })
 export class FirebaseService {
-  getCurrentUserEmail() {
-    const currentUser = (this as any).firestore._authCredentials.auth.auth.currentUser.email ?
-    (this as any).firestore._authCredentials.auth.auth.currentUser.email :
-    null;
-    return currentUser;
+  auth = inject(Auth);
+  
+  getCurrentUserEmail(): string | null {
+    return this.auth.currentUser?.email ?? null;
   }
+  
   firestore = inject(Firestore);
-  objectsCollection = collection(this.firestore, 'objects');
   projectsCollection = collection(this.firestore, 'projects');
 
-  getObjects(): Observable<FormObject[] | FreeObject[]> {
-    return collectionData(this.objectsCollection, {
-      idField: 'id'
-    }) as Observable<FormObject[] | FreeObject[]>;
-  }
-
-  getObjectsByProject(projectId: string): Observable<FormObject[] | FreeObject[]> {
-    const projectObjectsCollection = collection(this.projectsCollection, projectId, 'objects');
-    return collectionData(projectObjectsCollection, {
-      idField: 'id'
-    }) as Observable<FormObject[] | FreeObject[]>;
+  // Helper to get objects subcollection for a project
+  private getObjectsCollection(projectId: string) {
+    return collection(this.firestore, 'projects', projectId, 'objects');
   }
 
   getObjectsByProjectId(projectId: string): Observable<(FormObject | FreeObject)[]> {
-    return new Observable<(FormObject | FreeObject)[]>((observer) => {
-      this.getProjectById(projectId).subscribe({
-        next: (project) => {
-          if (!project || !project.objectIds || project.objectIds.length === 0) {
-            observer.next([]);
-            observer.complete();
-            return;
-          }
-          // Get all objects and filter by project's objectIds
-          this.getObjects().subscribe({
-            next: (allObjects) => {
-              const projectObjects = allObjects.filter(obj => 
-                project.objectIds.includes(obj.id as string)
-              ) as (FormObject | FreeObject)[];
-              observer.next(projectObjects);
-              observer.complete();
-            },
-            error: (err) => {
-              console.error('Error loading objects:', err);
-              observer.error(err);
-            }
-          });
-        },
-        error: (err) => {
-          console.error('Error loading project:', err);
-          observer.error(err);
-        }
-      });
-    });
+    const projectObjectsCollection = this.getObjectsCollection(projectId);
+    return collectionData(projectObjectsCollection, {
+      idField: 'id'
+    }) as Observable<(FormObject | FreeObject)[]>;
   }
 
-  saveObject(object: FormObject | FreeObject): Observable<string> {
-    const objectDocRef = doc(this.objectsCollection, object.id);
+  saveObject(projectId: string, object: FormObject | FreeObject): Observable<string> {
+    const objectsCollection = this.getObjectsCollection(projectId);
+    const objectDocRef = doc(objectsCollection, object.id);
     const checkAndSave = async () => {
       try {
         const snapshot = await getDoc(objectDocRef);
         if (snapshot.exists()) {
-          await setDoc(objectDocRef, object);
+          await setDoc(objectDocRef, object as any);
           return object.id;
         } else {
-          const response = await addDoc(this.objectsCollection, object);
+          const response = await addDoc(objectsCollection, object as any);
           return response.id;
         }
       } catch (error) {
@@ -82,33 +50,18 @@ export class FirebaseService {
     return from(checkAndSave());
   }
 
-  updateObject(object: FormObject | FreeObject): Observable<string> {
-    const docRef = setDoc(doc(this.objectsCollection, object.id), object).then(
+  updateObject(projectId: string, object: FormObject | FreeObject): Observable<string> {
+    const objectsCollection = this.getObjectsCollection(projectId);
+    const docRef = setDoc(doc(objectsCollection, object.id), object as any).then(
       () => object.id
     );
     return from(docRef);
   }
 
-  deleteObject(objectId: string): Observable<void> {
-    // Hard delete: remove object from 'objects' and from any project referencing it
-    const docRef = doc(this.objectsCollection, objectId);
-    const promise = deleteDoc(docRef).then(async () => {
-      try {
-        // Remove objectId from all projects' objectIds arrays
-        const projectsSnap = await collectionData(this.projectsCollection, { idField: 'id' }).toPromise();
-        if (projectsSnap) {
-          for (const project of projectsSnap) {
-            if (project['objectIds'] && Array.isArray(project['objectIds']) && project['objectIds'].includes(objectId)) {
-              const updatedObjectIds = project['objectIds'].filter((id: string) => id !== objectId);
-              await setDoc(doc(this.projectsCollection, project.id), { ...project, objectIds: updatedObjectIds });
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Error deleting object from Firebase:', error);
-        throw new Error('Error deleting object. Please try again.');
-      }
-    });
+  deleteObject(projectId: string, objectId: string): Observable<void> {
+    const objectsCollection = this.getObjectsCollection(projectId);
+    const docRef = doc(objectsCollection, objectId);
+    const promise = deleteDoc(docRef);
     return from(promise);
   }
 
@@ -168,16 +121,18 @@ export class FirebaseService {
     const docRef = doc(this.projectsCollection, projectId);
     const deleteProjectAndObjects = async () => {
       try {
-        const projectData = await getDoc(docRef);
-        if (projectData.exists()) {
-          const project = projectData.data();
-          if (project['objectIds'] && Array.isArray(project['objectIds'])) {
-            const deletePromises = project['objectIds'].map((objectId: string) =>
-              deleteDoc(doc(this.objectsCollection, objectId))
-            );
-            await Promise.all(deletePromises);
-          }
+        // Delete all objects in the subcollection
+        const objectsCollection = this.getObjectsCollection(projectId);
+        const objectsSnapshot = await collectionData(objectsCollection, { idField: 'id' }).toPromise();
+        
+        if (objectsSnapshot && objectsSnapshot.length > 0) {
+          const deletePromises = objectsSnapshot.map((obj: any) =>
+            deleteDoc(doc(objectsCollection, obj.id))
+          );
+          await Promise.all(deletePromises);
         }
+        
+        // Delete the project itself
         await deleteDoc(docRef);
       } catch (error) {
         console.error('Error deleting project from Firebase:', error);

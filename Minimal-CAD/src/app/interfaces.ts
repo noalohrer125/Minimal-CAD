@@ -13,7 +13,6 @@ export interface Project {
     ownerEmail: string;
     createdAt: Timestamp;
     updatedAt?: Timestamp;
-    objectIds: string[];
 }
 
 export interface projectSavingResult {
