@@ -96,14 +96,9 @@ export class FirebaseService {
   async saveProject(project: Project): Promise<Observable<string>> {
     try {
       const docRef = doc(this.projectsCollection, project.id);
-      const snapshot = await getDoc(docRef);
-      if (snapshot.exists()) {
-        await setDoc(docRef, project);
-        return from(Promise.resolve(project.id));
-      } else {
-        const response = await addDoc(this.projectsCollection, project);
-        return from(Promise.resolve(response.id));
-      }
+      // Always use setDoc to preserve the project.id
+      await setDoc(docRef, project);
+      return from(Promise.resolve(project.id));
     } catch (error) {
       console.error('Error saving project to Firebase:', error);
       throw new Error('Error saving project. Please try again.');
