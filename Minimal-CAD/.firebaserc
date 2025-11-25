@@ -1,5 +1,15 @@
 {
   "projects": {
     "default": "minimal-cad"
-  }
+  },
+  "targets": {
+    "minimalcad-1a6dd": {
+      "hosting": {
+        "mincad": [
+          "mincad"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }
