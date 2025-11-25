@@ -121,7 +121,7 @@ export class Draw {
       const project: Project = {
         id: projectId ? projectId : this.generateId(),
         name: projectName,
-        licenceKey: !isPrivate ? this.generateHash(this.generateId()) : 'public',
+        licenceKey: isPrivate ? this.generateHash(this.generateId()) : 'public',
         ownerEmail: currentUserEmail,
         createdAt: Timestamp.now(),
         objectIds: modelData.map(obj => obj.id)
