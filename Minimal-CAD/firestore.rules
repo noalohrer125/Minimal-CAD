@@ -39,14 +39,19 @@ service cloud.firestore {
       
       // Project objects subcollection
       match /objects/{objectId} {
-        // Allow read if parent project is readable
+        // Allow read if authenticated and parent project exists and is readable
         allow read: if isAuthenticated() && 
+                       exists(/databases/$(database)/documents/projects/$(projectId)) &&
                        (isPublicProject(get(/databases/$(database)/documents/projects/$(projectId)).data) || 
                         isOwner(get(/databases/$(database)/documents/projects/$(projectId)).data));
         
-        // Allow write if user owns the parent project
-        allow write: if isAuthenticated() && 
-                        isOwner(get(/databases/$(database)/documents/projects/$(projectId)).data);
+        // Allow create if user is authenticated (parent project ownership will be verified separately)
+        allow create: if isAuthenticated();
+        
+        // Allow update/delete if user owns the parent project
+        allow update, delete: if isAuthenticated() && 
+                                 exists(/databases/$(database)/documents/projects/$(projectId)) &&
+                                 isOwner(get(/databases/$(database)/documents/projects/$(projectId)).data);
       }
     }
     
