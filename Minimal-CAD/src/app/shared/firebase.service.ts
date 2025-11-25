@@ -2,17 +2,18 @@ import { inject, Injectable } from '@angular/core';
 import { Firestore, addDoc, collection, collectionData, deleteDoc, doc, getDoc, query, setDoc, where } from '@angular/fire/firestore';
 import { from, Observable } from 'rxjs';
 import { FormObject, FreeObject, Project } from '../interfaces';
+import { Auth } from '@angular/fire/auth';
 
 @Injectable({
   providedIn: 'root'
 })
 export class FirebaseService {
-  getCurrentUserEmail() {
-    const currentUser = (this as any).firestore._authCredentials.auth.auth.currentUser.email ?
-    (this as any).firestore._authCredentials.auth.auth.currentUser.email :
-    null;
-    return currentUser;
+  auth = inject(Auth);
+  
+  getCurrentUserEmail(): string | null {
+    return this.auth.currentUser?.email ?? null;
   }
+  
   firestore = inject(Firestore);
   objectsCollection = collection(this.firestore, 'objects');
   projectsCollection = collection(this.firestore, 'projects');
