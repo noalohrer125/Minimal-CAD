@@ -3,6 +3,7 @@
     "rules": "firestore.rules"
   },
   "hosting": {
+    "site": "minimalcad-dev",
     "public": "dist/Minimal-CAD/browser",
     "ignore": [
       "firebase.json",

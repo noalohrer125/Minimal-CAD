@@ -1,0 +1,76 @@
+name: Deploy to Firebase Hosting
+
+on:
+  push:
+    branches:
+      - main
+      - prod
+
+jobs:
+  deploy-dev:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        working-directory: Minimal-CAD
+        run: |
+          npm ci
+
+      - name: Build (development)
+        working-directory: Minimal-CAD
+        run: |
+          npm run build -- --configuration development
+
+      - name: Install Firebase CLI
+        run: |
+          npm install -g firebase-tools
+
+      - name: Deploy to Firebase Hosting (dev)
+        working-directory: Minimal-CAD
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN_DEV }}
+        run: |
+          firebase deploy --only hosting --project minimalcad-dev --config firebase.json --token "$FIREBASE_TOKEN"
+
+  deploy-prod:
+    if: github.ref == 'refs/heads/prod'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        working-directory: Minimal-CAD
+        run: |
+          npm ci
+
+      - name: Build (production)
+        working-directory: Minimal-CAD
+        run: |
+          npm run build -- --configuration production
+
+      - name: Install Firebase CLI
+        run: |
+          npm install -g firebase-tools
+
+      - name: Deploy to Firebase Hosting (prod)
+        working-directory: Minimal-CAD
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN_PROD }}
+        run: |
+          firebase deploy --only hosting --project minimalcad-1a6dd --config firebase.prod.json --token "$FIREBASE_TOKEN"
