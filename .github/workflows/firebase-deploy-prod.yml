@@ -29,11 +29,7 @@ jobs:
         run: npm run build -- --configuration=production
       
       - name: Deploy to Firebase (Prod)
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_PROD }}'
-          channelId: live
-          projectId: minimalcad-1a6dd
-          entryPoint: ./Minimal-CAD
-          target: mincad
+        working-directory: ./Minimal-CAD
+        run: |
+          npm install -g firebase-tools
+          firebase deploy --only hosting --project minimalcad-1a6dd --token "${{ secrets.FIREBASE_TOKEN }}"
