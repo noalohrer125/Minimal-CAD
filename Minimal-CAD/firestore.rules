@@ -20,15 +20,10 @@ service cloud.firestore {
     
     // Projects collection rules
     match /projects/{projectId} {
-      // Allow list (query) if authenticated
-      // The query itself must filter by ownerEmail or licenceKey
-      allow list: if isAuthenticated();
-      
-      // Allow get (single document) if:
-      // - User is authenticated AND
-      // - (Project is public OR user is the owner)
-      allow get: if isAuthenticated() && 
-                    (isPublicProject(resource.data) || isOwner(resource.data));
+      // Allow read (both list and get) if authenticated
+      // For queries, only return documents where user is owner OR project is public
+      allow read: if isAuthenticated() &&
+                     (resource == null || isPublicProject(resource.data) || isOwner(resource.data));
       
       // Allow create if:
       // - User is authenticated AND
