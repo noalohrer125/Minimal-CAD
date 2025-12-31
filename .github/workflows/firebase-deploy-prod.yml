@@ -3,7 +3,7 @@ name: Deploy to Firebase Hosting (Prod)
 on:
   push:
     branches:
-      - prod  # Only deploys when pushing to prod branch
+      - prod  # Deploy PROD when pushing to prod branch
 
 jobs:
   deploy:
@@ -24,17 +24,16 @@ jobs:
         working-directory: ./Minimal-CAD
         run: npm ci --legacy-peer-deps
       
-      - name: Build application
+      - name: Build application (PROD config)
         working-directory: ./Minimal-CAD
         run: npm run build -- --configuration=production
       
-      - name: Deploy to Firebase (Prod)
+      - name: Deploy to Firebase Prod (minimalcad-1a6dd + min-cad)
         working-directory: ./Minimal-CAD
         run: |
           npm install -g firebase-tools
-          # Use the prod Firebase config to target the prod hosting site
           firebase deploy \
-            --only hosting \
+            --only hosting,firestore:rules \
             --config firebase.prod.json \
             --project minimalcad-1a6dd \
             --token "${{ secrets.FIREBASE_TOKEN }}" 
