@@ -20,10 +20,8 @@ service cloud.firestore {
     
     // Projects collection rules
     match /projects/{projectId} {
-      // Allow read (both list and get) if authenticated
-      // For queries, only return documents where user is owner OR project is public
-      allow read: if isAuthenticated() &&
-                     (resource == null || isPublicProject(resource.data) || isOwner(resource.data));
+      // Allow read for any authenticated user
+      allow read: if isAuthenticated();
       
       // Allow create if:
       // - User is authenticated AND
