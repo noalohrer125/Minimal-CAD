@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { Firestore, addDoc, collection, collectionData, deleteDoc, doc, getDoc, query, setDoc, where } from '@angular/fire/firestore';
+import { Firestore, addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, setDoc, where } from '@angular/fire/firestore';
 import { from, Observable } from 'rxjs';
 import { FormObject, FreeObject, Project } from '../interfaces';
 import { Auth } from '@angular/fire/auth';
@@ -8,14 +8,17 @@ import { Auth } from '@angular/fire/auth';
   providedIn: 'root'
 })
 export class FirebaseService {
-  auth = inject(Auth);
+  private auth = inject(Auth);
+  private firestore = inject(Firestore);
   
   getCurrentUserEmail(): string | null {
     return this.auth.currentUser?.email ?? null;
   }
-  
-  firestore = inject(Firestore);
-  projectsCollection = collection(this.firestore, 'projects');
+
+  // Getter instead of property to ensure it's called within injection context
+  private get projectsCollection() {
+    return collection(this.firestore, 'projects');
+  }
 
   // Helper to get objects subcollection for a project
   private getObjectsCollection(projectId: string) {
@@ -24,9 +27,9 @@ export class FirebaseService {
 
   getObjectsByProjectId(projectId: string): Observable<(FormObject | FreeObject)[]> {
     const projectObjectsCollection = this.getObjectsCollection(projectId);
-    return collectionData(projectObjectsCollection, {
-      idField: 'id'
-    }) as Observable<(FormObject | FreeObject)[]>;
+    return from(getDocs(projectObjectsCollection).then(snapshot => {
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as FormObject | FreeObject));
+    }));
   }
 
   saveObject(projectId: string, object: FormObject | FreeObject): Observable<string> {
@@ -66,19 +69,23 @@ export class FirebaseService {
   }
 
   getProjects(): Observable<Project[]> {
-    return collectionData(this.projectsCollection, {
-      idField: 'id'
-    }) as Observable<Project[]>;
+    return from(getDocs(this.projectsCollection).then(snapshot => {
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project));
+    }));
   }
 
   getPublicProjects(): Observable<Project[]> {
     const publicProjectsQuery = query(this.projectsCollection, where('licenceKey', '==', 'public'));
-    return collectionData(publicProjectsQuery, { idField: 'id' }) as Observable<Project[]>;
+    return from(getDocs(publicProjectsQuery).then(snapshot => {
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project));
+    }));
   }
 
   getProjectsByOwner(ownerEmail: string): Observable<Project[]> {
     const ownerProjectsQuery = query(this.projectsCollection, where('ownerEmail', '==', ownerEmail));
-    return collectionData(ownerProjectsQuery, { idField: 'id' }) as Observable<Project[]>;
+    return from(getDocs(ownerProjectsQuery).then(snapshot => {
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project));
+    }));
   }
 
   getProjectById(projectId: string): Observable<Project | null> {
@@ -118,11 +125,11 @@ export class FirebaseService {
       try {
         // Delete all objects in the subcollection
         const objectsCollection = this.getObjectsCollection(projectId);
-        const objectsSnapshot = await collectionData(objectsCollection, { idField: 'id' }).toPromise();
+        const objectsSnapshot = await getDocs(objectsCollection);
         
-        if (objectsSnapshot && objectsSnapshot.length > 0) {
-          const deletePromises = objectsSnapshot.map((obj: any) =>
-            deleteDoc(doc(objectsCollection, obj.id))
+        if (objectsSnapshot && !objectsSnapshot.empty) {
+          const deletePromises = objectsSnapshot.docs.map((docSnapshot) =>
+            deleteDoc(doc(objectsCollection, docSnapshot.id))
           );
           await Promise.all(deletePromises);
         }
