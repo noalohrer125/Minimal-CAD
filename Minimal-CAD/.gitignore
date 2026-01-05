@@ -48,3 +48,6 @@ src/app/firebase-credentials.ts
 src/app/shared/stl-to-step_api/__pycache__/
 src/app/shared/stl-to-step_api/*.stl
 src/app/shared/stl-to-step_api/*.step
+
+# Test user credentials
+src/app/auth/login/testuser-credentials.ts
