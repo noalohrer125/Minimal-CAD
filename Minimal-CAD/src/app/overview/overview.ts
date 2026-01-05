@@ -1,10 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { Project } from '../interfaces';
 import { Router } from '@angular/router';
 import { FirebaseService } from '../shared/firebase.service';
 import { GlobalService } from '../shared/global.service';
 import { Draw } from '../shared/draw.service';
+import { Auth } from '@angular/fire/auth';
 
 @Component({
   selector: 'app-overview',
@@ -15,6 +16,8 @@ import { Draw } from '../shared/draw.service';
   styleUrl: './overview.css'
 })
 export class Overview {
+  private auth = inject(Auth);
+  
   constructor(
     private router: Router,
     private firebaseService: FirebaseService,
@@ -30,7 +33,13 @@ export class Overview {
   public projectsLoading: boolean = false;
 
   ngOnInit() {
+    const userEmail = this.firebaseService.getCurrentUserEmail();
+    if (!userEmail) {
+      return; // Auth guard will redirect
+    }
+
     this.projectsLoading = true;
+    
     this.firebaseService.getPublicProjects().subscribe({
       next: (projects) => {
         this.publicProjectsUnfiltered = projects;
@@ -38,27 +47,27 @@ export class Overview {
       },
       error: (error) => {
         console.error('Error loading public projects:', error);
-        alert('Error loading public projects. Please try again.');
+        if (this.auth.currentUser) {
+          alert('Error loading public projects. Please try again.');
+        }
         this.projectsLoading = false;
       }
     });
-    const userEmail = this.firebaseService.getCurrentUserEmail();
-    if (userEmail) {
-      this.firebaseService.getProjectsByOwner(userEmail).subscribe({
-        next: (projects) => {
-          this.myProjectsUnfiltered = projects;
-          this.myProjects = projects;
-          this.projectsLoading = false;
-        },
+
+    this.firebaseService.getProjectsByOwner(userEmail).subscribe({
+      next: (projects) => {
+        this.myProjectsUnfiltered = projects;
+        this.myProjects = projects;
+        this.projectsLoading = false;
+      },
       error: (error) => {
-          console.error('Error loading my projects:', error);
+        console.error('Error loading my projects:', error);
+        if (this.auth.currentUser) {
           alert('Error loading my projects. Please try again.');
-          this.projectsLoading = false;
         }
-      });
-    } else {
-      this.projectsLoading = false;
-    }
+        this.projectsLoading = false;
+      }
+    });
   }
 
   addProject() {
