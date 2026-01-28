@@ -5,7 +5,9 @@
 ### DEV Environment
 - **Branch:** `main`
 - **Firebase Project:** `minimalcad-dev`
-- **Hosting URL:** https://minimalcad-dev.web.app
+- **Hosting URLs:** 
+  - https://minimalcad-dev.web.app
+  - https://mincad-dev.web.app
 - **Build Config:** `--configuration=dev`
 - **Firebase Config:** Uses `environment.ts` (DEV database)
 - **Auto-Deploy:** Pusht du auf `main`, wird automatisch auf DEV deployed
@@ -26,7 +28,11 @@
 ```bash
 cd Minimal-CAD
 ng build --configuration=dev
+# Deploy zu beiden Dev-URLs:
 firebase deploy --only hosting,firestore:rules --project minimalcad-dev
+# Oder nur zu einer spezifischen Site:
+# firebase deploy --only hosting:minimalcad-dev --project minimalcad-dev
+# firebase deploy --only hosting:mincad-dev --project minimalcad-dev
 ```
 
 ### PROD Deployment
