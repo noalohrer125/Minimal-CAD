@@ -38,8 +38,9 @@ def upload_stl():
         else:
             return jsonify({'error': 'Invalid file type. Only .stl files are allowed'}), 400
     
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    except Exception:
+        logging.exception("Unexpected error during STL upload")
+        return jsonify({'error': 'An internal error has occurred.'}), 500
 
 @app.route('/convert', methods=['GET'])
 def convert():
@@ -59,8 +60,9 @@ def convert():
     
     except subprocess.TimeoutExpired:
         return jsonify({'error': 'Command timed out'}), 500
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    except Exception:
+        logging.exception("Unexpected error during STL to STEP conversion")
+        return jsonify({'error': 'An internal error has occurred.'}), 500
 
 @app.route('/download', methods=['GET'])
 def download_step():
