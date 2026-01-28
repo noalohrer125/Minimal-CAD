@@ -22,6 +22,12 @@ jobs:
           cache: 'npm'
           cache-dependency-path: Minimal-CAD/package-lock.json
       
+      - name: Cache Firebase Tools
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/firebase
+          key: ${{ runner.os }}-firebase-tools
+      
       - name: Install dependencies
         working-directory: ./Minimal-CAD
         run: npm ci --legacy-peer-deps
@@ -30,10 +36,12 @@ jobs:
         working-directory: ./Minimal-CAD
         run: npm run build -- --configuration=dev
       
+      - name: Install Firebase Tools
+        run: npm install -g firebase-tools
+      
       - name: Deploy to Firebase Dev (minimalcad-dev)
         working-directory: ./Minimal-CAD
         run: |
-          npm install -g firebase-tools
           firebase deploy \
             --only hosting,firestore:rules \
             --config firebase.json \
