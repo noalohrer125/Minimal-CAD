@@ -65,6 +65,7 @@ jobs:
             --expires 7d \
             --token "${{ secrets.FIREBASE_TOKEN }}" \
             --config ${{ steps.config.outputs.firebase_config }} \
+            --only hosting \
             --json > preview_output.json
       
       - name: Extract preview URL
