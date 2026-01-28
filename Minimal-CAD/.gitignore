@@ -50,4 +50,4 @@ src/app/shared/stl-to-step_api/*.stl
 src/app/shared/stl-to-step_api/*.step
 
 # Test user credentials
-src/app/auth/login/testuser-credentials.ts
+src/app/shared/testing/testuser-credentials.ts

@@ -4,7 +4,7 @@ import { AuthService } from '../auth.service';
 import { Router } from '@angular/router';
 import { ReactiveFormsModule } from '@angular/forms';
 import { of, throwError } from 'rxjs';
-import { testemail, testpassword } from './testuser-credentials';
+import { testemail, testpassword } from '../../shared/testing/testuser-credentials';
 
 describe('Login Component', () => {
     let component: Login;
