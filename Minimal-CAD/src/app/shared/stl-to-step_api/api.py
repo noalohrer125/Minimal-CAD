@@ -4,11 +4,10 @@ import subprocess
 import os
 import logging
 
-logging.basicConfig(level=logging.INFO)
-
 app = Flask(__name__)
 CORS(app)
 
+logging.basicConfig(level=logging.ERROR)
 ALLOWED_EXTENSIONS = {'stl'}
 
 def allowed_file(filename):
@@ -80,9 +79,9 @@ def download_step():
             mimetype='application/step'
         )
     
-    except Exception:
-        logging.exception("Unexpected error during STEP file download")
-        return jsonify({'error': 'An internal error has occurred.'}), 500
+    except Exception as e:
+        logging.exception("Unexpected error in /download endpoint")
+        return jsonify({'error': 'An internal error occurred while processing the download request'}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
