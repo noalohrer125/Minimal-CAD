@@ -41,10 +41,29 @@ testem.log
 .DS_Store
 Thumbs.db
 
-# Local secrets (Firebase config)
-src/app/firebase-credentials.ts
-
 # Temporary files
 src/app/shared/stl-to-step_api/__pycache__/
 src/app/shared/stl-to-step_api/*.stl
 src/app/shared/stl-to-step_api/*.step
+
+# Environment files with sensitive data
+.env
+.env.local
+.env.*.local
+
+# Firebase service account keys (NEVER commit these!)
+**/serviceAccountKey.json
+**/service-account-key.json
+**/*-firebase-adminsdk-*.json
+
+# Firebase tokens and debug logs
+.firebase-token
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+
+# Local development secrets
+**/secrets/
+**/.secrets/
+*.key
+*.pem
