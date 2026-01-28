@@ -2,10 +2,12 @@ from flask import Flask, jsonify, request, send_file
 from flask_cors import CORS
 import subprocess
 import os
+import logging
 
 app = Flask(__name__)
 CORS(app)
 
+logging.basicConfig(level=logging.ERROR)
 ALLOWED_EXTENSIONS = {'stl'}
 
 def allowed_file(filename):
@@ -76,7 +78,8 @@ def download_step():
         )
     
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        logging.exception("Unexpected error in /download endpoint")
+        return jsonify({'error': 'An internal error occurred while processing the download request'}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
