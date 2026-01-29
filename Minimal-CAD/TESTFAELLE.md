@@ -91,19 +91,15 @@ Diese Testfallliste dokumentiert alle Unit-Tests für die Minimal-CAD Applikatio
   - Error Code: 'auth/invalid-email'
   - Erwartung: errorMessage = 'Invalid email address.'
 
-- **TC-LOGIN-008**: Sollte Fehlermeldung bei deaktiviertem User anzeigen
-  - Error Code: 'auth/user-disabled'
-  - Erwartung: errorMessage = 'This user has been disabled.'
-
-- **TC-LOGIN-009**: Sollte Fehlermeldung bei nicht gefundenem User anzeigen
+- **TC-LOGIN-008**: Sollte Fehlermeldung bei nicht gefundenem User anzeigen
   - Error Code: 'auth/user-not-found'
   - Erwartung: errorMessage = 'User not found.'
 
-- **TC-LOGIN-010**: Sollte Fehlermeldung bei falschem Passwort anzeigen
+- **TC-LOGIN-009**: Sollte Fehlermeldung bei falschem Passwort anzeigen
   - Error Code: 'auth/wrong-password'
   - Erwartung: errorMessage = 'Incorrect password.'
 
-- **TC-LOGIN-011**: Sollte generische Fehlermeldung bei unbekanntem Fehler anzeigen
+- **TC-LOGIN-010**: Sollte generische Fehlermeldung bei unbekanntem Fehler anzeigen
   - Erwartung: errorMessage = 'Login error: Please try again.'
 
 ---
