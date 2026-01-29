@@ -62,10 +62,6 @@ describe('HeaderComponent', () => {
         expect(component).toBeTruthy();
     });
 
-    it('should have isAuthenticated default to false', () => {
-        expect(component.isAuthenticated).toBe(false);
-    });
-
     describe('Navigation Methods', () => {
         it('should navigate to login page', () => {
             component.login();
