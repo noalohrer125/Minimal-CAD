@@ -1,0 +1,34 @@
+name: Pull Request Checks
+
+on:
+  pull_request:
+    branches:
+      - main
+      - prod
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: Minimal-CAD/package-lock.json
+      
+      - name: Install dependencies
+        working-directory: ./Minimal-CAD
+        run: npm ci --legacy-peer-deps
+      
+      - name: Run unit tests
+        working-directory: ./Minimal-CAD
+        run: npm test
+      
+      - name: Build application
+        working-directory: ./Minimal-CAD
+        run: npm run build
