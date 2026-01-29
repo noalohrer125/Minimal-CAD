@@ -24,6 +24,10 @@ jobs:
         working-directory: ./Minimal-CAD
         run: npm ci --legacy-peer-deps
       
+      - name: Run unit tests
+        working-directory: ./Minimal-CAD
+        run: npm test
+      
       - name: Build application (DEV config)
         working-directory: ./Minimal-CAD
         run: npm run build -- --configuration=dev
