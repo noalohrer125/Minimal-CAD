@@ -15,7 +15,6 @@ describe('Register', () => {
         await TestBed.configureTestingModule({
             imports: [
                 Register,
-                // CommonModule, ReactiveFormsModule, etc.
             ],
             providers: [
                 provideFirebaseApp(() => initializeApp(firebaseConfig)),
