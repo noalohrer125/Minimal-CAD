@@ -133,7 +133,7 @@ Diese Testfallliste dokumentiert alle Unit-Tests für die Minimal-CAD Applikatio
 
 ---
 
-## 2. Header Component
+## 2. Header Component ✅
 
 ### 2.1 HeaderComponent (`header.component.ts`)
 
