@@ -16,7 +16,7 @@ export class Register {
   authService = inject(AuthService)
   router = inject(Router);
 
-  errorMesssage: string | null = null;
+  errorMessage: string | null = null;
 
   form = this.fb.nonNullable.group({
     username: ['', Validators.required],
@@ -34,7 +34,7 @@ export class Register {
       next: () => this.router.navigate(['/login']),
       error: (error) => {
         console.error('Registration error:', error);
-        this.errorMesssage = 'Registration error: ' + (error.message || 'Please check your input.');
+        this.errorMessage = 'Registration error: ' + (error.message || 'Please check your input.');
       }
     });
   }

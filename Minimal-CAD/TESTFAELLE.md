@@ -114,24 +114,21 @@ Diese Testfallliste dokumentiert alle Unit-Tests für die Minimal-CAD Applikatio
 - **TC-REG-002**: Sollte Form mit leeren Werten initialisieren
   - Erwartung: username, email und password sind leer
 
-- **TC-REG-003**: Sollte Username als required validieren
-  - Erwartung: Form ist invalid wenn Username leer ist
-
-- **TC-REG-004**: Sollte E-Mail als required validieren
+- **TC-REG-003**: Sollte E-Mail als required validieren
   - Erwartung: Form ist invalid wenn E-Mail leer ist
 
-- **TC-REG-005**: Sollte Passwort als required validieren
+- **TC-REG-004**: Sollte Passwort als required validieren
   - Erwartung: Form ist invalid wenn Passwort leer ist
 
 #### Test Suite: Registration Submission
-- **TC-REG-006**: Sollte authService.register mit korrekten Daten aufrufen
+- **TC-REG-005**: Sollte authService.register mit korrekten Daten aufrufen
   - Input: E-Mail, Username und Passwort aus Form
   - Erwartung: authService.register wird mit getRawValue() Daten aufgerufen
 
-- **TC-REG-007**: Sollte nach erfolgreicher Registrierung zum Login navigieren
+- **TC-REG-006**: Sollte nach erfolgreicher Registrierung zum Login navigieren
   - Erwartung: Router navigiert zu /login
 
-- **TC-REG-008**: Sollte Fehlermeldung bei Registrierungsfehler anzeigen
+- **TC-REG-007**: Sollte Fehlermeldung bei Registrierungsfehler anzeigen
   - Erwartung: errorMessage wird gesetzt mit Error-Details
 
 ---
