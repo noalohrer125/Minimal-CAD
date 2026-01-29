@@ -5,7 +5,7 @@ Diese Testfallliste dokumentiert alle Unit-Tests für die Minimal-CAD Applikatio
 
 ---
 
-## 1. Authentication Module
+## 1. Authentication Module ✅
 
 ### 1.1 AuthService (`auth.service.ts`)
 
