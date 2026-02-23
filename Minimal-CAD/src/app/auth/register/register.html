@@ -1,7 +1,7 @@
 <h1>Register</h1>
 
-@if (errorMesssage) {
-    <div class="error-message">{{ errorMesssage }}</div>
+@if (errorMessage) {
+    <div class="error-message">{{ errorMessage }}</div>
 }
 
 <form [formGroup]="form" (ngSubmit)="onSubmit()">
