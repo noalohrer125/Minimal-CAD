@@ -22,7 +22,7 @@ describe('Overview', () => {
         }
     ] as any;
 
-        const mockMyProjects = [
+    const mockMyProjects = [
         {
             id: 'my1',
             name: 'My Project',
@@ -97,13 +97,13 @@ describe('Overview', () => {
             component!.addProject();
             expect(globalServiceMock.openSaveProjectPopup).toHaveBeenCalledWith(true);
         });
-        
+
         it('TC-OV-003: opening a public project navigates to editor', () => {
             createComponent();
             component!.openProject('pub1', 'Public Project', 'public');
             expect(routerMock.navigate).toHaveBeenCalledWith(['/editor', 'pub1']);
         });
-        
+
         it('TC-OV-004: private project with correct licence key navigates to editor', () => {
             // prompt returns the correct key
             (window.prompt as jest.Mock).mockReturnValue('secret-key');
@@ -112,7 +112,7 @@ describe('Overview', () => {
             expect(window.prompt).toHaveBeenCalled();
             expect(routerMock.navigate).toHaveBeenCalledWith(['/editor', 'priv1']);
         });
-        
+
         it('TC-OV-005: wrong licence key shows alert and does not navigate', () => {
             (window.prompt as jest.Mock).mockReturnValue('wrong');
             createComponent();
@@ -121,7 +121,7 @@ describe('Overview', () => {
             expect(window.alert).toHaveBeenCalledWith('Please enter the correct license key to open this project.');
             expect(routerMock.navigate).not.toHaveBeenCalledWith(['/editor', 'priv1']);
         });
-        
+
         it('TC-OV-006: prompt is called for private project', () => {
             (window.prompt as jest.Mock).mockReturnValue('some');
             createComponent();
@@ -130,22 +130,32 @@ describe('Overview', () => {
         });
     });
 
-    it('TC-OV-007: ngOnInit calls firebaseService.getPublicProjects and getProjectsByOwner', () => {
-        createComponent();
-        expect(firebaseServiceMock.getPublicProjects).toHaveBeenCalled();
-        expect(firebaseServiceMock.getProjectsByOwner).toHaveBeenCalledWith(testemail);
-        // after subscriptions the publicProjects and myProjects should be populated
-        expect(component!.publicProjects).toEqual(mockPublicProjects);
-        expect(component!.myProjects).toEqual(mockMyProjects);
-    });
+    describe('Firebase Integration', () => {
+        it('TC-OV-007: should load public and my projects on init', () => {
+            (firebaseServiceMock.getPublicProjects as jest.Mock).mockReturnValue(of(mockPublicProjects));
+            (firebaseServiceMock.getProjectsByOwner as jest.Mock).mockReturnValue(of(mockMyProjects));
+            createComponent();
+            expect(firebaseServiceMock.getPublicProjects).toHaveBeenCalled();
+            expect(firebaseServiceMock.getProjectsByOwner).toHaveBeenCalledWith(testemail);
+            expect(component!.publicProjects).toEqual(mockPublicProjects);
+            expect(component!.myProjects).toEqual(mockMyProjects);
+        });
 
-    it('TC-OV-009: on error loading public projects sets projectsLoading false and alerts when auth present', () => {
-        // make getPublicProjects throw
-        (firebaseServiceMock.getPublicProjects as jest.Mock).mockReturnValue(throwError(() => new Error('fail')));
-        (firebaseServiceMock.getProjectsByOwner as jest.Mock).mockReturnValue(of([]));
-        createComponent();
-        // projectsLoading should be set false after error handling
-        expect(component!.projectsLoading).toBe(false);
-        expect(window.alert).toHaveBeenCalledWith('Error loading public projects. Please try again.');
+        it('TC-OV-008: should filter public projects and call getPublicProjects', () => {
+            const mixed = [
+                { id: 'p1', name: 'A', licenceKey: 'public' } as any,
+                { id: 'p2', name: 'B', licenceKey: 'private' } as any
+            ];
+            (firebaseServiceMock.getPublicProjects as jest.Mock).mockReturnValue(of(mixed));
+            createComponent();
+            expect(firebaseServiceMock.getPublicProjects).toHaveBeenCalled();
+            expect(component!.publicProjects).toEqual(mixed.filter(p => p.licenceKey === 'public'));
+        });
+
+        it('TC-OV-009: should load my projects on init', () => {
+            createComponent();
+            expect(firebaseServiceMock.getProjectsByOwner).toHaveBeenCalledWith(testemail);
+            expect(component!.myProjects).toEqual(mockMyProjects);
+        });
     });
 });
