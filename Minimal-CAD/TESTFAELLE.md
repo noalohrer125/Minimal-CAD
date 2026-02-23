@@ -881,50 +881,22 @@ Diese Testfallliste dokumentiert alle Unit-Tests für die Minimal-CAD Applikatio
 
 ---
 
-## 8. Interfaces & Types
+## 8. E2E Tests
 
-### 8.1 Interfaces (`interfaces.ts`)
-
-#### Test Suite: Type Definitions
-- **TC-TYPE-001**: Sollte User Interface korrekt definieren
-  - Properties: email, username
-
-- **TC-TYPE-002**: Sollte Project Interface korrekt definieren
-  - Properties: id, name, licenceKey, ownerEmail, createdAt, updatedAt
-
-- **TC-TYPE-003**: Sollte FormObject Interface korrekt definieren
-  - Properties: id, name, type, l, w, h, r, position, rotation, curveSegments, selected, ghost
-
-- **TC-TYPE-004**: Sollte FreeObject Interface korrekt definieren
-  - Properties: id, name, type, commands, h, position, rotation, selected, ghost
-
-- **TC-TYPE-005**: Sollte FreeObjectCommand Type korrekt definieren
-  - Types: moveTo, lineTo, quadraticCurveTo
-
-- **TC-TYPE-006**: Sollte view Interface korrekt definieren
-  - Properties: camera, rootGroup mit position, rotation, scale
-
-- **TC-TYPE-007**: Sollte projectSavingResult Interface korrekt definieren
-  - Properties: success, projectName, licenceKey, projectId, error
-
----
-
-## 9. Integration Tests
-
-### 9.1 Complete User Flows
-- **TC-INT-FLOW-001**: Kompletter Registrierungs-Flow
+### 8.1 Complete User Flows
+- **TC-E2E-FLOW-001**: Kompletter Registrierungs-Flow
   - Schritte: Register -> Login -> Overview
   - Erwartung: User wird erstellt und eingeloggt
 
-- **TC-INT-FLOW-002**: Kompletter Projekt-Erstellungs-Flow
+- **TC-E2E-FLOW-002**: Kompletter Projekt-Erstellungs-Flow
   - Schritte: Login -> Overview -> Add Project -> Editor -> Save
   - Erwartung: Projekt wird in Firebase gespeichert
 
-- **TC-INT-FLOW-003**: Kompletter Objekt-Erstellungs-Flow
+- **TC-E2E-FLOW-003**: Kompletter Objekt-Erstellungs-Flow
   - Schritte: Editor öffnen -> Objekt zeichnen -> Objekt speichern
   - Erwartung: Objekt erscheint in Scene und localStorage
 
-- **TC-INT-FLOW-004**: Export-Flow
+- **TC-E2E-FLOW-004**: Export-Flow
   - Schritte: Projekt laden -> Export als STL/STEP
   - Erwartung: Datei wird heruntergeladen
 
