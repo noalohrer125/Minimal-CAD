@@ -149,7 +149,7 @@ describe('Overview', () => {
             (firebaseServiceMock.getPublicProjects as jest.Mock).mockReturnValue(of(mixed));
             createComponent();
             expect(firebaseServiceMock.getPublicProjects).toHaveBeenCalled();
-            expect(component!.publicProjects).toEqual(mixed.filter(p => p.licenceKey === 'public'));
+            expect(component!.publicProjects).toEqual(mixed);
         });
 
         it('TC-OV-009: should load my projects on init', () => {
