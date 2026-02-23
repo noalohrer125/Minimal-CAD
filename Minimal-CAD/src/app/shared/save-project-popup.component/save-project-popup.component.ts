@@ -124,7 +124,7 @@ export class SaveProjectPopupComponent implements OnInit, OnDestroy {
   }
 
   onSubmit() {
-    this.drawService.saveProjectToFirebase(this.getDataFromForm().projectName, !this.getDataFromForm().isPrivate, this.globalService.getIsNewProject()).then((result: projectSavingResult) => {
+    this.drawService.saveProjectToFirebase(this.getDataFromForm().projectName, this.getDataFromForm().isPrivate, this.globalService.getIsNewProject()).then((result: projectSavingResult) => {
       this.projectSavingResult = result;
       this.saved = true;
       this.drawService.reload$.next();
