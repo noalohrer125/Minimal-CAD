@@ -4,7 +4,6 @@ import { Project } from '../interfaces';
 import { Router } from '@angular/router';
 import { FirebaseService } from '../shared/firebase.service';
 import { GlobalService } from '../shared/global.service';
-import { Draw } from '../shared/draw.service';
 import { Auth } from '@angular/fire/auth';
 
 @Component({
@@ -22,7 +21,6 @@ export class Overview {
     private router: Router,
     private firebaseService: FirebaseService,
     private globalService: GlobalService,
-    private drawService: Draw
   ) {}
 
   private publicProjectsUnfiltered: Project[] = [];
