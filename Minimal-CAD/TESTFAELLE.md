@@ -358,7 +358,7 @@ Diese Testfallliste dokumentiert alle Unit-Tests für die Minimal-CAD Applikatio
 #### Test Suite: Camera Control
 - **TC-VC-002**: Sollte Kamera zu verschiedenen Views bewegen
   - Input: Front, Back, Left, Right, Top, Bottom
-  - Erwartung: cameraReset Event wird mit korrekten Koordinaten emittiert
+  - Erwartung: cameraReset Event wird mit korrekten Koordinaten emittet
 
 - **TC-VC-003**: Sollte auf Klick Events reagieren
   - Erwartung: Entsprechende View-Methode wird aufgerufen
