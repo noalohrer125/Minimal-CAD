@@ -4,6 +4,7 @@ import { Auth, getAuth, provideAuth } from '@angular/fire/auth';
 import { firebaseConfig } from '../firebase-credentials';
 import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
 import { testusername, testemail, testpassword, newtestusername, newtestemail, newtestpassword } from '../shared/testing/testuser-credentials';
+import { filter, firstValueFrom, take } from 'rxjs';
 
 describe('AuthService', () => {
     let service: AuthService;
@@ -56,8 +57,6 @@ describe('AuthService', () => {
                     }).catch((err) => {
                         done(new Error(`Failed to delete user: ${err}`));
                     });
-
-                    done();
                 },
                 error: (err) => {
                     done(new Error(`Registration failed with error: ${err}`));
@@ -114,26 +113,14 @@ describe('AuthService', () => {
 
     describe('User Login', () => {
         // TC-AUTH-005
-        it('should login an existing user', (done) => {
-            service.logout().subscribe({
-                next: () => {
-                    service.login(testemail, testpassword).subscribe({
-                        next: () => {
-                            const currentUser = auth.currentUser;
-                            expect(currentUser).not.toBeNull();
-                            expect(currentUser?.email).toBe(testemail);
-                            expect(currentUser?.displayName).toBe(testusername);
-                        },
-                        error: (err) => {
-                            done(new Error(`Login failed with error: ${err}`));
-                        }
-                    });
-                },
-                error: (err) => {
-                    done(new Error(`Logout failed with error: ${err}`));
-                }
-            });
-            done();
+        it('should login an existing user', async () => {
+            await firstValueFrom(service.logout());
+            await firstValueFrom(service.login(testemail, testpassword));
+
+            const currentUser = auth.currentUser;
+            expect(currentUser).not.toBeNull();
+            expect(currentUser?.email).toBe(testemail);
+            expect(currentUser?.displayName).toBe(testusername);
         });
         
         // TC-AUTH-006
@@ -151,26 +138,15 @@ describe('AuthService', () => {
         });
         
         // TC-AUTH-007
-        it('should set currentUserSignal after login', (done) => {
-            service.logout().subscribe({
-                next: () => {
-                    service.login(testemail, testpassword).subscribe({
-                        next: () => {
-                            const currentUser = service.currentUserSignal();
-                            expect(currentUser).not.toBeNull();
-                            expect(currentUser?.email).toBe(testemail);
-                            expect(currentUser?.username).toBe(testusername);
-                            done();
-                        },
-                        error: (err) => {
-                            done(new Error(`Login failed with error: ${err}`));
-                        }
-                    });
-                },
-                error: (err) => {
-                    done(new Error(`Logout failed with error: ${err}`));
-                }
-            });
+        it('should set currentUserSignal after login', async () => {
+            await firstValueFrom(service.logout());
+            await firstValueFrom(service.login(testemail, testpassword));
+            await firstValueFrom(service.$user.pipe(filter(user => !!user), take(1)));
+
+            const currentUser = service.currentUserSignal();
+            expect(currentUser).not.toBeNull();
+            expect(currentUser?.email).toBe(testemail);
+            expect(currentUser?.username).toBe(testusername);
         });
     });
 
