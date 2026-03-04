@@ -16,15 +16,28 @@ export class Register {
   authService = inject(AuthService)
   router = inject(Router);
 
-  errorMesssage: string | null = null;
+  errorMessage: string | null = null;
 
   form = this.fb.nonNullable.group({
     username: ['', Validators.required],
-    email: ['', Validators.required],
-    password: ['', Validators.required],
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.required, Validators.minLength(6)]],
   });
 
+  goToLogin(event: MouseEvent): void {
+    event.preventDefault();
+    this.router.navigate(['/login']);
+  }
+
   onSubmit(): void {
+    this.errorMessage = null;
+
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      this.errorMessage = 'Bitte prüfe deine Eingaben.';
+      return;
+    }
+
     const rawForm = this.form.getRawValue();
     this.authService.register(
       rawForm.email,
@@ -34,7 +47,14 @@ export class Register {
       next: () => this.router.navigate(['/login']),
       error: (error) => {
         console.error('Registration error:', error);
-        this.errorMesssage = 'Registration error: ' + (error.message || 'Please check your input.');
+        const errorMessages: { [key: string]: string } = {
+          'auth/email-already-in-use': 'Diese E-Mail-Adresse wird bereits verwendet.',
+          'auth/invalid-email': 'Die E-Mail-Adresse ist ungültig.',
+          'auth/weak-password': 'Das Passwort ist zu schwach.',
+          'auth/operation-not-allowed': 'Registrierung ist aktuell nicht möglich.'
+        };
+        const authCode = error?.code as string | undefined;
+        this.errorMessage = authCode ? (errorMessages[authCode] ?? 'Registrierung fehlgeschlagen. Bitte versuche es erneut.') : 'Registrierung fehlgeschlagen. Bitte versuche es erneut.';
       }
     });
   }
