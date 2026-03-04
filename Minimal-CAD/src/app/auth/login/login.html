@@ -9,10 +9,10 @@
 
         <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
             <label>
-                <span>E-Mail</span>
+                <span>Email</span>
                 <input type="email" placeholder="name@example.com" formControlName="email" />
                 @if (form.controls.email.touched && form.controls.email.hasError('required')) {
-                    <small class="field-error">E-Mail is required.</small>
+                    <small class="field-error">Email is required.</small>
                 }
                 @if (form.controls.email.touched && form.controls.email.hasError('email')) {
                     <small class="field-error">Please enter a valid email.</small>

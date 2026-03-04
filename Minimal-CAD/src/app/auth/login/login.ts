@@ -29,7 +29,7 @@ export class Login {
 
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      this.errorMessage = 'Bitte prüfe deine Eingaben.';
+      this.errorMessage = 'Please check your input.';
       return;
     }
 
@@ -42,15 +42,15 @@ export class Login {
       error: (error) => {
         console.error('Login error:', error);
         const errorMessages: { [key: string]: string } = {
-          'auth/invalid-email': 'Die E-Mail-Adresse ist ungültig.',
-          'auth/user-disabled': 'Dieses Benutzerkonto wurde deaktiviert.',
-          'auth/user-not-found': 'E-Mail oder Passwort ist falsch.',
-          'auth/wrong-password': 'E-Mail oder Passwort ist falsch.',
-          'auth/invalid-credential': 'E-Mail oder Passwort ist falsch.',
-          'auth/too-many-requests': 'Zu viele Versuche. Bitte warte kurz und probiere es erneut.'
+          'auth/invalid-email': 'The email address is invalid.',
+          'auth/user-disabled': 'This user account has been disabled.',
+          'auth/user-not-found': 'Email or password is incorrect.',
+          'auth/wrong-password': 'Email or password is incorrect.',
+          'auth/invalid-credential': 'Email or password is incorrect.',
+          'auth/too-many-requests': 'Too many attempts. Please wait a moment and try again.'
         };
         const authCode = error?.code as string | undefined;
-        this.errorMessage = authCode ? (errorMessages[authCode] ?? 'Anmeldung fehlgeschlagen. Bitte versuche es erneut.') : 'Anmeldung fehlgeschlagen. Bitte versuche es erneut.';
+        this.errorMessage = authCode ? (errorMessages[authCode] ?? 'Login failed. Please try again.') : 'Login failed. Please try again.';
       }
     });
   }

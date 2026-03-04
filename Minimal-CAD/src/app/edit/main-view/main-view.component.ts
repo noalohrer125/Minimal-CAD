@@ -6,6 +6,7 @@ import { ModelRenderService } from '../../shared/model-render.service';
 import { InteractionService } from '../../shared/interaction.service';
 import { AnimationService } from '../../shared/animation.service';
 import * as THREE from 'three';
+import { DialogService } from '../../shared/dialog.service';
 
 @Component({
   selector: 'app-main-view',
@@ -54,7 +55,8 @@ export class MainViewComponent implements OnInit, AfterViewInit, OnDestroy {
     private sceneService: ThreeSceneService,
     private modelRenderService: ModelRenderService,
     private interactionService: InteractionService,
-    private animationService: AnimationService
+    private animationService: AnimationService,
+    private dialogService: DialogService
   ) { }
 
   public setRotation(rot: THREE.Euler) {
@@ -125,7 +127,7 @@ export class MainViewComponent implements OnInit, AfterViewInit, OnDestroy {
       );
     } catch (error) {
       console.error('Error initializing view:', error);
-      alert('Fehler beim Initialisieren der Ansicht. Bitte laden Sie die Seite neu.');
+      this.dialogService.alert('Error', 'Failed to initialize the view. Please reload the page.');
     }
   }
 

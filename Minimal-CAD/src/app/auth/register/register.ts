@@ -34,7 +34,7 @@ export class Register {
 
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      this.errorMessage = 'Bitte prüfe deine Eingaben.';
+      this.errorMessage = 'Please check your input.';
       return;
     }
 
@@ -48,13 +48,13 @@ export class Register {
       error: (error) => {
         console.error('Registration error:', error);
         const errorMessages: { [key: string]: string } = {
-          'auth/email-already-in-use': 'Diese E-Mail-Adresse wird bereits verwendet.',
-          'auth/invalid-email': 'Die E-Mail-Adresse ist ungültig.',
-          'auth/weak-password': 'Das Passwort ist zu schwach.',
-          'auth/operation-not-allowed': 'Registrierung ist aktuell nicht möglich.'
+          'auth/email-already-in-use': 'This email address is already in use.',
+          'auth/invalid-email': 'The email address is invalid.',
+          'auth/weak-password': 'The password is too weak.',
+          'auth/operation-not-allowed': 'Registration is currently not available.'
         };
         const authCode = error?.code as string | undefined;
-        this.errorMessage = authCode ? (errorMessages[authCode] ?? 'Registrierung fehlgeschlagen. Bitte versuche es erneut.') : 'Registrierung fehlgeschlagen. Bitte versuche es erneut.';
+        this.errorMessage = authCode ? (errorMessages[authCode] ?? 'Registration failed. Please try again.') : 'Registration failed. Please try again.';
       }
     });
   }

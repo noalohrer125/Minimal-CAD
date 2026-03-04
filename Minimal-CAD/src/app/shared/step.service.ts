@@ -2,9 +2,10 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { StlService } from './stl.service';
 import { Draw } from './draw.service';
+import { DialogService } from './dialog.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class StepService {
   private apiUrl = 'http://localhost:5000/convert';
@@ -13,12 +14,17 @@ export class StepService {
   constructor(
     private http: HttpClient,
     private stlService: StlService,
-    private drawService: Draw
+    private drawService: Draw,
+    private dialogService: DialogService,
   ) {}
 
   convertAndDownload(): void {
     try {
-      this.stlService.downloadStlFromJsonString(JSON.stringify(this.drawService.loadObjects()), 'model.stl', true);
+      this.stlService.downloadStlFromJsonString(
+        JSON.stringify(this.drawService.loadObjects()),
+        'model.stl',
+        true,
+      );
       this.http.get(this.apiUrl).subscribe({
         next: () => {
           console.log('Conversion request sent successfully');
@@ -27,12 +33,18 @@ export class StepService {
         },
         error: (error) => {
           console.error('Error calling convert endpoint:', error);
-          alert('Fehler bei der STEP-Konvertierung. Stellen Sie sicher, dass der Server läuft.');
-        }
+          this.dialogService.alert(
+            'Error',
+            'STEP conversion failed. Make sure the server is running.',
+          );
+        },
       });
     } catch (error) {
       console.error('Error in convertAndDownload:', error);
-      alert('Fehler beim Konvertieren der Datei. Bitte versuchen Sie es erneut.');
+      this.dialogService.alert(
+        'Error',
+        'Failed to convert file. Please try again.',
+      );
     }
   }
 
@@ -49,13 +61,16 @@ export class StepService {
           console.log('STEP file downloaded successfully');
         } catch (error) {
           console.error('Error creating download link:', error);
-          alert('Fehler beim Herunterladen der STEP-Datei.');
+          this.dialogService.alert('Error', 'Failed to download STEP file.');
         }
       },
       error: (error) => {
         console.error('Error downloading STEP file:', error);
-        alert('Fehler beim Herunterladen der STEP-Datei vom Server.');
-      }
+        this.dialogService.alert(
+          'Error',
+          'Failed to download STEP file from the server.',
+        );
+      },
     });
   }
 }
