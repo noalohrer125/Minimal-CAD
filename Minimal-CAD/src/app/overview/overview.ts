@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { Project } from '../interfaces';
 import { Router } from '@angular/router';
@@ -6,6 +6,7 @@ import { FirebaseService } from '../shared/firebase.service';
 import { GlobalService } from '../shared/global.service';
 import { Draw } from '../shared/draw.service';
 import { Auth } from '@angular/fire/auth';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-overview',
@@ -15,7 +16,7 @@ import { Auth } from '@angular/fire/auth';
   templateUrl: './overview.html',
   styleUrl: './overview.css'
 })
-export class Overview {
+export class Overview implements OnInit, OnDestroy {
   private auth = inject(Auth);
   public readonly defaultProjectThumbnail = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="320" height="200" viewBox="0 0 320 200"%3E%3Crect width="320" height="200" fill="%23202830"/%3E%3Cpath d="M0 160L80 110L130 145L190 95L260 150L320 120V200H0Z" fill="%2337424f"/%3E%3Ccircle cx="70" cy="56" r="18" fill="%23475868"/%3E%3Ctext x="160" y="110" fill="%23a9c2d8" font-size="18" text-anchor="middle" font-family="Arial, sans-serif"%3EProject Preview%3C/text%3E%3C/svg%3E';
   
@@ -32,8 +33,22 @@ export class Overview {
   public myProjects: Project[] = [];
   public showMyProjects: boolean = true;
   public projectsLoading: boolean = false;
+  private subscriptions = new Subscription();
 
   ngOnInit() {
+    this.loadProjects();
+    this.subscriptions.add(
+      this.drawService.reload$.subscribe(() => {
+        this.loadProjects();
+      })
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
+  }
+
+  private loadProjects(): void {
     const userEmail = this.firebaseService.getCurrentUserEmail();
     if (!userEmail) {
       return; // Auth guard will redirect
