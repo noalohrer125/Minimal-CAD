@@ -19,7 +19,7 @@
                 @for (project of myProjects; track $index) {
                     <div class="project-card" (click)="openProject(project.id, project.name, project.licenceKey)">
                         <div class="project-thumb">
-                            <img src="something" alt="something">
+                            <img [src]="getProjectThumbnail(project)" [alt]="project.name + ' preview'">
                         </div>
                         <div class="project-info">
                             <div class="project-card-header">
@@ -39,7 +39,7 @@
                 @for (project of publicProjects; track $index) {
                     <div class="project-card" (click)="openProject(project.id, project.name, project.licenceKey)">
                         <div class="project-thumb">
-                            <img src="something" alt="something">
+                            <img [src]="getProjectThumbnail(project)" [alt]="project.name + ' preview'">
                         </div>
                         <div class="project-info">
                             <div class="project-card-header">

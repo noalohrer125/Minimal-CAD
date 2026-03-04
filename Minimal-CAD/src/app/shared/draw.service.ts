@@ -3,13 +3,17 @@ import { DEFAULT_VIEW, FormObject, FreeObject, Project, projectSavingResult, vie
 import { FirebaseService } from './firebase.service';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Timestamp } from '@angular/fire/firestore';
+import { ProjectThumbnailService } from './project-thumbnail.service';
 
 
 @Injectable({
   providedIn: 'root'
 })
 export class Draw {
-  constructor(private firebaseService: FirebaseService) {}
+  constructor(
+    private firebaseService: FirebaseService,
+    private projectThumbnailService: ProjectThumbnailService
+  ) {}
 
   public reload$: BehaviorSubject<void> = new BehaviorSubject<void>(undefined);
 
@@ -109,12 +113,18 @@ export class Draw {
       if (!currentUserEmail) {
         throw new Error('User not authenticated');
       }
+
+      let modelData = this.loadObjects().filter(obj => !obj.ghost);
+      modelData.forEach(obj => obj.selected = false);
+      const thumbnailDataUrl = this.projectThumbnailService.createProjectThumbnail(modelData);
+
       const project: Project = {
         id: projectId,
         name: projectName,
         licenceKey: isPrivate ? this.generateHash(this.generateId()) : 'public',
         ownerEmail: currentUserEmail,
-        createdAt: Timestamp.now()
+        createdAt: Timestamp.now(),
+        ...(thumbnailDataUrl ? { thumbnailDataUrl } : {})
       };
       
       // Save project first to create the document
@@ -128,8 +138,6 @@ export class Draw {
       });
       
       // Then save all objects to the project's subcollection
-      let modelData = this.loadObjects().filter(obj => !obj.ghost);
-      modelData.forEach(obj => obj.selected = false);
       await Promise.all(modelData.map(obj => {
         return new Promise((resolve, reject) => {
           this.firebaseService.saveObject(projectId!, obj).subscribe({
