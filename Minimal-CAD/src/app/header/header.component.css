@@ -40,8 +40,15 @@ mat-icon:hover {
     margin-left: auto;
     display: flex;
     flex-direction: row;
+    align-items: center;
 
     .user-span {
         margin-right: 20px;
     }
+}
+
+.user {
+    border: 1px solid rgba(211, 211, 211, 0.5);
+    padding: 5px 30px;
+    border-radius: 5px;
 }
