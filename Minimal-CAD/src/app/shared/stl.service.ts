@@ -93,7 +93,7 @@ export class StlService {
 
         const h_mm = (obj.h ?? 1) * 10;
         const extrudeSettings = {
-          curveSegments: 1000,
+          curveSegments: 600,
           depth: h_mm,
           bevelEnabled: false
         };
