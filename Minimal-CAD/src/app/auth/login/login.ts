@@ -1,12 +1,13 @@
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../auth.service';
 
 @Component({
   selector: 'app-login',
   imports: [
     ReactiveFormsModule,
+    RouterLink,
   ],
   templateUrl: './login.html',
   styleUrl: './login.css'
@@ -17,13 +18,21 @@ export class Login {
   authService = inject(AuthService);
 
   form = this.fb.nonNullable.group({
-    email: ['', Validators.required],
-    password: ['', Validators.required],
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.required, Validators.minLength(6)]],
   });
 
-  errorMesssage: string | null = null;
+  errorMessage: string | null = null;
 
   onSubmit(): void {
+    this.errorMessage = null;
+
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      this.errorMessage = 'Bitte prüfe deine Eingaben.';
+      return;
+    }
+
     const rawForm = this.form.getRawValue();
     this.authService.login(
       rawForm.email,
@@ -33,13 +42,15 @@ export class Login {
       error: (error) => {
         console.error('Login error:', error);
         const errorMessages: { [key: string]: string } = {
-          'auth/invalid-email': 'Invalid email address.',
-          'auth/user-disabled': 'This user has been disabled.',
-          'auth/user-not-found': 'User not found.',
-          'auth/wrong-password': 'Incorrect password.',
-          'auth/invalid-credential': 'Invalid credentials.'
+          'auth/invalid-email': 'Die E-Mail-Adresse ist ungültig.',
+          'auth/user-disabled': 'Dieses Benutzerkonto wurde deaktiviert.',
+          'auth/user-not-found': 'E-Mail oder Passwort ist falsch.',
+          'auth/wrong-password': 'E-Mail oder Passwort ist falsch.',
+          'auth/invalid-credential': 'E-Mail oder Passwort ist falsch.',
+          'auth/too-many-requests': 'Zu viele Versuche. Bitte warte kurz und probiere es erneut.'
         };
-        this.errorMesssage = errorMessages[error.code] || 'Login error: Please try again.';
+        const authCode = error?.code as string | undefined;
+        this.errorMessage = authCode ? (errorMessages[authCode] ?? 'Anmeldung fehlgeschlagen. Bitte versuche es erneut.') : 'Anmeldung fehlgeschlagen. Bitte versuche es erneut.';
       }
     });
   }

@@ -1,14 +1,41 @@
-<h1>Login</h1>
+<section class="auth-page">
+    <div class="auth-card">
+        <h1>Login</h1>
+        <p class="auth-subtitle">Please log in in order to use this app.</p>
 
-<form [formGroup]="form" (ngSubmit)="onSubmit()">
-    <div>
-        <input type="text" placeholder="Email" formControlName="email" />
+        @if (errorMessage) {
+            <div class="error-message" role="alert">{{ errorMessage }}</div>
+        }
+
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+            <label>
+                <span>E-Mail</span>
+                <input type="email" placeholder="name@example.com" formControlName="email" />
+                @if (form.controls.email.touched && form.controls.email.hasError('required')) {
+                    <small class="field-error">E-Mail is required.</small>
+                }
+                @if (form.controls.email.touched && form.controls.email.hasError('email')) {
+                    <small class="field-error">Please enter a valid email.</small>
+                }
+            </label>
+
+            <label>
+                <span>Password</span>
+                <input type="password" placeholder="••••••••" formControlName="password" />
+                @if (form.controls.password.touched && form.controls.password.hasError('required')) {
+                    <small class="field-error">Password is required.</small>
+                }
+                @if (form.controls.password.touched && form.controls.password.hasError('minlength')) {
+                    <small class="field-error">At least 6 characters.</small>
+                }
+            </label>
+
+            <button type="submit" [disabled]="form.invalid">Login</button>
+        </form>
+
+        <p class="auth-footer">
+            Don't have an account?
+            <a routerLink="/register">Register now</a>
+        </p>
     </div>
-    <div>
-        <input type="password" placeholder="Password"
-            formControlName="password" />
-    </div>
-    <div>
-        <button type="submit">Sign In</button>
-    </div>
-</form>
+</section>
