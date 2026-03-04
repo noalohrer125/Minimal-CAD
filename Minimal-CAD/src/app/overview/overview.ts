@@ -7,11 +7,16 @@ import { GlobalService } from '../shared/global.service';
 import { Draw } from '../shared/draw.service';
 import { Auth } from '@angular/fire/auth';
 import { Subscription } from 'rxjs';
+import { Timestamp } from '@angular/fire/firestore';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-overview',
   imports: [
-    MatIconModule
+    MatIconModule,
+    MatMenuModule,
+    MatButtonModule
   ],
   templateUrl: './overview.html',
   styleUrl: './overview.css'
@@ -33,6 +38,7 @@ export class Overview implements OnInit, OnDestroy {
   public myProjects: Project[] = [];
   public showMyProjects: boolean = true;
   public projectsLoading: boolean = false;
+  public activeProject: Project | null = null;
   private subscriptions = new Subscription();
 
   ngOnInit() {
@@ -104,8 +110,67 @@ export class Overview implements OnInit, OnDestroy {
     }
   }
 
-  openProjectActions() {
-    throw new Error('Method not implemented.');
+  openProjectActions(project: Project, event: Event): void {
+    event.stopPropagation();
+    this.activeProject = project;
+  }
+
+  renameActiveProject(event: Event): void {
+    event.stopPropagation();
+
+    if (!this.activeProject) {
+      return;
+    }
+
+    const newName = prompt('Neuen Projektnamen eingeben:', this.activeProject.name)?.trim();
+    if (!newName || newName === this.activeProject.name) {
+      return;
+    }
+
+    const updatedProject: Project = {
+      ...this.activeProject,
+      name: newName,
+      updatedAt: Timestamp.now()
+    };
+
+    this.firebaseService.updateProject(updatedProject).subscribe({
+      next: () => {
+        this.drawService.reload$.next();
+      },
+      error: (error) => {
+        console.error('Error renaming project:', error);
+        alert('Projekt konnte nicht umbenannt werden. Bitte erneut versuchen.');
+      }
+    });
+  }
+
+  async deleteActiveProject(event: Event): Promise<void> {
+    event.stopPropagation();
+
+    if (!this.activeProject) {
+      return;
+    }
+
+    const shouldDelete = confirm(`Projekt "${this.activeProject.name}" wirklich löschen?`);
+    if (!shouldDelete) {
+      return;
+    }
+
+    try {
+      const deleteObservable = await this.firebaseService.deleteProject(this.activeProject.id);
+      deleteObservable.subscribe({
+        next: () => {
+          this.drawService.reload$.next();
+        },
+        error: (error) => {
+          console.error('Error deleting project:', error);
+          alert('Projekt konnte nicht gelöscht werden. Bitte erneut versuchen.');
+        }
+      });
+    } catch (error) {
+      console.error('Error deleting project:', error);
+      alert('Projekt konnte nicht gelöscht werden. Bitte erneut versuchen.');
+    }
   }
 
   applyFilter(searchText: string): void {
