@@ -3,13 +3,15 @@ import { HttpClient } from '@angular/common/http';
 import { StlService } from './stl.service';
 import { Draw } from './draw.service';
 import { DialogService } from './dialog.service';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class StepService {
-  private apiUrl = 'http://localhost:5000/convert';
-  private downloadUrl = 'http://localhost:5000/download';
+  private readonly apiBaseUrl = environment.stlStepApiBaseUrl.replace(/\/+$/, '');
+  private readonly apiUrl = `${this.apiBaseUrl}/convert`;
+  private readonly downloadUrl = `${this.apiBaseUrl}/download`;
 
   constructor(
     private http: HttpClient,

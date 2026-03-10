@@ -1,6 +1,7 @@
 // Production environment configuration
 export const environment = {
   production: true,
+  stlStepApiBaseUrl: '',
   firebaseConfig: {
     apiKey: "AIzaSyATrilv_ZIZKmpb2-Ak209PdtA1ndfC_7E",
     authDomain: "minimalcad-1a6dd.firebaseapp.com",

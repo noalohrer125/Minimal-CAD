@@ -2,11 +2,14 @@ import { Injectable } from '@angular/core';
 import * as THREE from 'three';
 import { HttpClient } from '@angular/common/http';
 import { DialogService } from './dialog.service';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class StlService {
+  private readonly apiBaseUrl = environment.stlStepApiBaseUrl.replace(/\/+$/, '');
+
   constructor(
     private http: HttpClient,
     private dialogService: DialogService,
@@ -175,7 +178,7 @@ export class StlService {
         formData.append('file', blob, 'model.stl');
 
         this.http
-          .post('http://localhost:5000/uploadStlToServer', formData)
+          .post(`${this.apiBaseUrl}/uploadStlToServer`, formData)
           .subscribe({
             next: (response) => {
               console.log('STL uploaded to server:', response);
