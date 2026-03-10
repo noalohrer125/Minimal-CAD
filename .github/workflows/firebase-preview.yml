@@ -13,24 +13,24 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: Minimal-CAD/package-lock.json
-      
+
       - name: Cache Firebase Tools
         uses: actions/cache@v4
         with:
           path: ~/.cache/firebase
           key: ${{ runner.os }}-firebase-tools
-      
+
       - name: Determine build configuration
         id: config
         run: |
@@ -38,13 +38,13 @@ jobs:
             echo "build_config=production" >> $GITHUB_OUTPUT
             echo "firebase_project=minimalcad-1a6dd" >> $GITHUB_OUTPUT
             echo "firebase_config=firebase.prod.json" >> $GITHUB_OUTPUT
-            echo "hosting_only=hosting:min-cad" >> $GITHUB_OUTPUT
+            echo "hosting_only=hosting:prod-main" >> $GITHUB_OUTPUT
             echo "environment=PROD" >> $GITHUB_OUTPUT
           else
             echo "build_config=dev" >> $GITHUB_OUTPUT
             echo "firebase_project=minimalcad-dev" >> $GITHUB_OUTPUT
             echo "firebase_config=firebase.json" >> $GITHUB_OUTPUT
-            echo "hosting_only=hosting:minimalcad-dev,hosting:mincad-dev" >> $GITHUB_OUTPUT
+            echo "hosting_only=hosting:dev-main,hosting:dev-alt" >> $GITHUB_OUTPUT
             echo "environment=DEV" >> $GITHUB_OUTPUT
           fi
 
@@ -58,18 +58,18 @@ jobs:
             echo "can_deploy=true" >> $GITHUB_OUTPUT
             echo "reason=" >> $GITHUB_OUTPUT
           fi
-      
+
       - name: Install dependencies
         working-directory: ./Minimal-CAD
         run: npm ci --legacy-peer-deps
-      
+
       - name: Build application (${{ steps.config.outputs.environment }} config)
         working-directory: ./Minimal-CAD
         run: npm run build -- --configuration=${{ steps.config.outputs.build_config }}
-      
+
       - name: Install Firebase Tools
         run: npm install -g firebase-tools
-      
+
       - name: Deploy to Firebase Preview Channel
         if: steps.preview_guard.outputs.can_deploy == 'true'
         working-directory: ./Minimal-CAD
@@ -92,6 +92,11 @@ jobs:
               cat preview_error.log
               echo "-------------------------"
             fi
+            if [ -s preview_output.json ]; then
+              echo "---- firebase json output ----"
+              cat preview_output.json
+              echo "------------------------------"
+            fi
             exit $status
           fi
 
@@ -99,7 +104,7 @@ jobs:
         if: steps.preview_guard.outputs.can_deploy != 'true'
         run: |
           echo "Skipping preview deploy: ${{ steps.preview_guard.outputs.reason }}"
-      
+
       - name: Extract preview URL
         id: preview_url
         if: steps.preview_guard.outputs.can_deploy == 'true'
@@ -115,7 +120,7 @@ jobs:
             fi
           fi
           echo "url=$URL" >> $GITHUB_OUTPUT
-      
+
       - name: Comment PR with results
         uses: actions/github-script@v7
         if: always()
@@ -126,12 +131,12 @@ jobs:
             const status = buildSuccess ? 'PASSED' : 'FAILED';
             const env = '${{ steps.config.outputs.environment }}';
             const previewUrl = '${{ steps.preview_url.outputs.url }}';
-            
+
             let body = `${emoji} **Deployment Check ${status}**\n\n`;
             body += `**Target Branch:** \`${{ github.base_ref }}\`\n`;
             body += `**Environment:** ${env}\n`;
             body += `**Build Configuration:** \`${{ steps.config.outputs.build_config }}\`\n\n`;
-            
+
             if (buildSuccess) {
               body += `✨ Build completed successfully! This PR is **ready to merge** to \`${{ github.base_ref }}\`.\n\n`;
               if ('${{ steps.preview_guard.outputs.can_deploy }}' === 'true' && previewUrl) {
@@ -144,19 +149,19 @@ jobs:
               body += `⚠️ Build failed! Please fix the issues before merging.\n\n`;
               body += `Check the [Actions tab](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.`;
             }
-            
+
             // Find existing comment
             const comments = await github.rest.issues.listComments({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
             });
-            
-            const botComment = comments.data.find(comment => 
-              comment.user.type === 'Bot' && 
+
+            const botComment = comments.data.find(comment =>
+              comment.user.type === 'Bot' &&
               comment.body.includes('Deployment Check')
             );
-            
+
             if (botComment) {
               // Update existing comment
               await github.rest.issues.updateComment({
