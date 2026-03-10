@@ -38,13 +38,13 @@ jobs:
             echo "build_config=production" >> $GITHUB_OUTPUT
             echo "firebase_project=minimalcad-1a6dd" >> $GITHUB_OUTPUT
             echo "firebase_config=firebase.prod.json" >> $GITHUB_OUTPUT
-            echo "hosting_only=hosting:prod-main" >> $GITHUB_OUTPUT
+            echo "preview_sites=min-cad" >> $GITHUB_OUTPUT
             echo "environment=PROD" >> $GITHUB_OUTPUT
           else
             echo "build_config=dev" >> $GITHUB_OUTPUT
             echo "firebase_project=minimalcad-dev" >> $GITHUB_OUTPUT
             echo "firebase_config=firebase.json" >> $GITHUB_OUTPUT
-            echo "hosting_only=hosting:dev-main,hosting:dev-alt" >> $GITHUB_OUTPUT
+            echo "preview_sites=minimalcad-dev,mincad-dev" >> $GITHUB_OUTPUT
             echo "environment=DEV" >> $GITHUB_OUTPUT
           fi
 
@@ -71,34 +71,49 @@ jobs:
         run: npm install -g firebase-tools
 
       - name: Deploy to Firebase Preview Channel
+        id: deploy_preview
         if: steps.preview_guard.outputs.can_deploy == 'true'
         working-directory: ./Minimal-CAD
         run: |
-          set +e
-          firebase hosting:channel:deploy pr-${{ github.event.pull_request.number }} \
-            --project ${{ steps.config.outputs.firebase_project }} \
-            --expires 7d \
-            --only "${{ steps.config.outputs.hosting_only }}" \
-            --token "${{ secrets.FIREBASE_TOKEN }}" \
-            --config ${{ steps.config.outputs.firebase_config }} \
-            --json > preview_output.json 2> preview_error.log
-          status=$?
-          set -e
+          IFS=',' read -ra SITES <<< "${{ steps.config.outputs.preview_sites }}"
+          FIRST_URL=""
 
-          if [ $status -ne 0 ]; then
-            echo "Firebase preview deploy failed with exit code $status"
-            if [ -s preview_error.log ]; then
-              echo "---- firebase stderr ----"
-              cat preview_error.log
-              echo "-------------------------"
+          for SITE in "${SITES[@]}"; do
+            set +e
+            firebase hosting:channel:deploy pr-${{ github.event.pull_request.number }} \
+              --project ${{ steps.config.outputs.firebase_project }} \
+              --expires 7d \
+              --only "$SITE" \
+              --token "${{ secrets.FIREBASE_TOKEN }}" \
+              --config ${{ steps.config.outputs.firebase_config }} \
+              --json > "preview_output_${SITE}.json" 2> "preview_error_${SITE}.log"
+            status=$?
+            set -e
+
+            if [ $status -ne 0 ]; then
+              echo "Firebase preview deploy failed for site '$SITE' with exit code $status"
+              if [ -s "preview_error_${SITE}.log" ]; then
+                echo "---- firebase stderr (${SITE}) ----"
+                cat "preview_error_${SITE}.log"
+                echo "-----------------------------------"
+              fi
+              if [ -s "preview_output_${SITE}.json" ]; then
+                echo "---- firebase json output (${SITE}) ----"
+                cat "preview_output_${SITE}.json"
+                echo "----------------------------------------"
+              fi
+              exit $status
             fi
-            if [ -s preview_output.json ]; then
-              echo "---- firebase json output ----"
-              cat preview_output.json
-              echo "------------------------------"
+
+            if [ -z "$FIRST_URL" ]; then
+              URL_CANDIDATE=$(jq -r '.. | .url? // empty' "preview_output_${SITE}.json" | head -n1)
+              if [ -n "$URL_CANDIDATE" ]; then
+                FIRST_URL="$URL_CANDIDATE"
+              fi
             fi
-            exit $status
-          fi
+          done
+
+          echo "url=$FIRST_URL" >> $GITHUB_OUTPUT
 
       - name: Skip preview deploy (no token available)
         if: steps.preview_guard.outputs.can_deploy != 'true'
@@ -108,9 +123,8 @@ jobs:
       - name: Extract preview URL
         id: preview_url
         if: steps.preview_guard.outputs.can_deploy == 'true'
-        working-directory: ./Minimal-CAD
         run: |
-          URL=$(jq -r '.. | .url? // empty' preview_output.json | head -n1)
+          URL="${{ steps.deploy_preview.outputs.url }}"
           if [ -z "$URL" ]; then
             # Fallback to constructing the URL
             if [ "${{ steps.config.outputs.firebase_project }}" == "minimalcad-dev" ]; then
