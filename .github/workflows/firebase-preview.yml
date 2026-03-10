@@ -38,12 +38,25 @@ jobs:
             echo "build_config=production" >> $GITHUB_OUTPUT
             echo "firebase_project=minimalcad-1a6dd" >> $GITHUB_OUTPUT
             echo "firebase_config=firebase.prod.json" >> $GITHUB_OUTPUT
+            echo "hosting_only=hosting:min-cad" >> $GITHUB_OUTPUT
             echo "environment=PROD" >> $GITHUB_OUTPUT
           else
             echo "build_config=dev" >> $GITHUB_OUTPUT
             echo "firebase_project=minimalcad-dev" >> $GITHUB_OUTPUT
             echo "firebase_config=firebase.json" >> $GITHUB_OUTPUT
+            echo "hosting_only=hosting:minimalcad-dev,hosting:mincad-dev" >> $GITHUB_OUTPUT
             echo "environment=DEV" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check preview deploy prerequisites
+        id: preview_guard
+        run: |
+          if [ -z "${{ secrets.FIREBASE_TOKEN }}" ]; then
+            echo "can_deploy=false" >> $GITHUB_OUTPUT
+            echo "reason=Missing FIREBASE_TOKEN secret (common for fork PRs)." >> $GITHUB_OUTPUT
+          else
+            echo "can_deploy=true" >> $GITHUB_OUTPUT
+            echo "reason=" >> $GITHUB_OUTPUT
           fi
       
       - name: Install dependencies
@@ -58,20 +71,41 @@ jobs:
         run: npm install -g firebase-tools
       
       - name: Deploy to Firebase Preview Channel
+        if: steps.preview_guard.outputs.can_deploy == 'true'
         working-directory: ./Minimal-CAD
         run: |
+          set +e
           firebase hosting:channel:deploy pr-${{ github.event.pull_request.number }} \
             --project ${{ steps.config.outputs.firebase_project }} \
             --expires 7d \
+            --only "${{ steps.config.outputs.hosting_only }}" \
             --token "${{ secrets.FIREBASE_TOKEN }}" \
             --config ${{ steps.config.outputs.firebase_config }} \
-            --json > preview_output.json
+            --json > preview_output.json 2> preview_error.log
+          status=$?
+          set -e
+
+          if [ $status -ne 0 ]; then
+            echo "Firebase preview deploy failed with exit code $status"
+            if [ -s preview_error.log ]; then
+              echo "---- firebase stderr ----"
+              cat preview_error.log
+              echo "-------------------------"
+            fi
+            exit $status
+          fi
+
+      - name: Skip preview deploy (no token available)
+        if: steps.preview_guard.outputs.can_deploy != 'true'
+        run: |
+          echo "Skipping preview deploy: ${{ steps.preview_guard.outputs.reason }}"
       
       - name: Extract preview URL
         id: preview_url
+        if: steps.preview_guard.outputs.can_deploy == 'true'
         working-directory: ./Minimal-CAD
         run: |
-          URL=$(cat preview_output.json | jq -r '.result."pr-${{ github.event.pull_request.number }}".url // empty')
+          URL=$(jq -r '.. | .url? // empty' preview_output.json | head -n1)
           if [ -z "$URL" ]; then
             # Fallback to constructing the URL
             if [ "${{ steps.config.outputs.firebase_project }}" == "minimalcad-dev" ]; then
@@ -100,8 +134,12 @@ jobs:
             
             if (buildSuccess) {
               body += `✨ Build completed successfully! This PR is **ready to merge** to \`${{ github.base_ref }}\`.\n\n`;
-              body += `🔍 **Preview URL:** ${previewUrl}\n`;
-              body += `*(Preview expires in 7 days)*`;
+              if ('${{ steps.preview_guard.outputs.can_deploy }}' === 'true' && previewUrl) {
+                body += `🔍 **Preview URL:** ${previewUrl}\n`;
+                body += `*(Preview expires in 7 days)*`;
+              } else {
+                body += `ℹ️ Preview deploy skipped: ${{ steps.preview_guard.outputs.reason }}`;
+              }
             } else {
               body += `⚠️ Build failed! Please fix the issues before merging.\n\n`;
               body += `Check the [Actions tab](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.`;
