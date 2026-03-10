@@ -10,6 +10,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { DialogService } from '../../shared/dialog.service';
 
 @Component({
   selector: 'app-sidebar-right',
@@ -35,7 +36,8 @@ export class SidebarRightComponent implements OnInit {
 
   constructor(
     public elementRef: ElementRef,
-    private drawService: Draw
+    private drawService: Draw,
+    private dialogService: DialogService
   ) { }
 
   public selectedObject: FormObject | FreeObject | any = {};
@@ -286,7 +288,7 @@ export class SidebarRightComponent implements OnInit {
       this.drawService.reload$.next();
     } catch (error) {
       console.error('Error submitting changes:', error);
-      alert('Error saving changes. Please try again.');
+      await this.dialogService.alert('Error', 'Changes could not be saved. Please try again.');
     }
   }
 
@@ -298,16 +300,18 @@ export class SidebarRightComponent implements OnInit {
       this.drawService.reload$.next();
     } catch (error) {
       console.error('Error closing sidebar:', error);
-      alert('Error closing. Please try again.');
+      await this.dialogService.alert('Error', 'Sidebar could not be closed. Please try again.');
     }
   }
 
   async onDelete() {
-    if (
-      window.confirm(
-        `You are about to delete ${this.selectedObject.name}. Proceed?`
-      )
-    ) {
+    const shouldDelete = await this.dialogService.confirm(
+      'Delete Object',
+      `You are about to delete ${this.selectedObject.name}. Continue?`,
+      'Delete'
+    );
+
+    if (shouldDelete) {
       try {
         let models = this.drawService.loadObjects();
         models = models.filter(
@@ -318,7 +322,7 @@ export class SidebarRightComponent implements OnInit {
         this.drawService.reload$.next();
       } catch (error) {
         console.error('Error deleting object:', error);
-        alert('Error deleting object. Please try again.');
+        await this.dialogService.alert('Error', 'Object could not be deleted. Please try again.');
       }
     }
   }

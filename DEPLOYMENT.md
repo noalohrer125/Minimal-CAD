@@ -11,7 +11,7 @@
   - https://mincad-dev.web.app
 - **Build Config:** `--configuration=dev`
 - **Firebase Config:** Uses `environment.ts` (DEV database)
-- **Auto-Deploy:** Pusht du auf `main`, wird automatisch auf DEV deployed
+- **Auto-Deploy:** Pusht du auf `main`, wird automatisch Frontend + Cloud-Run-API auf DEV deployed
 
 ### PROD Environment
 - **Branch:** `prod`
@@ -22,7 +22,29 @@
   - https://min-cad.web.app
 - **Build Config:** `--configuration=production`
 - **Firebase Config:** Uses `environment.prod.ts` (PROD database)
-- **Auto-Deploy:** Pusht du auf `prod`, wird automatisch auf PROD deployed
+- **Auto-Deploy:** Pusht du auf `prod`, wird automatisch Frontend + Cloud-Run-API auf PROD deployed
+
+## Cloud Run API (STL -> STEP)
+
+- API source: `Minimal-CAD/src/app/shared/stl-to-step_api/`
+- Container build: via `gcloud builds submit`
+- Deploy target:
+  - DEV: `minimalcad-stl-step-api-dev` in project `minimalcad-dev`
+  - PROD: `minimalcad-stl-step-api-prod` in project `minimalcad-1a6dd`
+- Firebase Hosting rewrites route `/uploadStlToServer`, `/convert`, `/download` to the respective Cloud-Run service.
+- Frontend uses relative API paths (no `localhost:5000` hardcoding anymore).
+
+### Required GitHub Secrets
+
+- `FIREBASE_TOKEN`
+- `GCP_SA_KEY_DEV` (Service Account JSON for project `minimalcad-dev`)
+- `GCP_SA_KEY_PROD` (Service Account JSON for project `minimalcad-1a6dd`)
+
+Recommended IAM roles for both service accounts:
+- `roles/run.admin`
+- `roles/cloudbuild.builds.editor`
+- `roles/storage.admin`
+- `roles/iam.serviceAccountUser`
 
 ## Manuelles Deployment
 

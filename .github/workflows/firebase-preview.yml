@@ -13,24 +13,24 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: Minimal-CAD/package-lock.json
-      
+
       - name: Cache Firebase Tools
         uses: actions/cache@v4
         with:
           path: ~/.cache/firebase
           key: ${{ runner.os }}-firebase-tools
-      
+
       - name: Determine build configuration
         id: config
         run: |
@@ -38,40 +38,93 @@ jobs:
             echo "build_config=production" >> $GITHUB_OUTPUT
             echo "firebase_project=minimalcad-1a6dd" >> $GITHUB_OUTPUT
             echo "firebase_config=firebase.prod.json" >> $GITHUB_OUTPUT
+            echo "preview_sites=min-cad" >> $GITHUB_OUTPUT
             echo "environment=PROD" >> $GITHUB_OUTPUT
           else
             echo "build_config=dev" >> $GITHUB_OUTPUT
             echo "firebase_project=minimalcad-dev" >> $GITHUB_OUTPUT
             echo "firebase_config=firebase.json" >> $GITHUB_OUTPUT
+            echo "preview_sites=minimalcad-dev,mincad-dev" >> $GITHUB_OUTPUT
             echo "environment=DEV" >> $GITHUB_OUTPUT
           fi
-      
+
+      - name: Check preview deploy prerequisites
+        id: preview_guard
+        run: |
+          if [ -z "${{ secrets.FIREBASE_TOKEN }}" ]; then
+            echo "can_deploy=false" >> $GITHUB_OUTPUT
+            echo "reason=Missing FIREBASE_TOKEN secret (common for fork PRs)." >> $GITHUB_OUTPUT
+          else
+            echo "can_deploy=true" >> $GITHUB_OUTPUT
+            echo "reason=" >> $GITHUB_OUTPUT
+          fi
+
       - name: Install dependencies
         working-directory: ./Minimal-CAD
         run: npm ci --legacy-peer-deps
-      
+
       - name: Build application (${{ steps.config.outputs.environment }} config)
         working-directory: ./Minimal-CAD
         run: npm run build -- --configuration=${{ steps.config.outputs.build_config }}
-      
+
       - name: Install Firebase Tools
         run: npm install -g firebase-tools
-      
+
       - name: Deploy to Firebase Preview Channel
+        id: deploy_preview
+        if: steps.preview_guard.outputs.can_deploy == 'true'
         working-directory: ./Minimal-CAD
         run: |
-          firebase hosting:channel:deploy pr-${{ github.event.pull_request.number }} \
-            --project ${{ steps.config.outputs.firebase_project }} \
-            --expires 7d \
-            --token "${{ secrets.FIREBASE_TOKEN }}" \
-            --config ${{ steps.config.outputs.firebase_config }} \
-            --json > preview_output.json
-      
+          IFS=',' read -ra SITES <<< "${{ steps.config.outputs.preview_sites }}"
+          FIRST_URL=""
+
+          for SITE in "${SITES[@]}"; do
+            set +e
+            firebase hosting:channel:deploy pr-${{ github.event.pull_request.number }} \
+              --project ${{ steps.config.outputs.firebase_project }} \
+              --expires 7d \
+              --only "$SITE" \
+              --token "${{ secrets.FIREBASE_TOKEN }}" \
+              --config ${{ steps.config.outputs.firebase_config }} \
+              --json > "preview_output_${SITE}.json" 2> "preview_error_${SITE}.log"
+            status=$?
+            set -e
+
+            if [ $status -ne 0 ]; then
+              echo "Firebase preview deploy failed for site '$SITE' with exit code $status"
+              if [ -s "preview_error_${SITE}.log" ]; then
+                echo "---- firebase stderr (${SITE}) ----"
+                cat "preview_error_${SITE}.log"
+                echo "-----------------------------------"
+              fi
+              if [ -s "preview_output_${SITE}.json" ]; then
+                echo "---- firebase json output (${SITE}) ----"
+                cat "preview_output_${SITE}.json"
+                echo "----------------------------------------"
+              fi
+              exit $status
+            fi
+
+            if [ -z "$FIRST_URL" ]; then
+              URL_CANDIDATE=$(jq -r '.. | .url? // empty' "preview_output_${SITE}.json" | head -n1)
+              if [ -n "$URL_CANDIDATE" ]; then
+                FIRST_URL="$URL_CANDIDATE"
+              fi
+            fi
+          done
+
+          echo "url=$FIRST_URL" >> $GITHUB_OUTPUT
+
+      - name: Skip preview deploy (no token available)
+        if: steps.preview_guard.outputs.can_deploy != 'true'
+        run: |
+          echo "Skipping preview deploy: ${{ steps.preview_guard.outputs.reason }}"
+
       - name: Extract preview URL
         id: preview_url
-        working-directory: ./Minimal-CAD
+        if: steps.preview_guard.outputs.can_deploy == 'true'
         run: |
-          URL=$(cat preview_output.json | jq -r '.result."pr-${{ github.event.pull_request.number }}".url // empty')
+          URL="${{ steps.deploy_preview.outputs.url }}"
           if [ -z "$URL" ]; then
             # Fallback to constructing the URL
             if [ "${{ steps.config.outputs.firebase_project }}" == "minimalcad-dev" ]; then
@@ -81,7 +134,7 @@ jobs:
             fi
           fi
           echo "url=$URL" >> $GITHUB_OUTPUT
-      
+
       - name: Comment PR with results
         uses: actions/github-script@v7
         if: always()
@@ -92,33 +145,37 @@ jobs:
             const status = buildSuccess ? 'PASSED' : 'FAILED';
             const env = '${{ steps.config.outputs.environment }}';
             const previewUrl = '${{ steps.preview_url.outputs.url }}';
-            
+
             let body = `${emoji} **Deployment Check ${status}**\n\n`;
             body += `**Target Branch:** \`${{ github.base_ref }}\`\n`;
             body += `**Environment:** ${env}\n`;
             body += `**Build Configuration:** \`${{ steps.config.outputs.build_config }}\`\n\n`;
-            
+
             if (buildSuccess) {
               body += `✨ Build completed successfully! This PR is **ready to merge** to \`${{ github.base_ref }}\`.\n\n`;
-              body += `🔍 **Preview URL:** ${previewUrl}\n`;
-              body += `*(Preview expires in 7 days)*`;
+              if ('${{ steps.preview_guard.outputs.can_deploy }}' === 'true' && previewUrl) {
+                body += `🔍 **Preview URL:** ${previewUrl}\n`;
+                body += `*(Preview expires in 7 days)*`;
+              } else {
+                body += `ℹ️ Preview deploy skipped: ${{ steps.preview_guard.outputs.reason }}`;
+              }
             } else {
               body += `⚠️ Build failed! Please fix the issues before merging.\n\n`;
               body += `Check the [Actions tab](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.`;
             }
-            
+
             // Find existing comment
             const comments = await github.rest.issues.listComments({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
             });
-            
-            const botComment = comments.data.find(comment => 
-              comment.user.type === 'Bot' && 
+
+            const botComment = comments.data.find(comment =>
+              comment.user.type === 'Bot' &&
               comment.body.includes('Deployment Check')
             );
-            
+
             if (botComment) {
               // Update existing comment
               await github.rest.issues.updateComment({

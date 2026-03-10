@@ -1,6 +1,7 @@
 // Development environment configuration
 export const environment = {
   production: false,
+  stlStepApiBaseUrl: '',
   firebaseConfig: {
   apiKey: "AIzaSyCApXsFkAy3maDnsiz2rA5qN6Ch8aln36E",
   authDomain: "minimalcad-dev.firebaseapp.com",

@@ -11,6 +11,12 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
+    env:
+      GCP_PROJECT_ID: minimalcad-1a6dd
+      GCP_REGION: europe-west6
+      CLOUD_RUN_SERVICE: minimalcad-stl-step-api-prod
+      API_CONTEXT_DIR: ./Minimal-CAD/src/app/shared/stl-to-step_api
     
     steps:
       - name: Checkout code
@@ -39,6 +45,34 @@ jobs:
       
       - name: Install Firebase Tools
         run: npm install -g firebase-tools
+
+      - name: Authenticate to Google Cloud (PROD)
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY_PROD }}'
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.GCP_PROJECT_ID }}
+
+      - name: Build API container image (PROD)
+        run: |
+          gcloud builds submit "${{ env.API_CONTEXT_DIR }}" \
+            --tag "gcr.io/${{ env.GCP_PROJECT_ID }}/${{ env.CLOUD_RUN_SERVICE }}:${{ github.sha }}"
+
+      - name: Deploy API to Cloud Run (PROD)
+        run: |
+          gcloud run deploy "${{ env.CLOUD_RUN_SERVICE }}" \
+            --image "gcr.io/${{ env.GCP_PROJECT_ID }}/${{ env.CLOUD_RUN_SERVICE }}:${{ github.sha }}" \
+            --region "${{ env.GCP_REGION }}" \
+            --project "${{ env.GCP_PROJECT_ID }}" \
+            --platform managed \
+            --allow-unauthenticated \
+            --concurrency 1 \
+            --timeout 300 \
+            --cpu 2 \
+            --memory 2Gi
       
       - name: Deploy to Firebase Prod (minimalcad-1a6dd + min-cad)
         working-directory: ./Minimal-CAD
