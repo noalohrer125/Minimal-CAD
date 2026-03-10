@@ -1,12 +1,13 @@
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../auth.service';
 
 @Component({
   selector: 'app-login',
   imports: [
     ReactiveFormsModule,
+    RouterLink,
   ],
   templateUrl: './login.html',
   styleUrl: './login.css'
@@ -17,13 +18,21 @@ export class Login {
   authService = inject(AuthService);
 
   form = this.fb.nonNullable.group({
-    email: ['', Validators.required],
-    password: ['', Validators.required],
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.required, Validators.minLength(6)]],
   });
 
-  errorMesssage: string | null = null;
+  errorMessage: string | null = null;
 
   onSubmit(): void {
+    this.errorMessage = null;
+
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      this.errorMessage = 'Please check your input.';
+      return;
+    }
+
     const rawForm = this.form.getRawValue();
     this.authService.login(
       rawForm.email,
@@ -33,13 +42,15 @@ export class Login {
       error: (error) => {
         console.error('Login error:', error);
         const errorMessages: { [key: string]: string } = {
-          'auth/invalid-email': 'Invalid email address.',
-          'auth/user-disabled': 'This user has been disabled.',
-          'auth/user-not-found': 'User not found.',
-          'auth/wrong-password': 'Incorrect password.',
-          'auth/invalid-credential': 'Invalid credentials.'
+          'auth/invalid-email': 'The email address is invalid.',
+          'auth/user-disabled': 'This user account has been disabled.',
+          'auth/user-not-found': 'Email or password is incorrect.',
+          'auth/wrong-password': 'Email or password is incorrect.',
+          'auth/invalid-credential': 'Email or password is incorrect.',
+          'auth/too-many-requests': 'Too many attempts. Please wait a moment and try again.'
         };
-        this.errorMesssage = errorMessages[error.code] || 'Login error: Please try again.';
+        const authCode = error?.code as string | undefined;
+        this.errorMessage = authCode ? (errorMessages[authCode] ?? 'Login failed. Please try again.') : 'Login failed. Please try again.';
       }
     });
   }

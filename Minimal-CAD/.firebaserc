@@ -3,10 +3,20 @@
     "default": "minimal-cad"
   },
   "targets": {
+    "minimalcad-dev": {
+      "hosting": {
+        "dev-main": [
+          "minimalcad-dev"
+        ],
+        "dev-alt": [
+          "mincad-dev"
+        ]
+      }
+    },
     "minimalcad-1a6dd": {
       "hosting": {
-        "mincad": [
-          "mincad"
+        "prod-main": [
+          "min-cad"
         ]
       }
     }

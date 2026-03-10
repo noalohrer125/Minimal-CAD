@@ -54,7 +54,7 @@ export class ModelRenderService {
     });
 
     const extrudeSettings = {
-      curveSegments: 10000,
+      curveSegments: 600,
       depth: element.h,
       bevelEnabled: false
     };
@@ -117,7 +117,7 @@ export class ModelRenderService {
       element.r,
       element.r,
       element.h,
-      element.curveSegments! <= 10000 && element.curveSegments! > 2 ? element.curveSegments : 10000,
+      element.curveSegments! <= 600 && element.curveSegments! > 2 ? element.curveSegments : 600,
     );
     const material = new THREE.MeshPhysicalMaterial(
       isGhost ? this.ghostObjectColor : (isSelected ? this.selectedObjectColor : this.objectColor)
