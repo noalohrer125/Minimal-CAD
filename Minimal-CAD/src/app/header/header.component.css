@@ -32,6 +32,20 @@ mat-icon:hover {
     color: rgb(255, 255, 255);
 }
 
+mat-icon.spinning {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 #title {
     text-shadow: #fff 2px 1px 5px;
 }

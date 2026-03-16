@@ -4,8 +4,8 @@ import { StlService } from './stl.service';
 import { Draw } from './draw.service';
 import { DialogService } from './dialog.service';
 import { environment } from '../../environments/environment';
-import { EMPTY } from 'rxjs';
-import { catchError, switchMap } from 'rxjs/operators';
+import { BehaviorSubject, EMPTY } from 'rxjs';
+import { catchError, finalize, switchMap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
@@ -14,6 +14,8 @@ export class StepService {
   private readonly apiBaseUrl = environment.stlStepApiBaseUrl.replace(/\/+$/, '');
   private readonly convertUrl = `${this.apiBaseUrl}/convert`;
   private readonly downloadUrl = `${this.apiBaseUrl}/download`;
+  private readonly isDownloadingSubject = new BehaviorSubject<boolean>(false);
+  readonly isDownloading$ = this.isDownloadingSubject.asObservable();
 
   constructor(
     private http: HttpClient,
@@ -23,6 +25,8 @@ export class StepService {
   ) {}
 
   convertAndDownload(): void {
+    this.isDownloadingSubject.next(true);
+
     try {
       const modelJson = JSON.stringify(this.drawService.loadObjects());
 
@@ -41,9 +45,11 @@ export class StepService {
             );
             return EMPTY;
           }),
+          finalize(() => this.isDownloadingSubject.next(false)),
         )
         .subscribe((blob) => this.downloadStepBlob(blob));
     } catch (error) {
+      this.isDownloadingSubject.next(false);
       console.error('Error in convertAndDownload:', error);
       this.dialogService.alert(
         'Error',

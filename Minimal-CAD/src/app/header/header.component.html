@@ -7,16 +7,20 @@
                 </button>
                 <hr>
                 <button matTooltip="Export to File" mat-icon-button [matMenuTriggerFor]="exportMenu">
-                    <mat-icon>download</mat-icon>
+                    <mat-icon [class.spinning]="stepService.isDownloading$ | async">
+                        {{ (stepService.isDownloading$ | async) ? 'autorenew' : 'download' }}
+                    </mat-icon>
                 </button>
                 <mat-menu #exportMenu="matMenu">
                     <button mat-menu-item (click)="exportAsJSON()">
                         <mat-icon>code</mat-icon>
                         <span>Export as JSON</span>
                     </button>
-                    <button mat-menu-item (click)="exportAsSTEP()">
-                        <mat-icon>precision_manufacturing</mat-icon>
-                        <span>Export as STEP</span>
+                    <button mat-menu-item (click)="exportAsSTEP()" [disabled]="stepService.isDownloading$ | async">
+                        <mat-icon [class.spinning]="stepService.isDownloading$ | async">
+                            {{ (stepService.isDownloading$ | async) ? 'autorenew' : 'precision_manufacturing' }}
+                        </mat-icon>
+                        <span>{{ (stepService.isDownloading$ | async) ? 'Exporting STEP...' : 'Export as STEP' }}</span>
                     </button>
                     <button mat-menu-item (click)="exportAsSTL()">
                         <mat-icon>view_in_ar</mat-icon>

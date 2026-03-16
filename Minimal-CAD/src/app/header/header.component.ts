@@ -9,6 +9,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
 import { AuthService } from '../auth/auth.service';
 import { GlobalService } from '../shared/global.service';
+import { StepService } from '../shared/step.service';
 
 @Component({
   selector: 'app-header',
@@ -30,6 +31,7 @@ export class HeaderComponent {
     private drawService: Draw,
     private globalService: GlobalService,
     private fileService: FileService,
+    public stepService: StepService,
     public router: Router,
     public authService: AuthService
   ) { }
