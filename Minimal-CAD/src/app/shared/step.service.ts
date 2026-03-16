@@ -4,13 +4,15 @@ import { StlService } from './stl.service';
 import { Draw } from './draw.service';
 import { DialogService } from './dialog.service';
 import { environment } from '../../environments/environment';
+import { EMPTY } from 'rxjs';
+import { catchError, switchMap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
 })
 export class StepService {
   private readonly apiBaseUrl = environment.stlStepApiBaseUrl.replace(/\/+$/, '');
-  private readonly apiUrl = `${this.apiBaseUrl}/convert`;
+  private readonly convertUrl = `${this.apiBaseUrl}/convert`;
   private readonly downloadUrl = `${this.apiBaseUrl}/download`;
 
   constructor(
@@ -22,57 +24,46 @@ export class StepService {
 
   convertAndDownload(): void {
     try {
-      this.stlService.downloadStlFromJsonString(
-        JSON.stringify(this.drawService.loadObjects()),
-        'model.stl',
-        true,
-      );
-      this.http.get(this.apiUrl).subscribe({
-        next: () => {
-          console.log('Conversion request sent successfully');
-          // Trigger download after conversion completes
-          setTimeout(() => this.downloadStepFile(), 1000);
-        },
-        error: (error) => {
-          console.error('Error calling convert endpoint:', error);
-          this.dialogService.alert(
-            'Error',
-            'STEP conversion failed. Make sure the server is running.',
-          );
-        },
-      });
+      const modelJson = JSON.stringify(this.drawService.loadObjects());
+
+      this.stlService
+        .uploadStlFromJsonString(modelJson)
+        .pipe(
+          switchMap(() => this.http.get(this.convertUrl)),
+          switchMap(() =>
+            this.http.get(this.downloadUrl, { responseType: 'blob' }),
+          ),
+          catchError((error) => {
+            console.error('Error converting/downloading STEP file:', error);
+            this.dialogService.alert(
+              'Error',
+              'STEP conversion failed. Maybe the server is not running. Try again later.',
+            );
+            return EMPTY;
+          }),
+        )
+        .subscribe((blob) => this.downloadStepBlob(blob));
     } catch (error) {
       console.error('Error in convertAndDownload:', error);
       this.dialogService.alert(
         'Error',
-        'Failed to convert file. Please try again.',
+        'Failed to convert file. Please try again later.',
       );
     }
   }
 
-  private downloadStepFile(): void {
-    this.http.get(this.downloadUrl, { responseType: 'blob' }).subscribe({
-      next: (blob) => {
-        try {
-          const url = window.URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = 'output.step';
-          link.click();
-          window.URL.revokeObjectURL(url);
-          console.log('STEP file downloaded successfully');
-        } catch (error) {
-          console.error('Error creating download link:', error);
-          this.dialogService.alert('Error', 'Failed to download STEP file.');
-        }
-      },
-      error: (error) => {
-        console.error('Error downloading STEP file:', error);
-        this.dialogService.alert(
-          'Error',
-          'Failed to download STEP file from the server.',
-        );
-      },
-    });
+  private downloadStepBlob(blob: Blob): void {
+    try {
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'output.step';
+      link.click();
+      window.URL.revokeObjectURL(url);
+      console.log('STEP file downloaded successfully');
+    } catch (error) {
+      console.error('Error creating download link:', error);
+      this.dialogService.alert('Error', 'Failed to download STEP file.');
+    }
   }
 }

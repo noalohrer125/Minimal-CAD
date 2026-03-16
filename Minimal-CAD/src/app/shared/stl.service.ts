@@ -3,6 +3,8 @@ import * as THREE from 'three';
 import { HttpClient } from '@angular/common/http';
 import { DialogService } from './dialog.service';
 import { environment } from '../../environments/environment';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
@@ -66,11 +68,7 @@ export class StlService {
    * - units: input positions/sizes assumed in cm -> exported in mm (multiplied by 10)
    * - supported types: "Square" (box), "Circle" (cylinder), "Freeform" (extruded shape)
    */
-  downloadStlFromJsonString(
-    jsonString: string,
-    filename = 'model.stl',
-    saveToServer = false,
-  ): void {
+  private buildStlFromJsonString(jsonString: string): string {
     const arr = JSON.parse(jsonString);
     let body = '';
     for (const obj of arr) {
@@ -170,31 +168,49 @@ export class StlService {
 
     const headerName = 'exported_model';
     const stl = `solid ${headerName}\n` + body + `endsolid ${headerName}\n`;
+    return stl;
+  }
+
+  uploadStlFromJsonString(jsonString: string): Observable<unknown> {
+    try {
+      const stl = this.buildStlFromJsonString(jsonString);
+      const blob = new Blob([stl], { type: 'application/sla' });
+      const formData = new FormData();
+      formData.append('file', blob, 'model.stl');
+
+      return this.http.post(`${this.apiBaseUrl}/uploadStlToServer`, formData).pipe(
+        catchError((error) => {
+          console.error('Error uploading STL to server:', error);
+          this.dialogService.alert(
+            'Error',
+            'Failed to upload STL file to the server.',
+          );
+          return throwError(() => error);
+        }),
+      );
+    } catch (error) {
+      console.error('Error preparing STL upload:', error);
+      this.dialogService.alert('Error', 'Failed to prepare STL file upload.');
+      return throwError(() => error);
+    }
+  }
+
+  downloadStlFromJsonString(
+    jsonString: string,
+    filename = 'model.stl',
+    saveToServer = false,
+  ): void {
+    const stl = this.buildStlFromJsonString(jsonString);
 
     if (saveToServer) {
-      try {
-        const blob = new Blob([stl], { type: 'application/sla' });
-        const formData = new FormData();
-        formData.append('file', blob, 'model.stl');
-
-        this.http
-          .post(`${this.apiBaseUrl}/uploadStlToServer`, formData)
-          .subscribe({
-            next: (response) => {
-              console.log('STL uploaded to server:', response);
-            },
-            error: (error) => {
-              console.error('Error uploading STL to server:', error);
-              this.dialogService.alert(
-                'Error',
-                'Failed to upload STL file to the server.',
-              );
-            },
-          });
-      } catch (error) {
-        console.error('Error preparing STL upload:', error);
-        this.dialogService.alert('Error', 'Failed to prepare STL file upload.');
-      }
+      this.uploadStlFromJsonString(jsonString).subscribe({
+        next: (response) => {
+          console.log('STL uploaded to server:', response);
+        },
+        error: () => {
+          // Error is already handled in uploadStlFromJsonString.
+        },
+      });
     } else {
       const blob = new Blob([stl], { type: 'application/sla' });
       const url = URL.createObjectURL(blob);
