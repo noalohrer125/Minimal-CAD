@@ -1,6 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import {
+  FormControl,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -13,6 +18,7 @@ import { Subscription } from 'rxjs';
 import { Draw } from '../draw.service';
 import { projectSavingResult } from '../../interfaces';
 import { FirebaseService } from '../firebase.service';
+import { DialogService } from '../dialog.service';
 
 @Component({
   selector: 'app-save-project-popup',
@@ -26,41 +32,45 @@ import { FirebaseService } from '../firebase.service';
     ReactiveFormsModule,
     MatIconModule,
     MatExpansionModule,
-    MatSlideToggleModule
+    MatSlideToggleModule,
   ],
   templateUrl: './save-project-popup.component.html',
-  styleUrl: './save-project-popup.component.css'
+  styleUrl: './save-project-popup.component.css',
 })
 export class SaveProjectPopupComponent implements OnInit, OnDestroy {
   public form: FormGroup = new FormGroup({
     projectName: new FormControl('New Project'),
-    isPrivate: new FormControl(false)
+    isPrivate: new FormControl(false),
   });
   public projectSavingResult: projectSavingResult = {
-      success: false,
-      projectName: '',
-      licenceKey: 'public',
-      projectId: '',
-      error: ''
+    success: false,
+    projectName: '',
+    licenceKey: 'public',
+    projectId: '',
+    error: '',
   };
   public saved: boolean = false;
   public licenceCopied: boolean = false;
   private subscription: Subscription = new Subscription();
-  private data: { projectName: string; isPrivate: boolean } = { projectName: 'New Project', isPrivate: false };
+  private data: { projectName: string; isPrivate: boolean } = {
+    projectName: 'New Project',
+    isPrivate: false,
+  };
 
   constructor(
-    private globalService: GlobalService, 
+    private globalService: GlobalService,
     private drawService: Draw,
-    private firebaseService: FirebaseService
-  ) { }
+    private firebaseService: FirebaseService,
+    private dialogService: DialogService,
+  ) {}
 
   ngOnInit() {
     this.subscription.add(
       this.globalService.requestProjectData.subscribe(() => {
         this.data = this.getDataFromForm();
-      })
+      }),
     );
-    
+
     // Subscribe to popup state to detect when it opens
     this.subscription.add(
       this.globalService.isSaveProjectPopupOpen.subscribe((isOpen) => {
@@ -70,20 +80,20 @@ export class SaveProjectPopupComponent implements OnInit, OnDestroy {
             // Reset form to default values for new project
             this.form.patchValue({
               projectName: 'New Project',
-              isPrivate: false
+              isPrivate: false,
             });
           } else {
             // Load current project data and prefill the form
             this.loadCurrentProjectData();
           }
         }
-      })
+      }),
     );
   }
 
   private loadCurrentProjectData(): void {
     const projectId = localStorage.getItem('project-id');
-    
+
     if (projectId && projectId !== 'notExisting') {
       // Project exists, load its data
       this.firebaseService.getProjectById(projectId).subscribe({
@@ -92,14 +102,17 @@ export class SaveProjectPopupComponent implements OnInit, OnDestroy {
             // Prefill the form with current project data
             this.form.patchValue({
               projectName: project.name,
-              isPrivate: project.licenceKey !== 'public'
+              isPrivate: project.licenceKey !== 'public',
             });
           }
         },
         error: (err) => {
           console.error('Error loading project data:', err);
-          alert('Error loading project data. Please try again.');
-        }
+          this.dialogService.alert(
+            'Error',
+            'Project data could not be loaded. Please try again.',
+          );
+        },
       });
     }
     // If no project exists, keep default values
@@ -112,29 +125,45 @@ export class SaveProjectPopupComponent implements OnInit, OnDestroy {
   }
 
   public copyLicenceKey() {
-    navigator.clipboard.writeText(this.projectSavingResult.licenceKey).then(() => {
-      this.licenceCopied = true;
-      setTimeout(() => {
-        this.licenceCopied = false;
-      }, 2000);
-    }).catch((error) => {
-      console.error('Error copying to clipboard:', error);
-      alert('Error copying license key. Please copy it manually.');
-    });
+    navigator.clipboard
+      .writeText(this.projectSavingResult.licenceKey)
+      .then(() => {
+        this.licenceCopied = true;
+        setTimeout(() => {
+          this.licenceCopied = false;
+        }, 2000);
+      })
+      .catch((error) => {
+        console.error('Error copying to clipboard:', error);
+        this.dialogService.alert(
+          'Error',
+          'License key could not be copied. Please copy it manually.',
+        );
+      });
   }
 
   onSubmit() {
-    this.drawService.saveProjectToFirebase(this.getDataFromForm().projectName, this.getDataFromForm().isPrivate, this.globalService.getIsNewProject()).then((result: projectSavingResult) => {
-      this.projectSavingResult = result;
-      this.saved = true;
-      this.drawService.reload$.next();
-      if (!result.success && result.error) {
-        alert(result.error);
-      }
-    }).catch((error) => {
-      console.error('Error saving project:', error);
-      alert('Error saving project. Please try again.');
-    });
+    this.drawService
+      .saveProjectToFirebase(
+        this.getDataFromForm().projectName,
+        this.getDataFromForm().isPrivate,
+        this.globalService.getIsNewProject(),
+      )
+      .then((result: projectSavingResult) => {
+        this.projectSavingResult = result;
+        this.saved = true;
+        this.drawService.reload$.next();
+        if (!result.success && result.error) {
+          this.dialogService.alert('Error', result.error);
+        }
+      })
+      .catch((error) => {
+        console.error('Error saving project:', error);
+        this.dialogService.alert(
+          'Error',
+          'Project could not be saved. Please try again.',
+        );
+      });
   }
 
   onClose() {

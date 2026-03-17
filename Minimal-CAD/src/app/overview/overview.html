@@ -19,12 +19,14 @@
                 @for (project of myProjects; track $index) {
                     <div class="project-card" (click)="openProject(project.id, project.name, project.licenceKey)">
                         <div class="project-thumb">
-                            <img src="something" alt="something">
+                            <img [src]="getProjectThumbnail(project)" [alt]="project.name + ' preview'">
                         </div>
                         <div class="project-info">
                             <div class="project-card-header">
                                 <h2 class="project-title">{{ project.name }}</h2>
-                                <mat-icon (click)="openProjectActions()">more_vert</mat-icon>
+                                <button mat-icon-button [matMenuTriggerFor]="projectMenu" (click)="openProjectActions(project, $event)">
+                                    <mat-icon>more_vert</mat-icon>
+                                </button>
                             </div>
                             <br>
                             <p class="project-meta">Created at {{ project.createdAt.toDate().toLocaleDateString() }}</p>
@@ -39,7 +41,7 @@
                 @for (project of publicProjects; track $index) {
                     <div class="project-card" (click)="openProject(project.id, project.name, project.licenceKey)">
                         <div class="project-thumb">
-                            <img src="something" alt="something">
+                            <img [src]="getProjectThumbnail(project)" [alt]="project.name + ' preview'">
                         </div>
                         <div class="project-info">
                             <div class="project-card-header">
@@ -55,3 +57,14 @@
         }
     </section>
 </div>
+
+<mat-menu #projectMenu="matMenu">
+    <button mat-menu-item (click)="renameActiveProject($event)">
+        <mat-icon>edit</mat-icon>
+        <span>Rename</span>
+    </button>
+    <button mat-menu-item (click)="deleteActiveProject($event)">
+        <mat-icon>delete</mat-icon>
+        <span>Delete</span>
+    </button>
+</mat-menu>
