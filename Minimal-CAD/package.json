@@ -19,7 +19,8 @@
     ]
   },
   "overrides": {
-    "gh-pages": "^5.0.0"
+    "gh-pages": "^5.0.0",
+    "undici": "^7.23.1"
   },
   "private": true,
   "dependencies": {
