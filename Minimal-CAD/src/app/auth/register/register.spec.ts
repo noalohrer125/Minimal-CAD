@@ -93,11 +93,10 @@ describe('Register', () => {
         // TC-REGISTER-007
         it('should display error message on registration failure', () => {
             const authService = TestBed.inject(AuthService);
-            const errorMessage = 'Registration failed';
-            jest.spyOn(authService, 'register').mockReturnValue(throwError(() => new Error(errorMessage)));
-            component.form.setValue({ username: 'testuser', email: '', password: 'test123' });
+            jest.spyOn(authService, 'register').mockReturnValue(throwError(() => ({ code: undefined })));
+            component.form.setValue({ username: 'testuser', email: 'test@example.com', password: 'test123' });
             component.onSubmit();
-            expect(component.errorMessage).toBe('Registration error: ' + errorMessage || 'Please check your input.');
+            expect(component.errorMessage).toBe('Registration failed. Please try again.');
         });
     });
 });

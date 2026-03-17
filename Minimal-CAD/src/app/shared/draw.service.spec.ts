@@ -3,21 +3,28 @@ import { of } from 'rxjs';
 import { skip, take } from 'rxjs/operators';
 import { Draw } from './draw.service';
 import { FirebaseService } from './firebase.service';
+import { ProjectThumbnailService } from './project-thumbnail.service';
 import { createFirebaseServiceMock } from './testing/mock-firebase';
 
 describe('Draw Service', () => {
     let service: Draw;
     let firebaseMock: any;
 
+    const thumbnailServiceMock = {
+        createProjectThumbnail: jest.fn().mockReturnValue('')
+    };
+
     beforeEach(() => {
         jest.resetAllMocks();
         localStorage.clear();
         firebaseMock = createFirebaseServiceMock();
+        thumbnailServiceMock.createProjectThumbnail.mockReturnValue('');
 
         TestBed.configureTestingModule({
             providers: [
                 Draw,
-                { provide: FirebaseService, useValue: firebaseMock }
+                { provide: FirebaseService, useValue: firebaseMock },
+                { provide: ProjectThumbnailService, useValue: thumbnailServiceMock }
             ]
         });
 

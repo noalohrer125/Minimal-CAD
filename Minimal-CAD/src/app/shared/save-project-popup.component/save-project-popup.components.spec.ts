@@ -4,6 +4,7 @@ import { SaveProjectPopupComponent } from './save-project-popup.component';
 import { GlobalService } from '../global.service';
 import { Draw } from '../draw.service';
 import { FirebaseService } from '../firebase.service';
+import { DialogService } from '../dialog.service';
 import { projectSavingResult } from '../../interfaces';
 
 describe('SaveProjectPopupComponent', () => {
@@ -29,6 +30,12 @@ describe('SaveProjectPopupComponent', () => {
 		getProjectById: jest.Mock;
 	};
 
+	let dialogServiceMock: {
+		alert: jest.Mock;
+		confirm: jest.Mock;
+		prompt: jest.Mock;
+	};
+
 	beforeEach(async () => {
 		requestProjectData$ = new Subject<void>();
 		popupOpenState$ = new BehaviorSubject<boolean>(false);
@@ -49,12 +56,19 @@ describe('SaveProjectPopupComponent', () => {
 			getProjectById: jest.fn().mockReturnValue(of(null))
 		};
 
+		dialogServiceMock = {
+			alert: jest.fn().mockResolvedValue(undefined),
+			confirm: jest.fn().mockResolvedValue(false),
+			prompt: jest.fn().mockResolvedValue(null),
+		};
+
 		await TestBed.configureTestingModule({
 			imports: [SaveProjectPopupComponent],
 			providers: [
 				{ provide: GlobalService, useValue: globalServiceMock as unknown as GlobalService },
 				{ provide: Draw, useValue: drawServiceMock as unknown as Draw },
-				{ provide: FirebaseService, useValue: firebaseServiceMock as unknown as FirebaseService }
+				{ provide: FirebaseService, useValue: firebaseServiceMock as unknown as FirebaseService },
+				{ provide: DialogService, useValue: dialogServiceMock as unknown as DialogService },
 			]
 		}).compileComponents();
 
@@ -162,7 +176,6 @@ describe('SaveProjectPopupComponent', () => {
 		});
 
 		it('TC-POPUP-008: should handle save errors', async () => {
-			const alertSpy = jest.spyOn(global, 'alert').mockImplementation(() => {});
 			const errorResult: projectSavingResult = {
 				success: false,
 				projectName: 'Failed Project',
@@ -176,7 +189,7 @@ describe('SaveProjectPopupComponent', () => {
 			await Promise.resolve();
 
 			expect(component.projectSavingResult.error).toBe('Save failed');
-			expect(alertSpy).toHaveBeenCalledWith('Save failed');
+			expect(dialogServiceMock.alert).toHaveBeenCalledWith('Error', 'Save failed');
 		});
 	});
 

@@ -3,12 +3,14 @@ import { BehaviorSubject } from 'rxjs';
 import { File } from './file.service';
 import { StlService } from './stl.service';
 import { StepService } from './step.service';
+import { DialogService } from './dialog.service';
 
 describe('File Service', () => {
     let service: File;
     let drawMock: any;
     let stlMock: any;
     let stepMock: any;
+    let dialogMock: jest.Mocked<Pick<DialogService, 'confirm' | 'alert'>>;
 
     beforeEach(() => {
         jest.resetAllMocks();
@@ -21,6 +23,10 @@ describe('File Service', () => {
 
         stlMock = { downloadStlFromJsonString: jest.fn() };
         stepMock = { convertAndDownload: jest.fn() };
+        dialogMock = {
+            confirm: jest.fn().mockResolvedValue(true),
+            alert: jest.fn().mockResolvedValue(undefined),
+        };
 
         TestBed.configureTestingModule({
             providers: [
@@ -34,7 +40,7 @@ describe('File Service', () => {
         // Because File service injects Draw by type in code, use override provider
         TestBed.overrideProvider((File as any), { useValue: undefined });
         // Instead instantiate via TestBed with manual providers
-        service = new File(drawMock as any, stlMock as any, stepMock as any);
+        service = new File(drawMock as any, stlMock as any, stepMock as any, dialogMock as any);
     });
 
     afterEach(() => {
@@ -82,13 +88,11 @@ describe('File Service', () => {
         });
 
         it('TC-FILE-004: upload() should read file, save to localStorage and trigger reload when confirmed', async () => {
-            // confirm true
-            jest.spyOn(window, 'confirm').mockReturnValue(true);
-            const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
+            dialogMock.confirm.mockResolvedValue(true);
+            dialogMock.alert.mockResolvedValue(undefined);
 
             // mock input element
             const mockFile = { text: jest.fn().mockResolvedValue(JSON.stringify([{ id: 'u' }])) } as any;
-            let onchangePromise: Promise<any> | null = null;
             const inputMock: any = {
                 type: '',
                 accept: '',
@@ -96,8 +100,7 @@ describe('File Service', () => {
                 onchange: null as any,
                 click() {
                     if (typeof this.onchange === 'function') {
-                        const res = this.onchange();
-                        if (res && typeof res.then === 'function') onchangePromise = res;
+                        this.onchange();
                     }
                 }
             };
@@ -110,19 +113,19 @@ describe('File Service', () => {
 
             const reloadSpy = jest.spyOn(drawMock.reload$, 'next');
 
-            service.upload();
-            // wait for the onchange async handler to complete
-            if (onchangePromise) await onchangePromise;
+            await service.upload();
+            // flush microtasks for the onchange async handler
+            await new Promise(resolve => setTimeout(resolve, 0));
 
             expect(localStorage.getItem('model-data')).toBeTruthy();
-            expect(alertSpy).toHaveBeenCalled();
+            expect(dialogMock.alert).toHaveBeenCalled();
             expect(reloadSpy).toHaveBeenCalled();
         });
 
-        it('TC-FILE-004: upload() should abort when user cancels confirm', () => {
-            jest.spyOn(window, 'confirm').mockReturnValue(false);
+        it('TC-FILE-004b: upload() should abort when user cancels confirm', async () => {
+            dialogMock.confirm.mockResolvedValue(false);
             const createSpy = jest.spyOn(document, 'createElement');
-            service.upload();
+            await service.upload();
             expect(createSpy).not.toHaveBeenCalled();
         });
     });

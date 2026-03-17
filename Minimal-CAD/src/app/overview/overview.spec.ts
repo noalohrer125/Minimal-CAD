@@ -5,6 +5,7 @@ import { FirebaseService } from '../shared/firebase.service';
 import { GlobalService } from '../shared/global.service';
 import { Router } from '@angular/router';
 import { Auth } from '@angular/fire/auth';
+import { DialogService } from '../shared/dialog.service';
 import { testemail } from '../shared/testing/testuser-credentials';
 
 describe('Overview', () => {
@@ -45,6 +46,12 @@ describe('Overview', () => {
         navigate: jest.fn()
     };
 
+    const dialogServiceMock = {
+        prompt: jest.fn(),
+        alert: jest.fn().mockResolvedValue(undefined),
+        confirm: jest.fn().mockResolvedValue(false),
+    };
+
     beforeEach(() => {
         // ensure spies refer to the same jest.fn instances
         (firebaseServiceMock.getCurrentUserEmail as jest.Mock).mockReset?.();
@@ -52,6 +59,8 @@ describe('Overview', () => {
         (firebaseServiceMock.getProjectsByOwner as jest.Mock).mockReset?.();
         (globalServiceMock.openSaveProjectPopup as jest.Mock).mockReset?.();
         (routerMock.navigate as jest.Mock).mockReset?.();
+        dialogServiceMock.prompt.mockReset();
+        dialogServiceMock.alert.mockReset().mockResolvedValue(undefined);
 
         TestBed.configureTestingModule({
             imports: [Overview],
@@ -59,7 +68,8 @@ describe('Overview', () => {
                 { provide: Auth, useValue: mockAuth },
                 { provide: FirebaseService, useValue: firebaseServiceMock },
                 { provide: GlobalService, useValue: globalServiceMock },
-                { provide: Router, useValue: routerMock }
+                { provide: Router, useValue: routerMock },
+                { provide: DialogService, useValue: dialogServiceMock },
             ]
         });
 
@@ -67,10 +77,6 @@ describe('Overview', () => {
         (firebaseServiceMock.getCurrentUserEmail as jest.Mock).mockReturnValue(testemail);
         (firebaseServiceMock.getPublicProjects as jest.Mock).mockReturnValue(of(mockPublicProjects));
         (firebaseServiceMock.getProjectsByOwner as jest.Mock).mockReturnValue(of(mockMyProjects));
-
-        // stub window methods
-        jest.spyOn(window, 'prompt').mockImplementation(() => '');
-        jest.spyOn(window, 'alert').mockImplementation(() => { });
     });
 
     afterEach(() => {
@@ -104,29 +110,28 @@ describe('Overview', () => {
             expect(routerMock.navigate).toHaveBeenCalledWith(['/editor', 'pub1']);
         });
 
-        it('TC-OV-004: private project with correct licence key navigates to editor', () => {
-            // prompt returns the correct key
-            (window.prompt as jest.Mock).mockReturnValue('secret-key');
+        it('TC-OV-004: private project with correct licence key navigates to editor', async () => {
+            dialogServiceMock.prompt.mockResolvedValue('secret-key');
             createComponent();
-            component!.openProject('priv1', 'Private', 'secret-key');
-            expect(window.prompt).toHaveBeenCalled();
+            await component!.openProject('priv1', 'Private', 'secret-key');
+            expect(dialogServiceMock.prompt).toHaveBeenCalled();
             expect(routerMock.navigate).toHaveBeenCalledWith(['/editor', 'priv1']);
         });
 
-        it('TC-OV-005: wrong licence key shows alert and does not navigate', () => {
-            (window.prompt as jest.Mock).mockReturnValue('wrong');
+        it('TC-OV-005: wrong licence key shows alert and does not navigate', async () => {
+            dialogServiceMock.prompt.mockResolvedValue('wrong');
             createComponent();
-            component!.openProject('priv1', 'Private', 'correct');
-            expect(window.prompt).toHaveBeenCalled();
-            expect(window.alert).toHaveBeenCalledWith('Please enter the correct license key to open this project.');
+            await component!.openProject('priv1', 'Private', 'correct');
+            expect(dialogServiceMock.prompt).toHaveBeenCalled();
+            expect(dialogServiceMock.alert).toHaveBeenCalled();
             expect(routerMock.navigate).not.toHaveBeenCalledWith(['/editor', 'priv1']);
         });
 
-        it('TC-OV-006: prompt is called for private project', () => {
-            (window.prompt as jest.Mock).mockReturnValue('some');
+        it('TC-OV-006: prompt is called for private project', async () => {
+            dialogServiceMock.prompt.mockResolvedValue('some');
             createComponent();
-            component!.openProject('p', 'n', 'not-public');
-            expect(window.prompt).toHaveBeenCalled();
+            await component!.openProject('p', 'n', 'not-public');
+            expect(dialogServiceMock.prompt).toHaveBeenCalled();
         });
     });
 

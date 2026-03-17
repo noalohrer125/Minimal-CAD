@@ -1,12 +1,14 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MainViewComponent } from './main-view.component';
 import { CommonModule } from '@angular/common';
+import { SimpleChange } from '@angular/core';
 import * as THREE from 'three';
 import { Draw } from '../../shared/draw.service';
 import { ThreeSceneService } from '../../shared/three-scene.service';
 import { ModelRenderService } from '../../shared/model-render.service';
 import { InteractionService } from '../../shared/interaction.service';
 import { AnimationService } from '../../shared/animation.service';
+import { DialogService } from '../../shared/dialog.service';
 
 describe('MainViewComponent', () => {
     let fixture: ComponentFixture<MainViewComponent>;
@@ -54,8 +56,15 @@ describe('MainViewComponent', () => {
         setTargetRotation: jest.fn()
     };
 
+    const dialogServiceMock: any = {
+        alert: jest.fn().mockResolvedValue(undefined),
+        confirm: jest.fn().mockResolvedValue(false),
+        prompt: jest.fn().mockResolvedValue(null),
+    };
+
     beforeEach(async () => {
         jest.resetAllMocks();
+        dialogServiceMock.alert.mockResolvedValue(undefined);
 
         await TestBed.configureTestingModule({
             imports: [MainViewComponent, CommonModule],
@@ -64,7 +73,8 @@ describe('MainViewComponent', () => {
                 { provide: ThreeSceneService, useValue: sceneMock },
                 { provide: ModelRenderService, useValue: modelRenderMock },
                 { provide: InteractionService, useValue: interactionMock },
-                { provide: AnimationService, useValue: animationMock }
+                { provide: AnimationService, useValue: animationMock },
+                { provide: DialogService, useValue: dialogServiceMock },
             ]
         }).compileComponents();
 
@@ -80,9 +90,11 @@ describe('MainViewComponent', () => {
             expect(component).toBeTruthy();
         });
 
-        it('TC-MAIN-002: ngOnInit should run and call drawservice.loadObjectsByProjectId', () => {
+        it('TC-MAIN-002: ngOnChanges should call drawservice.loadObjectsByProjectId', async () => {
+            drawMock.loadObjectsByProjectId.mockResolvedValue([]);
             component.projectId = 'proj-123';
-            component.ngOnInit();
+            component.ngOnChanges({ projectId: new SimpleChange(null, 'proj-123', false) });
+            await Promise.resolve();
             expect(drawMock.loadObjectsByProjectId).toHaveBeenCalledWith('proj-123');
             expect(component.isLoading).toBe(false);
         });
@@ -225,9 +237,11 @@ describe('MainViewComponent', () => {
             expect(drawMock.setView).toHaveBeenCalled();
         });
 
-        it('TC-MAIN-011: projectId input should be used in ngOnInit to load objects by project id', () => {
+        it('TC-MAIN-011: projectId input should trigger ngOnChanges to load objects', async () => {
+            drawMock.loadObjectsByProjectId.mockResolvedValue([]);
             component.projectId = 'project-xyz';
-            component.ngOnInit();
+            component.ngOnChanges({ projectId: new SimpleChange(null, 'project-xyz', false) });
+            await Promise.resolve();
             expect(drawMock.loadObjectsByProjectId).toHaveBeenCalledWith('project-xyz');
         });
     });

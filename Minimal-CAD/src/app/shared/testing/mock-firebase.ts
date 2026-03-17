@@ -10,6 +10,7 @@ export function createFirebaseServiceMock(overrides: any = {}) {
         saveObject: jest.fn((projectId: string, obj: any) => of('saved')),
         updateObject: jest.fn((projectId: string, obj: any) => of('updated')),
         deleteObject: jest.fn((projectId: string, id: string) => of(void 0)),
+        cleanupObjects: jest.fn((projectId: string, validIds: string[]) => Promise.resolve()),
         getCurrentUserEmail: jest.fn(() => 'test@example.com'),
         getProjects: jest.fn(() => of([])),
         getPublicProjects: jest.fn(() => of([])),

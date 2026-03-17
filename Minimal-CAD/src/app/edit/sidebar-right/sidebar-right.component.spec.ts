@@ -2,11 +2,13 @@ import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { BehaviorSubject } from 'rxjs';
 import { SidebarRightComponent } from './sidebar-right.component';
 import { Draw } from '../../shared/draw.service';
+import { DialogService } from '../../shared/dialog.service';
 
 describe('SidebarRightComponent (TC-SR-001..TC-SR-011)', () => {
     let fixture: ComponentFixture<SidebarRightComponent>;
     let component: SidebarRightComponent;
     let drawMock: Partial<Draw> & { reload$: BehaviorSubject<void> };
+    let dialogServiceMock: any;
 
     beforeEach(() => {
         drawMock = {
@@ -17,9 +19,18 @@ describe('SidebarRightComponent (TC-SR-001..TC-SR-011)', () => {
             createGhostObject: jest.fn()
         } as any;
 
+        dialogServiceMock = {
+            alert: jest.fn().mockResolvedValue(undefined),
+            confirm: jest.fn().mockResolvedValue(false),
+            prompt: jest.fn().mockResolvedValue(null),
+        };
+
         TestBed.configureTestingModule({
             imports: [SidebarRightComponent],
-            providers: [{ provide: Draw, useValue: drawMock }]
+            providers: [
+                { provide: Draw, useValue: drawMock },
+                { provide: DialogService, useValue: dialogServiceMock },
+            ]
         }).compileComponents();
     });
 
@@ -178,9 +189,7 @@ describe('SidebarRightComponent (TC-SR-001..TC-SR-011)', () => {
             ];
             (drawMock.loadObjects as jest.Mock).mockImplementation(() => modelData);
             drawMock.reload$.next = jest.fn();
-
-            // stub confirm
-            const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
+            dialogServiceMock.confirm.mockResolvedValue(true);
 
             fixture = TestBed.createComponent(SidebarRightComponent);
             component = fixture.componentInstance;
@@ -193,7 +202,6 @@ describe('SidebarRightComponent (TC-SR-001..TC-SR-011)', () => {
             const persisted = JSON.parse(localStorage.getItem('model-data') || '[]');
             expect(persisted.find((o: any) => o.id === 'del2')).toBeUndefined();
             expect((drawMock.reload$.next as jest.Mock)).toHaveBeenCalled();
-            confirmSpy.mockRestore();
         });
     });
 });

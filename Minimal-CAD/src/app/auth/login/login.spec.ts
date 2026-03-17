@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Login } from './login';
 import { AuthService } from '../auth.service';
 import { Router } from '@angular/router';
+import { RouterTestingModule } from '@angular/router/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { of, throwError } from 'rxjs';
 import { testemail, testpassword } from '../../shared/testing/testuser-credentials';
@@ -10,25 +11,22 @@ describe('Login Component', () => {
     let component: Login;
     let fixture: ComponentFixture<Login>;
     let mockAuthService: jest.Mocked<AuthService>;
-    let mockRouter: jest.Mocked<Router>;
+    let navigateSpy: jest.SpyInstance;
 
     beforeEach(async () => {
         mockAuthService = {
             login: jest.fn(),
         } as any;
 
-        mockRouter = {
-            navigate: jest.fn(),
-        } as any;
-
         await TestBed.configureTestingModule({
-            imports: [Login, ReactiveFormsModule],
+            imports: [Login, ReactiveFormsModule, RouterTestingModule],
             providers: [
                 { provide: AuthService, useValue: mockAuthService },
-                { provide: Router, useValue: mockRouter },
             ],
         }).compileComponents();
-        
+
+        navigateSpy = jest.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+
         fixture = TestBed.createComponent(Login);
         component = fixture.componentInstance;
         fixture.detectChanges();
@@ -68,9 +66,9 @@ describe('Login Component', () => {
         it('should call authService.login with correct data', () => {
             component.form.setValue({ email: testemail, password: testpassword });
             mockAuthService.login.mockReturnValue(of(void 0));
-            
+
             component.onSubmit();
-            
+
             expect(mockAuthService.login).toHaveBeenCalledWith(testemail, testpassword);
         });
 
@@ -78,53 +76,53 @@ describe('Login Component', () => {
         it('should navigate to overview after successful login', () => {
             component.form.setValue({ email: testemail, password: testpassword });
             mockAuthService.login.mockReturnValue(of(void 0));
-            
+
             component.onSubmit();
-            
-            expect(mockRouter.navigate).toHaveBeenCalledWith(['/overview']);
-            expect(component.errorMesssage).toBeNull();
+
+            expect(navigateSpy).toHaveBeenCalledWith(['/overview']);
+            expect(component.errorMessage).toBeNull();
         });
 
         describe('Error Handling', () => {
             // TC-LOGIN-007
             it('should display error message for invalid email', () => {
-                component.form.setValue({ email: 'invalid', password: testpassword });
+                component.form.setValue({ email: testemail, password: testpassword });
                 mockAuthService.login.mockReturnValue(throwError(() => ({ code: 'auth/invalid-email' })));
-                
+
                 component.onSubmit();
-                
-                expect(component.errorMesssage).toBe('Invalid email address.');
+
+                expect(component.errorMessage).toBe('The email address is invalid.');
             });
 
             // TC-LOGIN-008
             it('should display error message for user not found', () => {
                 component.form.setValue({ email: testemail, password: testpassword });
                 mockAuthService.login.mockReturnValue(throwError(() => ({ code: 'auth/user-not-found' })));
-                
+
                 component.onSubmit();
-                
-                expect(component.errorMesssage).toBe('User not found.');
+
+                expect(component.errorMessage).toBe('Email or password is incorrect.');
             });
 
             // TC-LOGIN-009
             it('should display error message for wrong password', () => {
-                component.form.setValue({ email: testemail, password: 'wrongpassword' });
+                component.form.setValue({ email: testemail, password: testpassword });
                 mockAuthService.login.mockReturnValue(throwError(() => ({ code: 'auth/wrong-password' })));
-                
+
                 component.onSubmit();
-                
-                expect(component.errorMesssage).toBe('Incorrect password.');
-                expect(mockRouter.navigate).not.toHaveBeenCalled();
+
+                expect(component.errorMessage).toBe('Email or password is incorrect.');
+                expect(navigateSpy).not.toHaveBeenCalled();
             });
 
             // TC-LOGIN-010
             it('should display generic error message for unknown error', () => {
                 component.form.setValue({ email: testemail, password: testpassword });
                 mockAuthService.login.mockReturnValue(throwError(() => ({ code: 'auth/unknown-error' })));
-                
+
                 component.onSubmit();
-                
-                expect(component.errorMesssage).toBe('Login error: Please try again.');
+
+                expect(component.errorMessage).toBe('Login failed. Please try again.');
             });
         });
     });

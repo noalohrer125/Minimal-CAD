@@ -95,13 +95,12 @@ describe('FirebaseService', () => {
             expect(res[0].id).toBe('o1');
         });
 
-        it('TC-FB-009: should save object when not exists (addDoc path)', async () => {
-            (firestoreModule.getDoc as jest.Mock).mockResolvedValueOnce({ exists: () => false } as any);
-            (firestoreModule.addDoc as jest.Mock).mockResolvedValueOnce({ id: 'newid' } as any);
+        it('TC-FB-009: should save object using setDoc (stable id path)', async () => {
+            (firestoreModule.setDoc as jest.Mock).mockResolvedValueOnce(undefined as any);
             const obs = service.saveObject('proj1', { id: 'tmp' } as any);
             const res = await firstValueFrom(obs);
-            expect(firestoreModule.addDoc).toHaveBeenCalled();
-            expect(res).toBe('newid');
+            expect(firestoreModule.setDoc).toHaveBeenCalled();
+            expect(res).toBe('tmp');
         });
 
         it('TC-FB-010: should update existing object (setDoc path)', async () => {

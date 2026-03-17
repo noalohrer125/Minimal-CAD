@@ -159,7 +159,7 @@ describe('StlService', () => {
         it('TC-STL-008: should POST STL to server when saveToServer=true', () => {
             const json = JSON.stringify([{ type: 'Square', l: 1, w: 1, h: 1 }]);
             service.downloadStlFromJsonString(json, 'upload.stl', true);
-            const req = httpMock.expectOne('http://localhost:5000/uploadStlToServer');
+            const req = httpMock.expectOne('https://minimalcad-dev.web.app/uploadStlToServer');
             expect(req.request.method).toBe('POST');
             // respond to complete
             req.flush({ ok: true });
