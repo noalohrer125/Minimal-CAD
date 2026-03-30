@@ -67,3 +67,6 @@ ui-debug.log
 **/.secrets/
 *.key
 *.pem
+
+# Test user credentials
+src/app/shared/testing/testuser-credentials.ts

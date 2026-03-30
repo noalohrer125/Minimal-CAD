@@ -4,13 +4,13 @@ import { Project } from '../interfaces';
 import { Router } from '@angular/router';
 import { FirebaseService } from '../shared/firebase.service';
 import { GlobalService } from '../shared/global.service';
-import { Draw } from '../shared/draw.service';
 import { Auth } from '@angular/fire/auth';
 import { Subscription } from 'rxjs';
 import { Timestamp } from '@angular/fire/firestore';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
 import { DialogService } from '../shared/dialog.service';
+import { Draw } from '../shared/draw.service';
 
 @Component({
   selector: 'app-overview',
