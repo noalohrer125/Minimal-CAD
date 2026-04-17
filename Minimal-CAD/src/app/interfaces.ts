@@ -1,128 +1,132 @@
-import { Timestamp } from "@angular/fire/firestore";
-import { Vector3 } from "three";
+import { Timestamp } from '@angular/fire/firestore';
+import { Vector3 } from 'three';
+
+export type UserRole = 'admin' | 'paid-user' | 'user';
 
 export interface User {
-    email: string;
-    username: string;
+  uid?: string;
+  email: string;
+  username: string;
+  role?: UserRole;
 }
 
 export interface Project {
-    id: string;
-    name: string;
-    licenceKey: string;
-    ownerEmail: string;
-    createdAt: Timestamp;
-    updatedAt?: Timestamp;
-    thumbnailDataUrl?: string;
+  id: string;
+  name: string;
+  licenceKey: string;
+  ownerEmail: string;
+  createdAt: Timestamp;
+  updatedAt?: Timestamp;
+  thumbnailDataUrl?: string;
 }
 
 export interface projectSavingResult {
-    success: boolean;
-    projectName: string;
-    licenceKey: string;
-    projectId: string;
-    error: string;
+  success: boolean;
+  projectName: string;
+  licenceKey: string;
+  projectId: string;
+  error: string;
 }
 
 export interface FormObject {
-    id: string;
-    name: string;
-    type: 'Square' | 'Circle';
-    l?: number; // for squares
-    w?: number; // for squares
-    h: number; // for squares
-    r?: number; // for circles
-    position: [number, number, number];
-    rotation: [number, number, number];
-    curveSegments?: number; // for circles
-    selected: boolean;
-    ghost?: boolean;
+  id: string;
+  name: string;
+  type: 'Square' | 'Circle';
+  l?: number; // for squares
+  w?: number; // for squares
+  h: number; // for squares
+  r?: number; // for circles
+  position: [number, number, number];
+  rotation: [number, number, number];
+  curveSegments?: number; // for circles
+  selected: boolean;
+  ghost?: boolean;
 }
 
 export type FreeObjectCommand =
-    | {
-        type: 'moveTo' | 'lineTo';
-        x: number;
-        y: number;
-        new: boolean;
+  | {
+      type: 'moveTo' | 'lineTo';
+      x: number;
+      y: number;
+      new: boolean;
     }
-    | {
-        type: 'quadraticCurveTo';
-        cpX: number;
-        cpY: number;
-        x: number;
-        y: number;
-        new: boolean;
+  | {
+      type: 'quadraticCurveTo';
+      cpX: number;
+      cpY: number;
+      x: number;
+      y: number;
+      new: boolean;
     };
 
 export interface FreeObject {
-    id: string;
-    name: string;
-    type: 'Freeform';
-    commands: FreeObjectCommand[]; // shape building steps
-    h: number; // extrusion height
-    position: [number, number, number];
-    rotation: [number, number, number];
-    selected: boolean;
-    ghost?: boolean;
+  id: string;
+  name: string;
+  type: 'Freeform';
+  commands: FreeObjectCommand[]; // shape building steps
+  h: number; // extrusion height
+  position: [number, number, number];
+  rotation: [number, number, number];
+  selected: boolean;
+  ghost?: boolean;
 }
 
 export interface view {
-    camera: {
-        position: {
-            x: number,
-            y: number,
-            z: number
-        },
-        rotation: {
-            x: number,
-            y: number,
-            z: number
-        }
-    },
-    rootGroup: {
-        position: {
-            x: number,
-            y: number,
-            z: number
-        },
-        rotation: {
-            x: number,
-            y: number,
-            z: number
-        },
-        scale: {
-            x: number,
-            y: number,
-            z: number
-        }
-    }
-};
+  camera: {
+    position: {
+      x: number;
+      y: number;
+      z: number;
+    };
+    rotation: {
+      x: number;
+      y: number;
+      z: number;
+    };
+  };
+  rootGroup: {
+    position: {
+      x: number;
+      y: number;
+      z: number;
+    };
+    rotation: {
+      x: number;
+      y: number;
+      z: number;
+    };
+    scale: {
+      x: number;
+      y: number;
+      z: number;
+    };
+  };
+}
 
 export const DEFAULT_VIEW: view = {
-    camera: {
-        position: {
-            x: 0,
-            y: 0,
-            z: 10
-        },
-        rotation: {
-            x: 0,
-            y: 0,
-            z: 0
-        }
+  camera: {
+    position: {
+      x: 0,
+      y: 0,
+      z: 10,
     },
-    rootGroup: {
-        position: {
-            x: 0,
-            y: 0,
-            z: 0
-        },
-        rotation: {
-            x: -Math.PI / 3, // 60 degrees down
-            y: 0,
-            z: -Math.PI / 5 // 36 degrees down
-        },
-        scale: new Vector3(1, 1, 1)
-    }
+    rotation: {
+      x: 0,
+      y: 0,
+      z: 0,
+    },
+  },
+  rootGroup: {
+    position: {
+      x: 0,
+      y: 0,
+      z: 0,
+    },
+    rotation: {
+      x: -Math.PI / 3, // 60 degrees down
+      y: 0,
+      z: -Math.PI / 5, // 36 degrees down
+    },
+    scale: new Vector3(1, 1, 1),
+  },
 };

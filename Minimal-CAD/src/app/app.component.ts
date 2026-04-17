@@ -14,12 +14,12 @@ import { MatDialogModule } from '@angular/material/dialog';
     RouterOutlet,
     HeaderComponent,
     SaveProjectPopupComponent,
-    MatDialogModule
+    MatDialogModule,
   ],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+  styleUrl: './app.component.css',
 })
-export class AppComponent implements OnInit{
+export class AppComponent implements OnInit {
   authService = inject(AuthService);
   globalService = inject(GlobalService);
   drawService = inject(Draw);
@@ -29,18 +29,9 @@ export class AppComponent implements OnInit{
 
   ngOnInit(): void {
     this.checkSaveProjectPopupState();
-    this.authService.$user.subscribe(user => {
-      if (user) {
-        this.authService.currentUserSignal.set({
-          email: user.email!,
-          username: user.displayName!,
-        });
-      } else {
-        this.authService.currentUserSignal.set(null);
-      }
-    });
+
     // Reactively update isAuthenticated when auth state changes
-    this.authService.$user.subscribe(user => {
+    this.authService.$user.subscribe((user) => {
       this.isAuthenticated = user !== null;
       this.isAuthLoading = false;
     });

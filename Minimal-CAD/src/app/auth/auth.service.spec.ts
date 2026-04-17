@@ -3,6 +3,7 @@ import { AuthService } from './auth.service';
 import { Auth, getAuth, provideAuth } from '@angular/fire/auth';
 import { firebaseConfig } from '../firebase-credentials';
 import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
+import { getFirestore, provideFirestore } from '@angular/fire/firestore';
 import {
   testusername,
   testemail,
@@ -25,6 +26,7 @@ describe('AuthService', () => {
       providers: [
         provideFirebaseApp(() => initializeApp(firebaseConfig)),
         provideAuth(() => getAuth()),
+        provideFirestore(() => getFirestore()),
       ],
     }).compileComponents();
 
