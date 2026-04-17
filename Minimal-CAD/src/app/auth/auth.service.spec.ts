@@ -3,7 +3,13 @@ import { AuthService } from './auth.service';
 import { Auth, getAuth, provideAuth } from '@angular/fire/auth';
 import { firebaseConfig } from '../firebase-credentials';
 import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
-import { getFirestore, provideFirestore } from '@angular/fire/firestore';
+import {
+  deleteDoc,
+  doc,
+  Firestore,
+  getFirestore,
+  provideFirestore,
+} from '@angular/fire/firestore';
 import {
   testusername,
   testemail,
@@ -17,6 +23,7 @@ import { filter, firstValueFrom, take } from 'rxjs';
 describe('AuthService', () => {
   let service: AuthService;
   let auth: Auth;
+  let firestore: Firestore;
 
   const createUniqueRegistrationEmail = () =>
     `authtest+${Date.now()}-${Math.random().toString(36).slice(2, 8)}@minimalcad.test`;
@@ -32,7 +39,24 @@ describe('AuthService', () => {
 
     service = TestBed.inject(AuthService);
     auth = TestBed.inject(Auth);
+    firestore = TestBed.inject(Firestore);
   });
+
+  const cleanupCurrentUserArtifacts = async (): Promise<void> => {
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      return;
+    }
+
+    // Remove Firestore profile first while the user is still authenticated.
+    await deleteDoc(doc(firestore, 'users', currentUser.uid)).catch(() => {
+      /* ignore cleanup errors */
+    });
+
+    await currentUser.delete().catch(() => {
+      /* ignore cleanup errors */
+    });
+  };
 
   describe('User Registration', () => {
     // TC-AUTH-001
@@ -48,14 +72,9 @@ describe('AuthService', () => {
             expect(currentUser?.displayName).toBe(newtestusername);
 
             // Cleanup is best-effort; assertions above define pass/fail.
-            currentUser
-              ?.delete()
-              .catch(() => {
-                /* ignore cleanup errors */
-              })
-              .finally(() => {
-                done();
-              });
+            cleanupCurrentUserArtifacts().finally(() => {
+              done();
+            });
           },
           error: (err) => {
             done(new Error(`Registration failed with error: ${err}`));
@@ -74,14 +93,9 @@ describe('AuthService', () => {
             expect(currentUser?.email).toBe(registrationEmail);
             expect(currentUser?.displayName).toBe(newtestusername);
             // Cleanup is best-effort; assertions above define pass/fail.
-            currentUser
-              ?.delete()
-              .catch(() => {
-                /* ignore cleanup errors */
-              })
-              .finally(() => {
-                done();
-              });
+            cleanupCurrentUserArtifacts().finally(() => {
+              done();
+            });
           },
           error: (err) => {
             done(new Error(`Registration failed with error: ${err}`));
@@ -129,14 +143,9 @@ describe('AuthService', () => {
 
               // Cleanup: delete the created user (best-effort; beforeEach handles
               // leftovers on next run so token-expiry errors here are non-fatal).
-              auth.currentUser
-                ?.delete()
-                .catch(() => {
-                  /* ignore cleanup errors */
-                })
-                .finally(() => {
-                  done();
-                });
+              cleanupCurrentUserArtifacts().finally(() => {
+                done();
+              });
             }, 500);
           },
           error: (err) => {

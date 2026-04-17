@@ -82,7 +82,7 @@ service cloud.firestore {
                          (!('role' in resource.data) && request.resource.data.role == 'user')
                        );
 
-      allow delete: if false;
+      allow delete: if isAuthenticated() && request.auth.uid == userId;
     }
   }
 }
