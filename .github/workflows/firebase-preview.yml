@@ -3,9 +3,9 @@ name: PR Build & Preview Check
 on:
   pull_request:
     branches:
-      - main  # Check PRs targeting main (DEV)
-      - prod  # Check PRs targeting prod (PROD)
-    types: [opened, synchronize, reopened]
+      - main # Check PRs targeting main (DEV)
+      - prod # Check PRs targeting prod (PROD)
+    types: [ opened, synchronize, reopened ]
 
 jobs:
   check-deployment:
@@ -21,8 +21,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
-          cache: 'npm'
+          node-version: "24"
+          cache: "npm"
           cache-dependency-path: Minimal-CAD/package-lock.json
 
       - name: Cache Firebase Tools
@@ -73,6 +73,7 @@ jobs:
       - name: Deploy to Firebase Preview Channel
         id: deploy_preview
         if: steps.preview_guard.outputs.can_deploy == 'true'
+        continue-on-error: true
         working-directory: ./Minimal-CAD
         run: |
           IFS=',' read -ra SITES <<< "${{ steps.config.outputs.preview_sites }}"
@@ -156,6 +157,8 @@ jobs:
               if ('${{ steps.preview_guard.outputs.can_deploy }}' === 'true' && previewUrl) {
                 body += `🔍 **Preview URL:** ${previewUrl}\n`;
                 body += `*(Preview expires in 7 days)*`;
+              } else if ('${{ steps.deploy_preview.outcome }}' === 'failure') {
+                body += `ℹ️ Preview deploy skipped: Cloud Run service not yet deployed to this environment (first-time setup). Merge when ready.`;
               } else {
                 body += `ℹ️ Preview deploy skipped: ${{ steps.preview_guard.outputs.reason }}`;
               }
