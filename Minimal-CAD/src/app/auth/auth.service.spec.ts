@@ -1,11 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { AuthService } from './auth.service';
-import {
-  Auth,
-  getAuth,
-  provideAuth,
-  signInWithEmailAndPassword,
-} from '@angular/fire/auth';
+import { Auth, getAuth, provideAuth } from '@angular/fire/auth';
 import { firebaseConfig } from '../firebase-credentials';
 import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
 import {
@@ -22,6 +17,9 @@ describe('AuthService', () => {
   let service: AuthService;
   let auth: Auth;
 
+  const createUniqueRegistrationEmail = () =>
+    `authtest+${Date.now()}-${Math.random().toString(36).slice(2, 8)}@minimalcad.test`;
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       providers: [
@@ -35,39 +33,26 @@ describe('AuthService', () => {
   });
 
   describe('User Registration', () => {
-    // Ensure newtestemail is deleted before each registration test so a previously
-    // interrupted run (which skipped in-test cleanup) cannot cause email-already-in-use.
-    beforeEach(async () => {
-      try {
-        const cred = await signInWithEmailAndPassword(
-          auth,
-          newtestemail,
-          newtestpassword,
-        );
-        await cred.user.delete();
-      } catch {
-        // user doesn't exist – nothing to clean up
-      }
-    });
     // TC-AUTH-001
     it('should register a new user', (done) => {
+      const registrationEmail = createUniqueRegistrationEmail();
       service
-        .register(newtestemail, newtestusername, newtestpassword)
+        .register(registrationEmail, newtestusername, newtestpassword)
         .subscribe({
           next: () => {
             const currentUser = auth.currentUser;
             expect(currentUser).not.toBeNull();
-            expect(currentUser?.email).toBe(newtestemail);
+            expect(currentUser?.email).toBe(registrationEmail);
             expect(currentUser?.displayName).toBe(newtestusername);
 
-            // Cleanup: delete the created user
+            // Cleanup is best-effort; assertions above define pass/fail.
             currentUser
               ?.delete()
-              .then(() => {
-                done();
+              .catch(() => {
+                /* ignore cleanup errors */
               })
-              .catch((err) => {
-                done(new Error(`Failed to delete user: ${err}`));
+              .finally(() => {
+                done();
               });
           },
           error: (err) => {
@@ -78,20 +63,22 @@ describe('AuthService', () => {
 
     // TC-AUTH-002
     it('should set display name after registration', (done) => {
+      const registrationEmail = createUniqueRegistrationEmail();
       service
-        .register(newtestemail, newtestusername, newtestpassword)
+        .register(registrationEmail, newtestusername, newtestpassword)
         .subscribe({
           next: () => {
             const currentUser = auth.currentUser;
+            expect(currentUser?.email).toBe(registrationEmail);
             expect(currentUser?.displayName).toBe(newtestusername);
-            // Cleanup: delete the created user
+            // Cleanup is best-effort; assertions above define pass/fail.
             currentUser
               ?.delete()
-              .then(() => {
-                done();
+              .catch(() => {
+                /* ignore cleanup errors */
               })
-              .catch((err) => {
-                done(new Error(`Failed to delete user: ${err}`));
+              .finally(() => {
+                done();
               });
           },
           error: (err) => {
@@ -120,8 +107,9 @@ describe('AuthService', () => {
 
     // TC-AUTH-004
     it('should set currentUserSignal after registration', (done) => {
+      const registrationEmail = createUniqueRegistrationEmail();
       service
-        .register(newtestemail, newtestusername, newtestpassword)
+        .register(registrationEmail, newtestusername, newtestpassword)
         .subscribe({
           next: () => {
             // Wait a moment for the signal to update via the $user subscription
@@ -134,7 +122,7 @@ describe('AuthService', () => {
 
               // Verify the signal is set
               expect(currentUser).not.toBeNull();
-              expect(currentUser?.email).toBe(newtestemail);
+              expect(currentUser?.email).toBe(registrationEmail);
               // Note: username may be empty initially due to async signal update
 
               // Cleanup: delete the created user (best-effort; beforeEach handles
