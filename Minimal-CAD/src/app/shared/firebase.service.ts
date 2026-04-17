@@ -11,7 +11,7 @@ import {
   where,
 } from '@angular/fire/firestore';
 import { from, Observable } from 'rxjs';
-import { FormObject, FreeObject, Project } from '../interfaces';
+import { FormObject, FreeObject, Project, Settings, User } from '../interfaces';
 import { Auth } from '@angular/fire/auth';
 
 @Injectable({
@@ -25,9 +25,21 @@ export class FirebaseService {
     return this.auth.currentUser?.email ?? null;
   }
 
+  getCurrentUserId(): string | null {
+    return this.auth.currentUser?.uid ?? null;
+  }
+
   // Getter instead of property to ensure it's called within injection context
   private get projectsCollection() {
     return collection(this.firestore, 'projects');
+  }
+
+  private get usersCollection() {
+    return collection(this.firestore, 'users');
+  }
+
+  private getUserDocRef(uid: string) {
+    return doc(this.usersCollection, uid);
   }
 
   // Helper to get objects subcollection for a project
@@ -156,6 +168,40 @@ export class FirebaseService {
       }
     });
     return from(projectData);
+  }
+
+  getUserById(uid: string): Observable<User | null> {
+    const userData = getDoc(this.getUserDocRef(uid)).then((snapshot) => {
+      if (!snapshot.exists()) {
+        return null;
+      }
+
+      return snapshot.data() as User;
+    });
+
+    return from(userData);
+  }
+
+  saveUser(user: User): Observable<string> {
+    const uid = user.uid;
+    if (!uid) {
+      throw new Error('User uid is required to save user data.');
+    }
+
+    const savePromise = setDoc(this.getUserDocRef(uid), user, {
+      merge: true,
+    }).then(() => uid);
+    return from(savePromise);
+  }
+
+  updateUserSettings(uid: string, settings: Settings): Observable<string> {
+    const savePromise = setDoc(
+      this.getUserDocRef(uid),
+      { settings },
+      { merge: true },
+    ).then(() => uid);
+
+    return from(savePromise);
   }
 
   async saveProject(project: Project): Promise<Observable<string>> {

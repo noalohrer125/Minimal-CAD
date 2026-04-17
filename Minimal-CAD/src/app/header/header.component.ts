@@ -1,10 +1,16 @@
+import { SettingsService } from './../shared/settings.service';
 import { CommonModule } from '@angular/common';
-import { Component, Input } from '@angular/core';
+import { Component, effect, Input } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
+import {
+  MatSlideToggleChange,
+  MatSlideToggleModule,
+} from '@angular/material/slide-toggle';
 import { Draw } from '../shared/draw.service';
-import { File  as FileService } from '../shared/file.service';
+import { File as FileService } from '../shared/file.service';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
 import { AuthService } from '../auth/auth.service';
@@ -16,16 +22,19 @@ import { StepService } from '../shared/step.service';
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     MatIconModule,
     MatButtonModule,
     MatTooltipModule,
-    MatMenuModule
+    MatMenuModule,
+    MatSlideToggleModule,
   ],
   templateUrl: './header.component.html',
-  styleUrls: ['./header.component.css']
+  styleUrls: ['./header.component.css'],
 })
 export class HeaderComponent {
   @Input() isAuthenticated: boolean = false;
+  autosave: boolean = false;
 
   constructor(
     private drawService: Draw,
@@ -33,8 +42,13 @@ export class HeaderComponent {
     private fileService: FileService,
     public stepService: StepService,
     public router: Router,
-    public authService: AuthService
-  ) { }
+    public authService: AuthService,
+    private settingsService: SettingsService,
+  ) {
+    effect(() => {
+      this.autosave = this.settingsService.settings().autosave;
+    });
+  }
 
   saveProjectToFirebase() {
     this.globalService.openSaveProjectPopup();
@@ -70,6 +84,11 @@ export class HeaderComponent {
 
   freeform() {
     this.drawService.freeform();
+  }
+
+  updateSettings(event: MatSlideToggleChange): void {
+    this.autosave = event.checked;
+    this.settingsService.updateSettings('autosave', this.autosave);
   }
 
   login(): void {

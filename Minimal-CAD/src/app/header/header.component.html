@@ -41,6 +41,9 @@
                     <mat-icon>interests</mat-icon>
                 </button>
                 <hr>
+                <mat-slide-toggle [(ngModel)]="autosave" (change)="updateSettings($event)" color="primary">
+                    Autosave
+                </mat-slide-toggle>
             </div>
         }
     }
