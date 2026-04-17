@@ -137,14 +137,15 @@ describe('AuthService', () => {
               expect(currentUser?.email).toBe(newtestemail);
               // Note: username may be empty initially due to async signal update
 
-              // Cleanup: delete the created user
+              // Cleanup: delete the created user (best-effort; beforeEach handles
+              // leftovers on next run so token-expiry errors here are non-fatal).
               auth.currentUser
                 ?.delete()
-                .then(() => {
-                  done();
+                .catch(() => {
+                  /* ignore cleanup errors */
                 })
-                .catch((err) => {
-                  done(new Error(`Failed to delete user: ${err}`));
+                .finally(() => {
+                  done();
                 });
             }, 500);
           },
