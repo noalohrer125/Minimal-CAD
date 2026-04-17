@@ -7,13 +7,21 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 WORKDIR /app
 
-RUN if [ -f /etc/apt/sources.list ]; then \
-  sed -i 's|http://archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g; s|http://security.ubuntu.com/ubuntu|https://security.ubuntu.com/ubuntu|g' /etc/apt/sources.list; \
-  fi \
+# Step 1: switch to HTTPS mirrors; disable TLS peer verification temporarily to bootstrap
+# ca-certificates (base Ubuntu image has none), then re-enable and do the real install.
+RUN sed -i \
+  's|http://archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g; s|http://security.ubuntu.com/ubuntu|https://security.ubuntu.com/ubuntu|g' \
+  /etc/apt/sources.list \
   && if [ -f /etc/apt/sources.list.d/ubuntu.sources ]; then \
-  sed -i 's|http://archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g; s|http://security.ubuntu.com/ubuntu|https://security.ubuntu.com/ubuntu|g' /etc/apt/sources.list.d/ubuntu.sources; \
+  sed -i \
+  's|http://archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g; s|http://security.ubuntu.com/ubuntu|https://security.ubuntu.com/ubuntu|g' \
+  /etc/apt/sources.list.d/ubuntu.sources; \
   fi \
-  && printf 'Acquire::Retries "5";\nAcquire::https::Timeout "30";\nAcquire::http::Timeout "30";\n' > /etc/apt/apt.conf.d/80-network-retries \
+  && printf 'Acquire::https::Verify-Peer "false";\nAcquire::https::Verify-Host "false";\nAcquire::Retries "5";\n' \
+  > /etc/apt/apt.conf.d/99-bootstrap-no-verify \
+  && apt-get update \
+  && apt-get install -y --no-install-recommends ca-certificates \
+  && rm /etc/apt/apt.conf.d/99-bootstrap-no-verify \
   && apt-get update \
   && apt-get install -y --no-install-recommends \
   freecad \
