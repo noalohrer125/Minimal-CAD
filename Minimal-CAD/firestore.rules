@@ -77,7 +77,10 @@ service cloud.firestore {
       // Users can update their profile but cannot change their role themselves.
       allow update: if isAuthenticated() &&
                        request.auth.uid == userId &&
-                       request.resource.data.role == resource.data.role;
+                       (
+                         request.resource.data.role == resource.data.role ||
+                         (!('role' in resource.data) && request.resource.data.role == 'user')
+                       );
 
       allow delete: if false;
     }

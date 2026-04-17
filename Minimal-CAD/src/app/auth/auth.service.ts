@@ -61,12 +61,16 @@ export class AuthService {
       return;
     }
 
-    // Create profile for users who registered before role-support was added
-    await this.ensureUserProfile(
-      firebaseUser.uid,
-      firebaseUser.email ?? '',
-      firebaseUser.displayName ?? '',
-    );
+    // Best-effort backfill for legacy users; auth flow must not fail if this is denied.
+    try {
+      await this.ensureUserProfile(
+        firebaseUser.uid,
+        firebaseUser.email ?? '',
+        firebaseUser.displayName ?? '',
+      );
+    } catch {
+      // Ignore profile-sync failures here and continue with auth state.
+    }
 
     const role = await this.getUserRole(firebaseUser.uid);
     this.currentUserSignal.set({
@@ -113,7 +117,13 @@ export class AuthService {
       password,
     ).then(async (response) => {
       await updateProfile(response.user, { displayName: username });
-      await this.ensureUserProfile(response.user.uid, email, username);
+
+      // Keep registration successful even if profile persistence is temporarily blocked.
+      try {
+        await this.ensureUserProfile(response.user.uid, email, username);
+      } catch {
+        // Ignore and allow the user to continue; role falls back to 'user'.
+      }
     });
     return from(promise);
   }
