@@ -61,6 +61,16 @@ export class AuthService {
       return;
     }
 
+    const baseUser: User = {
+      uid: firebaseUser.uid,
+      email: firebaseUser.email ?? '',
+      username: firebaseUser.displayName ?? '',
+      role: 'user',
+    };
+
+    // Update UI/auth state immediately; role is refined asynchronously below.
+    this.currentUserSignal.set(baseUser);
+
     // Best-effort backfill for legacy users; auth flow must not fail if this is denied.
     try {
       await this.ensureUserProfile(
@@ -73,12 +83,7 @@ export class AuthService {
     }
 
     const role = await this.getUserRole(firebaseUser.uid);
-    this.currentUserSignal.set({
-      uid: firebaseUser.uid,
-      email: firebaseUser.email ?? '',
-      username: firebaseUser.displayName ?? '',
-      role,
-    });
+    this.currentUserSignal.set({ ...baseUser, role });
   }
 
   private async ensureUserProfile(
