@@ -3,31 +3,34 @@
 ## Automatisches Deployment via GitHub Actions
 
 ### DEV Environment
+
 - **Branch:** `main`
 - **Firebase Project:** `minimalcad-dev`
 - **Cloud Run Service:** `minimalcad-stl-step-api-dev` (Region: `europe-west6`)
-- **Hosting URLs:** 
-  - https://minimalcad-dev.web.app
-  - https://mincad-dev.web.app
+- **Hosting URLs:**
+  - <https://minimalcad-dev.web.app>
+  - <https://mincad-dev.web.app>
 - **Build Config:** `--configuration=dev`
 - **Firebase Config:** Uses `environment.ts` (DEV database)
-- **Auto-Deploy:** Pusht du auf `main`, wird automatisch Frontend + Cloud-Run-API auf DEV deployed
+- **Auto-Deploy:** Pusht du auf `main`, wird das Frontend immer deployed; die Cloud-Run-API nur dann, wenn sich `Minimal-CAD/src/app/shared/stl-to-step_api/Dockerfile` oder eine `*.py`-Datei in diesem Ordner geändert hat
 
 ### PROD Environment
+
 - **Branch:** `prod`
 - **Firebase Projects:** `minimalcad-1a6dd`
 - **Cloud Run Service:** `minimalcad-stl-step-api-prod` (Region: `europe-west6`)
-- **Hosting URLs:** 
-  - https://minimalcad-1a6dd.web.app
-  - https://min-cad.web.app
+- **Hosting URLs:**
+  - <https://minimalcad-1a6dd.web.app>
+  - <https://min-cad.web.app>
 - **Build Config:** `--configuration=production`
 - **Firebase Config:** Uses `environment.prod.ts` (PROD database)
-- **Auto-Deploy:** Pusht du auf `prod`, wird automatisch Frontend + Cloud-Run-API auf PROD deployed
+- **Auto-Deploy:** Pusht du auf `prod`, wird das Frontend immer deployed; die Cloud-Run-API nur dann, wenn sich `Minimal-CAD/src/app/shared/stl-to-step_api/Dockerfile` oder eine `*.py`-Datei in diesem Ordner geändert hat
 
 ## Cloud Run API (STL -> STEP)
 
 - API source: `Minimal-CAD/src/app/shared/stl-to-step_api/`
 - Container build: via `gcloud builds submit`
+- Rebuild trigger in GitHub Actions: only on changes to `Dockerfile` or `*.py` files inside `Minimal-CAD/src/app/shared/stl-to-step_api/`
 - Deploy target:
   - DEV: `minimalcad-stl-step-api-dev` in project `minimalcad-dev`
   - PROD: `minimalcad-stl-step-api-prod` in project `minimalcad-1a6dd`
@@ -41,6 +44,7 @@
 - `GCP_SA_KEY_PROD` (Service Account JSON for project `minimalcad-1a6dd`)
 
 Recommended IAM roles for both service accounts:
+
 - `roles/run.admin`
 - `roles/cloudbuild.builds.editor`
 - `roles/storage.admin`
@@ -49,6 +53,7 @@ Recommended IAM roles for both service accounts:
 ## Manuelles Deployment
 
 ### DEV Deployment
+
 ```bash
 cd Minimal-CAD
 ng build --configuration=dev
@@ -63,6 +68,7 @@ firebase deploy --only hosting,firestore:rules --project minimalcad-dev
 ```
 
 ### PROD Deployment
+
 ```bash
 cd Minimal-CAD
 ng build --configuration=production

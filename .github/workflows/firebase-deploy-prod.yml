@@ -6,7 +6,7 @@ permissions:
 on:
   push:
     branches:
-      - prod  # Deploy PROD when pushing to prod branch
+      - prod # Deploy PROD when pushing to prod branch
 
 jobs:
   deploy:
@@ -17,55 +17,69 @@ jobs:
       GCP_REGION: europe-west6
       CLOUD_RUN_SERVICE: minimalcad-stl-step-api-prod
       API_CONTEXT_DIR: ./Minimal-CAD/src/app/shared/stl-to-step_api
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
+      - name: Detect API changes
+        id: api_changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            api:
+              - 'Minimal-CAD/src/app/shared/stl-to-step_api/Dockerfile'
+              - 'Minimal-CAD/src/app/shared/stl-to-step_api/**/*.py'
+              - 'Minimal-CAD/src/app/shared/stl-to-step_api/requirements.txt'
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
-          cache: 'npm'
+          node-version: "24"
+          cache: "npm"
           cache-dependency-path: Minimal-CAD/package-lock.json
-      
+
       - name: Cache Firebase Tools
         uses: actions/cache@v4
         with:
           path: ~/.cache/firebase
           key: ${{ runner.os }}-firebase-tools
-      
+
       - name: Install dependencies
         working-directory: ./Minimal-CAD
         run: npm ci --legacy-peer-deps
-      
+
       - name: Run unit tests
         working-directory: ./Minimal-CAD
         run: npm test
-      
+
       - name: Build application (PROD config)
         working-directory: ./Minimal-CAD
         run: npm run build -- --configuration=production
-      
+
       - name: Install Firebase Tools
         run: npm install -g firebase-tools
 
       - name: Authenticate to Google Cloud (PROD)
+        if: steps.api_changes.outputs.api == 'true'
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: '${{ secrets.GCP_SA_KEY_PROD }}'
+          credentials_json: "${{ secrets.GCP_SA_KEY_PROD }}"
 
       - name: Setup gcloud
+        if: steps.api_changes.outputs.api == 'true'
         uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: ${{ env.GCP_PROJECT_ID }}
 
       - name: Build API container image (PROD)
+        if: steps.api_changes.outputs.api == 'true'
         run: |
           gcloud builds submit "${{ env.API_CONTEXT_DIR }}" \
             --tag "gcr.io/${{ env.GCP_PROJECT_ID }}/${{ env.CLOUD_RUN_SERVICE }}:${{ github.sha }}"
 
       - name: Deploy API to Cloud Run (PROD)
+        if: steps.api_changes.outputs.api == 'true'
         run: |
           gcloud run deploy "${{ env.CLOUD_RUN_SERVICE }}" \
             --image "gcr.io/${{ env.GCP_PROJECT_ID }}/${{ env.CLOUD_RUN_SERVICE }}:${{ github.sha }}" \
@@ -77,7 +91,12 @@ jobs:
             --timeout 300 \
             --cpu 2 \
             --memory 2Gi
-      
+
+      - name: Skip API build and deploy (PROD)
+        if: steps.api_changes.outputs.api != 'true'
+        run: echo "No API Dockerfile or Python changes detected. Skipping Cloud Run
+          build and deploy."
+
       - name: Deploy to Firebase Prod (minimalcad-1a6dd + min-cad)
         working-directory: ./Minimal-CAD
         run: |
