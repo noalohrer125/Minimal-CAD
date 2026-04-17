@@ -12,6 +12,27 @@
     ],
     "rewrites": [
       {
+        "source": "/uploadStlToServer",
+        "run": {
+          "serviceId": "minimalcad-stl-step-api-prod",
+          "region": "europe-west6"
+        }
+      },
+      {
+        "source": "/convert",
+        "run": {
+          "serviceId": "minimalcad-stl-step-api-prod",
+          "region": "europe-west6"
+        }
+      },
+      {
+        "source": "/download",
+        "run": {
+          "serviceId": "minimalcad-stl-step-api-prod",
+          "region": "europe-west6"
+        }
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }

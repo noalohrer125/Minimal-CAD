@@ -5,6 +5,7 @@ import { HeaderComponent } from './header/header.component';
 import { GlobalService } from './shared/global.service';
 import { SaveProjectPopupComponent } from './shared/save-project-popup.component/save-project-popup.component';
 import { Draw } from './shared/draw.service';
+import { MatDialogModule } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-root',
@@ -12,7 +13,8 @@ import { Draw } from './shared/draw.service';
   imports: [
     RouterOutlet,
     HeaderComponent,
-    SaveProjectPopupComponent
+    SaveProjectPopupComponent,
+    MatDialogModule
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'

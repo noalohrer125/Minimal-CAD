@@ -2,7 +2,7 @@ import Mesh
 import Part
 
 # Load STL
-mesh = Mesh.Mesh('model.stl')
+mesh = Mesh.Mesh("model.stl")
 print(f"Mesh loaded: {mesh.CountFacets} facets")
 
 # Repair mesh
@@ -41,8 +41,9 @@ else:
 print("Exporting STEP...")
 # Alternative method: Create compound
 import Part
+
 comp = Part.makeCompound([solid])
-comp.exportStep('output.step')
+comp.exportStep("output.step")
 print("STEP exported to output.step")
 
 # Validation

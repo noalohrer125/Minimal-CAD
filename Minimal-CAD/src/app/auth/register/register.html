@@ -1,21 +1,49 @@
-<h1>Register</h1>
+<section class="auth-page">
+    <div class="auth-card">
+        <h1>Register</h1>
+        <p class="auth-subtitle">Create a new account for Minimal-CAD.</p>
 
-@if (errorMesssage) {
-    <div class="error-message">{{ errorMesssage }}</div>
-}
+        @if (errorMessage) {
+            <div class="error-message" role="alert">{{ errorMessage }}</div>
+        }
 
-<form [formGroup]="form" (ngSubmit)="onSubmit()">
-    <div>
-        <input type="text" placeholder="Username" formControlName="username" />
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+            <label>
+                <span>Username</span>
+                <input type="text" placeholder="Your Name" formControlName="username" />
+                @if (form.controls.username.touched && form.controls.username.hasError('required')) {
+                    <small class="field-error">Username is required.</small>
+                }
+            </label>
+
+            <label>
+                <span>Email</span>
+                <input type="email" placeholder="name@example.com" formControlName="email" />
+                @if (form.controls.email.touched && form.controls.email.hasError('required')) {
+                    <small class="field-error">Email is required.</small>
+                }
+                @if (form.controls.email.touched && form.controls.email.hasError('email')) {
+                    <small class="field-error">Please enter a valid email.</small>
+                }
+            </label>
+
+            <label>
+                <span>Password</span>
+                <input type="password" placeholder="At least 6 characters" formControlName="password" />
+                @if (form.controls.password.touched && form.controls.password.hasError('required')) {
+                    <small class="field-error">Password is required.</small>
+                }
+                @if (form.controls.password.touched && form.controls.password.hasError('minlength')) {
+                    <small class="field-error">At least 6 characters.</small>
+                }
+            </label>
+
+            <button type="submit" [disabled]="form.invalid">Register</button>
+        </form>
+
+        <p class="auth-footer">
+            Already have an account?
+            <a href="/login" (click)="goToLogin($event)">Go to Login</a>
+        </p>
     </div>
-    <div>
-        <input type="email" placeholder="Email" formControlName="email" />
-    </div>
-    <div>
-        <input type="password" placeholder="Password"
-            formControlName="password" />
-    </div>
-    <div>
-        <button type="submit">Sign Up</button>
-    </div>
-</form>
+</section>

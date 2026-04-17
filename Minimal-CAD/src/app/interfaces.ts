@@ -13,6 +13,7 @@ export interface Project {
     ownerEmail: string;
     createdAt: Timestamp;
     updatedAt?: Timestamp;
+    thumbnailDataUrl?: string;
 }
 
 export interface projectSavingResult {

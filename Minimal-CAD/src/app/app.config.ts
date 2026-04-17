@@ -1,4 +1,4 @@
-import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { ApplicationConfig, importProvidersFrom, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { appRoutes } from './app.routes';
 import { provideClientHydration } from '@angular/platform-browser';
@@ -8,6 +8,7 @@ import { getAnalytics, provideAnalytics } from '@angular/fire/analytics';
 import { provideFirestore, getFirestore } from '@angular/fire/firestore';
 import { firebaseConfig } from '../app/firebase-credentials';
 import { provideAuth, getAuth } from '@angular/fire/auth';
+import { MatDialogModule } from '@angular/material/dialog';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -17,6 +18,7 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(),
     provideFirebaseApp(() => initializeApp(firebaseConfig)),
     provideAuth(() => getAuth()),
+    importProvidersFrom(MatDialogModule),
     provideAnalytics(() => getAnalytics()),
     provideFirestore(() => getFirestore()),
   ]
