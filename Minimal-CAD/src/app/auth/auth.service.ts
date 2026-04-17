@@ -61,6 +61,13 @@ export class AuthService {
       return;
     }
 
+    // Create profile for users who registered before role-support was added
+    await this.ensureUserProfile(
+      firebaseUser.uid,
+      firebaseUser.email ?? '',
+      firebaseUser.displayName ?? '',
+    );
+
     const role = await this.getUserRole(firebaseUser.uid);
     this.currentUserSignal.set({
       uid: firebaseUser.uid,
