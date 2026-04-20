@@ -309,6 +309,13 @@ export class SidebarRightComponent implements OnInit {
     try {
       // Save current form state to localStorage first
       this.saveToLocalStorage();
+      if (this.settingsService.loadSettings().autosave) {
+        void this.drawService.saveProjectToFirebase(
+          this.selectedObject.name,
+          false,
+          false,
+        );
+      }
       // Load the updated object from localStorage (which has the current form values)
       const modelData = this.drawService.loadObjects();
       const updatedObject = modelData.find(
