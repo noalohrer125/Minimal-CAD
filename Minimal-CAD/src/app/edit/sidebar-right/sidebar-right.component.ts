@@ -307,23 +307,35 @@ export class SidebarRightComponent implements OnInit {
     try {
       // Save current form state to localStorage first
       this.saveToLocalStorage();
+      const modelData = this.drawService.loadObjects();
+      const updatedObject = modelData.find(
+        (obj) => obj.id === this.selectedObject.id && !obj.ghost,
+      );
+      const hasObjectChanges = this.hasObjectChanges(
+        this.selectedObject,
+        updatedObject,
+      );
+
       if (this.settingsService.loadSettings().autosave) {
         void this.drawService.saveProjectToFirebase(
           this.selectedObject.name,
           false,
           false,
         );
-        void this.drawService.saveVersionCommitToFirebase(
-          this.selectedObject.name,
-        );
+        if (hasObjectChanges) {
+          void this.drawService.saveVersionCommitToFirebase(
+            this.selectedObject.name,
+          );
+        }
       }
-      // Load the updated object from localStorage (which has the current form values)
-      const modelData = this.drawService.loadObjects();
-      const updatedObject = modelData.find(
-        (obj) => obj.id === this.selectedObject.id && !obj.ghost,
-      );
+
       if (updatedObject) {
         this.drawService.saveObject(updatedObject);
+        this.selectedObject = {
+          ...updatedObject,
+          selected: true,
+          ghost: false,
+        };
       }
       // Don't reload form after submit, just update the 3D view
       this.skipNextReload = true;
@@ -335,6 +347,54 @@ export class SidebarRightComponent implements OnInit {
         'Changes could not be saved. Please try again.',
       );
     }
+  }
+
+  private hasObjectChanges(
+    original: FormObject | FreeObject | null | undefined,
+    updated: FormObject | FreeObject | undefined,
+  ): boolean {
+    if (!original || !updated) {
+      return false;
+    }
+
+    return (
+      this.stableStringify(this.normalizeObjectForComparison(original)) !==
+      this.stableStringify(this.normalizeObjectForComparison(updated))
+    );
+  }
+
+  private normalizeObjectForComparison(
+    value: FormObject | FreeObject,
+  ): unknown {
+    return this.normalizeForComparison(value);
+  }
+
+  private normalizeForComparison(value: unknown): unknown {
+    if (Array.isArray(value)) {
+      return value.map((item) => this.normalizeForComparison(item));
+    }
+
+    if (value && typeof value === 'object') {
+      const obj = value as Record<string, unknown>;
+      const result: Record<string, unknown> = {};
+      const keys = Object.keys(obj).sort((a, b) => a.localeCompare(b));
+
+      for (const key of keys) {
+        if (key === 'selected' || key === 'ghost' || key === 'new') {
+          continue;
+        }
+
+        result[key] = this.normalizeForComparison(obj[key]);
+      }
+
+      return result;
+    }
+
+    return value;
+  }
+
+  private stableStringify(value: unknown): string {
+    return JSON.stringify(value);
   }
 
   async onClose() {

@@ -45,7 +45,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   private currentProjectOwnerEmail: string | null = null;
 
   constructor(
-    private drawService: Draw,
+    public drawService: Draw,
     private globalService: GlobalService,
     private fileService: FileService,
     public stepService: StepService,
@@ -69,6 +69,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
         this.router.url.includes('/editor')
       ) {
         this.loadCurrentProjectOwner();
+        void this.drawService.refreshVersionState();
       }
     });
 
@@ -76,6 +77,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.changesPollingSubscription = interval(20).subscribe(() => {
       this.hasUnsavedChanges = this.checkForChanges();
     });
+
+    void this.drawService.refreshVersionState();
   }
 
   ngOnDestroy(): void {
@@ -202,7 +205,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   saveProjectToFirebase() {
-    this.globalService.openSaveProjectPopup(!this.isCurrentUserProjectOwner, !this.isCurrentUserProjectOwner);
+    this.globalService.openSaveProjectPopup(
+      !this.isCurrentUserProjectOwner,
+      !this.isCurrentUserProjectOwner,
+    );
   }
 
   saveToLocalFile() {
@@ -235,6 +241,14 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   freeform() {
     this.drawService.freeform();
+  }
+
+  undo() {
+    void this.drawService.undoVersion();
+  }
+
+  redo() {
+    void this.drawService.redoVersion();
   }
 
   updateSettings(event: MatSlideToggleChange): void {

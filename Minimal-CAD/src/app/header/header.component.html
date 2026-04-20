@@ -61,7 +61,17 @@
     <button matTooltip="add Freeform" mat-icon-button (click)="freeform()">
       <mat-icon>interests</mat-icon>
     </button>
+    @if (isCurrentUserProjectOwner && authService.isPaidOrAdmin()) {
     <hr>
+    <button matTooltip="Undo" mat-icon-button (click)="undo()"
+      [disabled]="!(drawService.canUndo$ | async)">
+      <mat-icon>undo</mat-icon>
+    </button>
+    <button matTooltip="Redo" mat-icon-button (click)="redo()"
+      [disabled]="!(drawService.canRedo$ | async)">
+      <mat-icon>redo</mat-icon>
+    </button>
+    }
   </div>
   }
   }
