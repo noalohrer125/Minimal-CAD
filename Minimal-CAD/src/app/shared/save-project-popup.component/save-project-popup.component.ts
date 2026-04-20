@@ -19,6 +19,7 @@ import { Draw } from '../draw.service';
 import { projectSavingResult } from '../../interfaces';
 import { FirebaseService } from '../firebase.service';
 import { DialogService } from '../dialog.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-save-project-popup',
@@ -51,6 +52,7 @@ export class SaveProjectPopupComponent implements OnInit, OnDestroy {
   };
   public saved: boolean = false;
   public licenceCopied: boolean = false;
+  public isFork: boolean = false;
   private subscription: Subscription = new Subscription();
   private data: { projectName: string; isPrivate: boolean } = {
     projectName: 'New Project',
@@ -62,6 +64,7 @@ export class SaveProjectPopupComponent implements OnInit, OnDestroy {
     private drawService: Draw,
     private firebaseService: FirebaseService,
     private dialogService: DialogService,
+    private router: Router,
   ) {}
 
   ngOnInit() {
@@ -75,6 +78,7 @@ export class SaveProjectPopupComponent implements OnInit, OnDestroy {
     this.subscription.add(
       this.globalService.isSaveProjectPopupOpen.subscribe((isOpen) => {
         if (isOpen) {
+          this.isFork = this.globalService.getIsFork();
           // Check if this is a new project
           if (this.globalService.getIsNewProject()) {
             // Reset form to default values for new project
@@ -147,7 +151,7 @@ export class SaveProjectPopupComponent implements OnInit, OnDestroy {
       .saveProjectToFirebase(
         this.getDataFromForm().projectName,
         this.getDataFromForm().isPrivate,
-        this.globalService.getIsNewProject(),
+        this.globalService.getIsNewProject() || this.isFork,
       )
       .then((result: projectSavingResult) => {
         this.projectSavingResult = result;
@@ -155,6 +159,9 @@ export class SaveProjectPopupComponent implements OnInit, OnDestroy {
         this.drawService.reload$.next();
         if (!result.success && result.error) {
           this.dialogService.alert('Error', result.error);
+        } else if (result.success && this.isFork && result.projectId) {
+          this.globalService.closeSaveProjectPopup();
+          this.router.navigate(['/editor', result.projectId]);
         }
       })
       .catch((error) => {

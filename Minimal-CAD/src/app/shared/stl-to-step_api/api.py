@@ -5,8 +5,6 @@ import os
 import logging
 import shutil
 
-# TODO: deploy the API to firebase or cloud run and update the URL in the frontend
-
 app = Flask(__name__)
 CORS(app)
 

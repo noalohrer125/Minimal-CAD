@@ -3,14 +3,20 @@
   @if (router.url.includes('/editor')) {
   <div class="editor-menu">
     <button
-      matTooltip="{{!autosave && hasUnsavedChanges ? 'Unsaved changes - save project' : 'No changes'}}"
+      matTooltip="{{
+        !isCurrentUserProjectOwner ? 'Save copy to edit' :
+        !autosave && hasUnsavedChanges ? 'Unsaved changes - save project' :
+        'No changes'}}"
       mat-icon-button
       (click)="saveProjectToFirebase()">
-      <mat-icon>{{!autosave && hasUnsavedChanges ? 'cloud_sync' :
+      <mat-icon>{{!isCurrentUserProjectOwner ? 'save' :
+        !autosave && hasUnsavedChanges ? 'cloud_sync' :
         'cloud_done'}}</mat-icon>
     </button>
-    @if (authService.isPaidOrAdmin()) {
+    @if (isCurrentUserProjectOwner) {
     <mat-slide-toggle [(ngModel)]="autosave" (change)="updateSettings($event)"
+      [disabled]="!authService.isPaidOrAdmin()"
+      matTooltip="{{ authService.isPaidOrAdmin() ? 'Autosave' : 'This feature is only available for paid users' }}"
       color="primary">
       Autosave
     </mat-slide-toggle>

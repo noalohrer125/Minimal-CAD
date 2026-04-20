@@ -12,11 +12,12 @@ import {
 import { Draw } from '../shared/draw.service';
 import { File as FileService } from '../shared/file.service';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Router } from '@angular/router';
+import { NavigationEnd, Router } from '@angular/router';
 import { AuthService } from '../auth/auth.service';
 import { GlobalService } from '../shared/global.service';
 import { StepService } from '../shared/step.service';
 import { Subscription, interval } from 'rxjs';
+import { FirebaseService } from '../shared/firebase.service';
 
 @Component({
   selector: 'app-header',
@@ -37,7 +38,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
   @Input() isAuthenticated: boolean = false;
   autosave: boolean = false;
   public changesPollingSubscription?: Subscription;
+  public ownershipSubscription?: Subscription;
+  public routerEventsSubscription?: Subscription;
   public hasUnsavedChanges: boolean = false;
+  public isCurrentUserProjectOwner: boolean = false;
+  private currentProjectOwnerEmail: string | null = null;
 
   constructor(
     private drawService: Draw,
@@ -47,13 +52,26 @@ export class HeaderComponent implements OnInit, OnDestroy {
     public router: Router,
     public authService: AuthService,
     private settingsService: SettingsService,
+    private firebaseService: FirebaseService,
   ) {
     effect(() => {
       this.autosave = this.settingsService.settings().autosave;
+      this.authService.currentUserSignal();
+      this.updateOwnershipState();
     });
   }
 
   ngOnInit(): void {
+    this.loadCurrentProjectOwner();
+    this.routerEventsSubscription = this.router.events.subscribe((event) => {
+      if (
+        event instanceof NavigationEnd &&
+        this.router.url.includes('/editor')
+      ) {
+        this.loadCurrentProjectOwner();
+      }
+    });
+
     this.hasUnsavedChanges = this.checkForChanges();
     this.changesPollingSubscription = interval(20).subscribe(() => {
       this.hasUnsavedChanges = this.checkForChanges();
@@ -62,6 +80,36 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.changesPollingSubscription?.unsubscribe();
+    this.ownershipSubscription?.unsubscribe();
+    this.routerEventsSubscription?.unsubscribe();
+  }
+
+  private loadCurrentProjectOwner(): void {
+    this.ownershipSubscription?.unsubscribe();
+    this.ownershipSubscription = this.firebaseService
+      .getOwnerEmailForCurrentProject()
+      .subscribe({
+        next: (ownerEmail) => {
+          this.currentProjectOwnerEmail = ownerEmail;
+          this.updateOwnershipState();
+        },
+        error: () => {
+          this.currentProjectOwnerEmail = null;
+          this.isCurrentUserProjectOwner = false;
+        },
+      });
+  }
+
+  private updateOwnershipState(): void {
+    const currentUserEmail = this.authService.currentUserSignal()?.email;
+    if (!currentUserEmail || !this.currentProjectOwnerEmail) {
+      this.isCurrentUserProjectOwner = false;
+      return;
+    }
+
+    this.isCurrentUserProjectOwner =
+      currentUserEmail.toLowerCase() ===
+      this.currentProjectOwnerEmail.toLowerCase();
   }
 
   public checkForChanges(): boolean {
@@ -154,7 +202,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   saveProjectToFirebase() {
-    this.globalService.openSaveProjectPopup();
+    this.globalService.openSaveProjectPopup(!this.isCurrentUserProjectOwner, !this.isCurrentUserProjectOwner);
   }
 
   saveToLocalFile() {

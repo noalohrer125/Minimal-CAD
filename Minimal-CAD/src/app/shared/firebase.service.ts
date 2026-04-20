@@ -29,7 +29,22 @@ export class FirebaseService {
     return this.auth.currentUser?.uid ?? null;
   }
 
-  // Getter instead of property to ensure it's called within injection context
+  getOwnerEmailForCurrentProject(): Observable<string | null> {
+    const projectId = localStorage.getItem('project-id');
+    if (!projectId || projectId === 'notExisting') {
+      return from(Promise.resolve(null));
+    }
+    return from(
+      getDoc(doc(this.projectsCollection, projectId)).then((docSnapshot) => {
+        if (docSnapshot.exists()) {
+          const projectData = docSnapshot.data() as Project;
+          return projectData.ownerEmail ?? null;
+        }
+        return null;
+      }),
+    );
+  }
+
   private get projectsCollection() {
     return collection(this.firestore, 'projects');
   }
