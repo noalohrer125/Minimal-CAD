@@ -11,7 +11,14 @@ import {
   where,
 } from '@angular/fire/firestore';
 import { from, Observable } from 'rxjs';
-import { FormObject, FreeObject, Project } from '../interfaces';
+import {
+  FormObject,
+  FreeObject,
+  Project,
+  ProjectVersionSnapshot,
+  Settings,
+  User,
+} from '../interfaces';
 import { Auth } from '@angular/fire/auth';
 
 @Injectable({
@@ -25,14 +32,45 @@ export class FirebaseService {
     return this.auth.currentUser?.email ?? null;
   }
 
-  // Getter instead of property to ensure it's called within injection context
+  getCurrentUserId(): string | null {
+    return this.auth.currentUser?.uid ?? null;
+  }
+
+  getOwnerEmailForCurrentProject(): Observable<string | null> {
+    const projectId = localStorage.getItem('project-id');
+    if (!projectId || projectId === 'notExisting') {
+      return from(Promise.resolve(null));
+    }
+    return from(
+      getDoc(doc(this.projectsCollection, projectId)).then((docSnapshot) => {
+        if (docSnapshot.exists()) {
+          const projectData = docSnapshot.data() as Project;
+          return projectData.ownerEmail ?? null;
+        }
+        return null;
+      }),
+    );
+  }
+
   private get projectsCollection() {
     return collection(this.firestore, 'projects');
+  }
+
+  private get usersCollection() {
+    return collection(this.firestore, 'users');
+  }
+
+  private getUserDocRef(uid: string) {
+    return doc(this.usersCollection, uid);
   }
 
   // Helper to get objects subcollection for a project
   private getObjectsCollection(projectId: string) {
     return collection(this.firestore, 'projects', projectId, 'objects');
+  }
+
+  private getProjectVersionsCollection(projectId: string) {
+    return collection(this.firestore, 'projects', projectId, 'versions');
   }
 
   getObjectsByProjectId(
@@ -96,7 +134,7 @@ export class FirebaseService {
     const objectsCollection = this.getObjectsCollection(projectId);
     const docRef = setDoc(
       doc(objectsCollection, object.id),
-      object as any,
+      object as FormObject | FreeObject,
     ).then(() => object.id);
     return from(docRef);
   }
@@ -158,6 +196,40 @@ export class FirebaseService {
     return from(projectData);
   }
 
+  getUserById(uid: string): Observable<User | null> {
+    const userData = getDoc(this.getUserDocRef(uid)).then((snapshot) => {
+      if (!snapshot.exists()) {
+        return null;
+      }
+
+      return snapshot.data() as User;
+    });
+
+    return from(userData);
+  }
+
+  saveUser(user: User): Observable<string> {
+    const uid = user.uid;
+    if (!uid) {
+      throw new Error('User uid is required to save user data.');
+    }
+
+    const savePromise = setDoc(this.getUserDocRef(uid), user, {
+      merge: true,
+    }).then(() => uid);
+    return from(savePromise);
+  }
+
+  updateUserSettings(uid: string, settings: Settings): Observable<string> {
+    const savePromise = setDoc(
+      this.getUserDocRef(uid),
+      { settings },
+      { merge: true },
+    ).then(() => uid);
+
+    return from(savePromise);
+  }
+
   async saveProject(project: Project): Promise<Observable<string>> {
     try {
       const docRef = doc(this.projectsCollection, project.id);
@@ -176,6 +248,66 @@ export class FirebaseService {
       project,
     ).then(() => project.id);
     return from(docRef);
+  }
+
+  saveProjectVersionSnapshot(
+    projectId: string,
+    snapshot: ProjectVersionSnapshot,
+  ): Observable<string> {
+    const versionsCollection = this.getProjectVersionsCollection(projectId);
+    const snapshotDocRef = doc(versionsCollection, snapshot.id);
+    return from(setDoc(snapshotDocRef, snapshot).then(() => snapshot.id));
+  }
+
+  getProjectVersionSnapshots(
+    projectId: string,
+  ): Observable<ProjectVersionSnapshot[]> {
+    const versionsCollection = this.getProjectVersionsCollection(projectId);
+    return from(
+      getDocs(versionsCollection).then((snapshot) => {
+        return snapshot.docs.map(
+          (docSnapshot) =>
+            ({
+              id: docSnapshot.id,
+              ...docSnapshot.data(),
+            }) as ProjectVersionSnapshot,
+        );
+      }),
+    );
+  }
+
+  async deleteProjectVersionSnapshots(
+    projectId: string,
+    snapshotIds: string[],
+  ): Promise<void> {
+    if (!snapshotIds.length) {
+      return;
+    }
+
+    const versionsCollection = this.getProjectVersionsCollection(projectId);
+    await Promise.all(
+      snapshotIds.map((snapshotId) =>
+        deleteDoc(doc(versionsCollection, snapshotId)),
+      ),
+    );
+  }
+
+  updateProjectVersionState(
+    projectId: string,
+    currentVersionId: string,
+    versionCount: number,
+  ): Observable<string> {
+    const projectDocRef = doc(this.projectsCollection, projectId);
+    return from(
+      setDoc(
+        projectDocRef,
+        {
+          currentVersionId,
+          versionCount,
+        },
+        { merge: true },
+      ).then(() => projectId),
+    );
   }
 
   async deleteProject(projectId: string): Promise<Observable<void>> {

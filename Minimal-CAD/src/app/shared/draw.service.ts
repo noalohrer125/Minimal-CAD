@@ -4,11 +4,12 @@ import {
   FormObject,
   FreeObject,
   Project,
+  ProjectVersionSnapshot,
   projectSavingResult,
   view,
 } from '../interfaces';
 import { FirebaseService } from './firebase.service';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, firstValueFrom, Observable } from 'rxjs';
 import { Timestamp } from '@angular/fire/firestore';
 import { ProjectThumbnailService } from './project-thumbnail.service';
 
@@ -22,6 +23,114 @@ export class Draw {
   ) {}
 
   public reload$: BehaviorSubject<void> = new BehaviorSubject<void>(undefined);
+
+  public canUndo$ = new BehaviorSubject<boolean>(false);
+  public canRedo$ = new BehaviorSubject<boolean>(false);
+
+  async refreshVersionState(): Promise<void> {
+    const projectId = localStorage.getItem('project-id');
+    if (!projectId || projectId === 'notExisting') {
+      this.canUndo$.next(false);
+      this.canRedo$.next(false);
+      return;
+    }
+    try {
+      const allSnapshots = await firstValueFrom(
+        this.firebaseService.getProjectVersionSnapshots(projectId),
+      );
+      const sorted = [...allSnapshots].sort(
+        (a, b) => a.timestamp.toMillis() - b.timestamp.toMillis(),
+      );
+      const currentId = localStorage.getItem('version-current-id');
+      const idx = currentId
+        ? sorted.findIndex((s) => s.id === currentId)
+        : sorted.length - 1;
+      const effectiveIdx = idx === -1 ? sorted.length - 1 : idx;
+      this.canUndo$.next(effectiveIdx > 0);
+      this.canRedo$.next(effectiveIdx < sorted.length - 1);
+    } catch {
+      this.canUndo$.next(false);
+      this.canRedo$.next(false);
+    }
+  }
+
+  async undoVersion(): Promise<void> {
+    const projectId = localStorage.getItem('project-id');
+    if (!projectId || projectId === 'notExisting') return;
+    try {
+      const allSnapshots = await firstValueFrom(
+        this.firebaseService.getProjectVersionSnapshots(projectId),
+      );
+      const sorted = [...allSnapshots].sort(
+        (a, b) => a.timestamp.toMillis() - b.timestamp.toMillis(),
+      );
+      if (sorted.length === 0) return;
+      const currentId = localStorage.getItem('version-current-id');
+      const idx = currentId
+        ? sorted.findIndex((s) => s.id === currentId)
+        : sorted.length - 1;
+      const effectiveIdx = idx === -1 ? sorted.length - 1 : idx;
+      if (effectiveIdx <= 0) return;
+      const target = sorted[effectiveIdx - 1];
+      this.applySnapshot(target);
+      localStorage.setItem('version-current-id', target.id);
+      await firstValueFrom(
+        this.firebaseService.updateProjectVersionState(
+          projectId,
+          target.id,
+          sorted.length,
+        ),
+      );
+      this.reload$.next();
+      await this.refreshVersionState();
+    } catch (error) {
+      console.error('Error during undo:', error);
+    }
+  }
+
+  async redoVersion(): Promise<void> {
+    const projectId = localStorage.getItem('project-id');
+    if (!projectId || projectId === 'notExisting') return;
+    try {
+      const allSnapshots = await firstValueFrom(
+        this.firebaseService.getProjectVersionSnapshots(projectId),
+      );
+      const sorted = [...allSnapshots].sort(
+        (a, b) => a.timestamp.toMillis() - b.timestamp.toMillis(),
+      );
+      if (sorted.length === 0) return;
+      const currentId = localStorage.getItem('version-current-id');
+      const idx = currentId
+        ? sorted.findIndex((s) => s.id === currentId)
+        : sorted.length - 1;
+      const effectiveIdx = idx === -1 ? sorted.length - 1 : idx;
+      if (effectiveIdx >= sorted.length - 1) return;
+      const target = sorted[effectiveIdx + 1];
+      this.applySnapshot(target);
+      localStorage.setItem('version-current-id', target.id);
+      await firstValueFrom(
+        this.firebaseService.updateProjectVersionState(
+          projectId,
+          target.id,
+          sorted.length,
+        ),
+      );
+      this.reload$.next();
+      await this.refreshVersionState();
+    } catch (error) {
+      console.error('Error during redo:', error);
+    }
+  }
+
+  private applySnapshot(snapshot: ProjectVersionSnapshot): void {
+    const objects = snapshot.objects.map((obj) => ({
+      ...obj,
+      selected: false,
+      ghost: false,
+    }));
+    localStorage.setItem('model-data', JSON.stringify(objects));
+    localStorage.setItem('model-data-old', JSON.stringify(objects));
+  }
 
   loadObjects(): (FormObject | FreeObject)[] {
     const modelDataString = localStorage.getItem('model-data');
@@ -69,13 +178,17 @@ export class Draw {
     return new Observable<(FormObject | FreeObject)[]>((observer) => {
       this.firebaseService.getObjectsByProjectId(projectId).subscribe({
         next: (firebaseObjects: (FormObject | FreeObject)[]) => {
-          const normalized = firebaseObjects.map((obj) => ({
+          const normalizedObjects = firebaseObjects.map((obj) => ({
             ...obj,
             selected: false,
             ghost: false,
           }));
-          localStorage.setItem('model-data', JSON.stringify(normalized));
-          observer.next(normalized);
+          localStorage.setItem('model-data', JSON.stringify(normalizedObjects));
+          localStorage.setItem(
+            'model-data-old',
+            JSON.stringify(normalizedObjects),
+          );
+          observer.next(normalizedObjects);
           observer.complete();
         },
         error: (err) => {
@@ -197,6 +310,81 @@ export class Draw {
         projectId: '',
         error: 'Error saving project. Please try again.',
       };
+    }
+  }
+
+  async saveVersionCommitToFirebase(projectName: string): Promise<void> {
+    try {
+      const projectId = localStorage.getItem('project-id');
+      if (!projectId || projectId === 'notExisting') {
+        return;
+      }
+
+      let modelData = this.loadObjects().filter((obj) => !obj.ghost);
+      modelData.forEach((obj) => (obj.selected = false));
+
+      // If we're not at the newest snapshot (i.e. we did undo), delete all snapshots
+      // that are newer than the current position before saving the new commit.
+      const existingSnapshots = await firstValueFrom(
+        this.firebaseService.getProjectVersionSnapshots(projectId),
+      );
+      const sortedOldestFirst = [...existingSnapshots].sort(
+        (a, b) => a.timestamp.toMillis() - b.timestamp.toMillis(),
+      );
+      const currentId = localStorage.getItem('version-current-id');
+      if (currentId) {
+        const currentIdx = sortedOldestFirst.findIndex(
+          (s) => s.id === currentId,
+        );
+        if (currentIdx !== -1 && currentIdx < sortedOldestFirst.length - 1) {
+          const futureIds = sortedOldestFirst
+            .slice(currentIdx + 1)
+            .map((s) => s.id);
+          await this.firebaseService.deleteProjectVersionSnapshots(
+            projectId,
+            futureIds,
+          );
+        }
+      }
+
+      const snapshot: ProjectVersionSnapshot = {
+        id: this.generateId(),
+        projectId,
+        projectName,
+        objects: modelData,
+        timestamp: Timestamp.now(),
+      };
+
+      await firstValueFrom(
+        this.firebaseService.saveProjectVersionSnapshot(projectId, snapshot),
+      );
+
+      const allSnapshots = await firstValueFrom(
+        this.firebaseService.getProjectVersionSnapshots(projectId),
+      );
+
+      const sortedByNewest = [...allSnapshots].sort(
+        (a, b) => b.timestamp.toMillis() - a.timestamp.toMillis(),
+      );
+
+      const snapshotsToDelete = sortedByNewest.slice(10).map((s) => s.id);
+      await this.firebaseService.deleteProjectVersionSnapshots(
+        projectId,
+        snapshotsToDelete,
+      );
+
+      const versionCount = sortedByNewest.length - snapshotsToDelete.length;
+      localStorage.setItem('version-current-id', snapshot.id);
+      await firstValueFrom(
+        this.firebaseService.updateProjectVersionState(
+          projectId,
+          snapshot.id,
+          versionCount,
+        ),
+      );
+      await this.refreshVersionState();
+    } catch (error) {
+      console.error('Error saving version commit to Firebase:', error);
     }
   }
 

@@ -5,132 +5,169 @@ import { File as FileService } from '../shared/file.service';
 import { AuthService } from '../auth/auth.service';
 import { GlobalService } from '../shared/global.service';
 import { Router } from '@angular/router';
+import { FirebaseService } from '../shared/firebase.service';
+import { SettingsService } from '../shared/settings.service';
+import { StepService } from '../shared/step.service';
+import { of } from 'rxjs';
 
 describe('HeaderComponent', () => {
-    let component: HeaderComponent;
-    let fixture: ComponentFixture<HeaderComponent>;
-    let mockDrawService: jest.Mocked<Draw>;
-    let mockFileService: jest.Mocked<FileService>;
-    let mockAuthService: jest.Mocked<AuthService>;
-    let mockGlobalService: jest.Mocked<GlobalService>;
-    let mockRouter: jest.Mocked<Router>;
+  let component: HeaderComponent;
+  let fixture: ComponentFixture<HeaderComponent>;
+  let mockDrawService: jest.Mocked<Draw>;
+  let mockFileService: jest.Mocked<FileService>;
+  let mockAuthService: jest.Mocked<AuthService>;
+  let mockGlobalService: jest.Mocked<GlobalService>;
+  let mockRouter: jest.Mocked<Router>;
+  let mockFirebaseService: jest.Mocked<FirebaseService>;
+  let mockSettingsService: jest.Mocked<SettingsService>;
+  let mockStepService: jest.Mocked<StepService>;
 
-    beforeEach(async () => {
-        // Create mock services
-        mockDrawService = {
-            rectangle: jest.fn(),
-            circle: jest.fn(),
-            freeform: jest.fn(),
-        } as any;
+  beforeEach(async () => {
+    // Create mock services
+    mockDrawService = {
+      rectangle: jest.fn(),
+      circle: jest.fn(),
+      freeform: jest.fn(),
+      refreshVersionState: jest.fn().mockResolvedValue(undefined),
+      undoVersion: jest.fn().mockResolvedValue(undefined),
+      redoVersion: jest.fn().mockResolvedValue(undefined),
+    } as any;
 
-        mockFileService = {
-            save: jest.fn(),
-            saveAsSTEP: jest.fn(),
-            saveAsSTL: jest.fn(),
-            upload: jest.fn(),
-        } as any;
+    mockFileService = {
+      save: jest.fn(),
+      saveAsSTEP: jest.fn(),
+      saveAsSTL: jest.fn(),
+      upload: jest.fn(),
+    } as any;
 
-        mockAuthService = {
-            logout: jest.fn(),
-        } as any;
+    mockAuthService = {
+      logout: jest.fn(),
+      currentUserSignal: jest
+        .fn()
+        .mockReturnValue({ email: 'owner@example.com' }),
+      isPaidOrAdmin: jest.fn().mockReturnValue(true),
+    } as any;
 
-        mockGlobalService = {
-            openSaveProjectPopup: jest.fn(),
-        } as any;
+    mockGlobalService = {
+      openSaveProjectPopup: jest.fn(),
+    } as any;
 
-        mockRouter = {
-            navigate: jest.fn(),
-        } as any;
+    mockRouter = {
+      navigate: jest.fn(),
+      events: of(),
+      url: '/editor/test-project',
+    } as any;
 
-        await TestBed.configureTestingModule({
-            imports: [HeaderComponent], // Standalone Component
-            providers: [
-                { provide: Draw, useValue: mockDrawService },
-                { provide: FileService, useValue: mockFileService },
-                { provide: AuthService, useValue: mockAuthService },
-                { provide: GlobalService, useValue: mockGlobalService },
-                { provide: Router, useValue: mockRouter },
-            ],
-        }).compileComponents();
+    mockFirebaseService = {
+      getOwnerEmailForCurrentProject: jest
+        .fn()
+        .mockReturnValue(of('owner@example.com')),
+    } as any;
 
-        fixture = TestBed.createComponent(HeaderComponent);
-        component = fixture.componentInstance;
-        fixture.detectChanges();
+    mockSettingsService = {
+      settings: jest.fn().mockReturnValue({ autosave: false }),
+      updateSettings: jest.fn(),
+    } as any;
+
+    mockStepService = {} as any;
+
+    await TestBed.configureTestingModule({
+      imports: [HeaderComponent], // Standalone Component
+      providers: [
+        { provide: Draw, useValue: mockDrawService },
+        { provide: FileService, useValue: mockFileService },
+        { provide: AuthService, useValue: mockAuthService },
+        { provide: GlobalService, useValue: mockGlobalService },
+        { provide: Router, useValue: mockRouter },
+        { provide: FirebaseService, useValue: mockFirebaseService },
+        { provide: SettingsService, useValue: mockSettingsService },
+        { provide: StepService, useValue: mockStepService },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(HeaderComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    fixture?.destroy();
+    jest.restoreAllMocks();
+  });
+
+  it('should create the component', () => {
+    expect(component).toBeTruthy();
+  });
+
+  describe('Navigation Methods', () => {
+    it('should navigate to login page', () => {
+      component.login();
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/login']);
     });
 
-    it('should create the component', () => {
-        expect(component).toBeTruthy();
+    it('should navigate to register page', () => {
+      component.register();
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/register']);
     });
 
-    describe('Navigation Methods', () => {
-        it('should navigate to login page', () => {
-            component.login();
-            expect(mockRouter.navigate).toHaveBeenCalledWith(['/login']);
-        });
-
-        it('should navigate to register page', () => {
-            component.register();
-            expect(mockRouter.navigate).toHaveBeenCalledWith(['/register']);
-        });
-
-        it('should navigate to overview page', () => {
-            component.home();
-            expect(mockRouter.navigate).toHaveBeenCalledWith(['/overview']);
-        });
-
-        it('should call logout and navigate to login page', () => {
-            component.logout();
-            expect(mockAuthService.logout).toHaveBeenCalled();
-            expect(mockRouter.navigate).toHaveBeenCalledWith(['/login']);
-        });
+    it('should navigate to overview page', () => {
+      component.home();
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/overview']);
     });
 
-    describe('File Operations', () => {
-        it('should call saveProjectToFirebase', () => {
-            component.saveProjectToFirebase();
-            expect(mockGlobalService.openSaveProjectPopup).toHaveBeenCalled();
-        });
+    it('should call logout and navigate to login page', () => {
+      component.logout();
+      expect(mockAuthService.logout).toHaveBeenCalled();
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/login']);
+    });
+  });
 
-        it('should call saveToLocalFile', () => {
-            component.saveToLocalFile();
-            expect(mockFileService.save).toHaveBeenCalled();
-        });
-
-        it('should call exportAsJSON', () => {
-            component.exportAsJSON();
-            expect(mockFileService.save).toHaveBeenCalled();
-        });
-
-        it('should call exportAsSTEP', () => {
-            component.exportAsSTEP();
-            expect(mockFileService.saveAsSTEP).toHaveBeenCalled();
-        });
-
-        it('should call exportAsSTL', () => {
-            component.exportAsSTL();
-            expect(mockFileService.saveAsSTL).toHaveBeenCalled();
-        });
-
-        it('should call uploadFromLocalFile', () => {
-            component.uploadFromLocalFile();
-            expect(mockFileService.upload).toHaveBeenCalled();
-        });
+  describe('File Operations', () => {
+    it('should call saveProjectToFirebase', () => {
+      component.saveProjectToFirebase();
+      expect(mockGlobalService.openSaveProjectPopup).toHaveBeenCalled();
     });
 
-    describe('Drawing Methods', () => {
-        it('should draw rectangle', () => {
-            component.rectangle();
-            expect(mockDrawService.rectangle).toHaveBeenCalled();
-        });
-
-        it('should draw circle', () => {
-            component.circle();
-            expect(mockDrawService.circle).toHaveBeenCalled();
-        });
-
-        it('should draw freeform', () => {
-            component.freeform();
-            expect(mockDrawService.freeform).toHaveBeenCalled();
-        });
+    it('should call saveToLocalFile', () => {
+      component.saveToLocalFile();
+      expect(mockFileService.save).toHaveBeenCalled();
     });
+
+    it('should call exportAsJSON', () => {
+      component.exportAsJSON();
+      expect(mockFileService.save).toHaveBeenCalled();
+    });
+
+    it('should call exportAsSTEP', () => {
+      component.exportAsSTEP();
+      expect(mockFileService.saveAsSTEP).toHaveBeenCalled();
+    });
+
+    it('should call exportAsSTL', () => {
+      component.exportAsSTL();
+      expect(mockFileService.saveAsSTL).toHaveBeenCalled();
+    });
+
+    it('should call uploadFromLocalFile', () => {
+      component.uploadFromLocalFile();
+      expect(mockFileService.upload).toHaveBeenCalled();
+    });
+  });
+
+  describe('Drawing Methods', () => {
+    it('should draw rectangle', () => {
+      component.rectangle();
+      expect(mockDrawService.rectangle).toHaveBeenCalled();
+    });
+
+    it('should draw circle', () => {
+      component.circle();
+      expect(mockDrawService.circle).toHaveBeenCalled();
+    });
+
+    it('should draw freeform', () => {
+      component.freeform();
+      expect(mockDrawService.freeform).toHaveBeenCalled();
+    });
+  });
 });

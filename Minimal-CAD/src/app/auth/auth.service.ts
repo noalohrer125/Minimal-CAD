@@ -15,7 +15,8 @@ import {
   setDoc,
 } from '@angular/fire/firestore';
 import { from, Observable } from 'rxjs';
-import { User, UserRole } from '../interfaces';
+import { DEFAULT_SETTINGS, Settings, User, UserRole } from '../interfaces';
+import { SettingsService } from '../shared/settings.service';
 
 @Injectable({
   providedIn: 'root',
@@ -23,6 +24,7 @@ import { User, UserRole } from '../interfaces';
 export class AuthService {
   firebaseAuth = inject(Auth);
   firestore = inject(Firestore);
+  settingsService = inject(SettingsService);
   $user = user(this.firebaseAuth);
   currentUserSignal = signal<User | null>(null);
 
@@ -53,6 +55,30 @@ export class AuthService {
     }
   }
 
+  private parseSettings(rawSettings: unknown): Settings {
+    if (
+      rawSettings &&
+      typeof rawSettings === 'object' &&
+      'theme' in rawSettings &&
+      'units' in rawSettings &&
+      'autosave' in rawSettings
+    ) {
+      const theme = rawSettings['theme'];
+      const units = rawSettings['units'];
+      const autosave = rawSettings['autosave'];
+
+      if (
+        (theme === 'light' || theme === 'dark') &&
+        (units === 'metric' || units === 'imperial') &&
+        typeof autosave === 'boolean'
+      ) {
+        return { theme, units, autosave };
+      }
+    }
+
+    return { ...DEFAULT_SETTINGS };
+  }
+
   private async syncCurrentUser(
     firebaseUser: FirebaseAuthUser | null,
   ): Promise<void> {
@@ -66,6 +92,7 @@ export class AuthService {
       email: firebaseUser.email ?? '',
       username: firebaseUser.displayName ?? '',
       role: 'user',
+      settings: { ...DEFAULT_SETTINGS },
     };
 
     // Update UI/auth state immediately; role is refined asynchronously below.
@@ -82,8 +109,17 @@ export class AuthService {
       // Ignore profile-sync failures here and continue with auth state.
     }
 
-    const role = await this.getUserRole(firebaseUser.uid);
-    this.currentUserSignal.set({ ...baseUser, role });
+    const userDoc = await getDoc(this.getUserDocRef(firebaseUser.uid)).catch(
+      () => null,
+    );
+    const role = userDoc ? this.parseRole(userDoc.data()?.['role']) : 'user';
+    const settings = userDoc
+      ? this.parseSettings(userDoc.data()?.['settings'])
+      : { ...DEFAULT_SETTINGS };
+
+    const resolvedUser = { ...baseUser, role, settings };
+    this.currentUserSignal.set(resolvedUser);
+    this.settingsService.hydrateSettingsFromUser(resolvedUser);
   }
 
   private async ensureUserProfile(
@@ -102,6 +138,7 @@ export class AuthService {
         email,
         username,
         role: existingUserDoc.exists() ? existingRole : 'user',
+        settings: this.parseSettings(existingUserDoc.data()?.['settings']),
         updatedAt: serverTimestamp(),
         createdAt: existingUserDoc.exists()
           ? (existingUserDoc.data()?.['createdAt'] ?? serverTimestamp())

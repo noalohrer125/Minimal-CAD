@@ -11,6 +11,16 @@
   box-sizing: border-box;
 }
 
+.fork-notice {
+  background-color: #fff3e0;
+  border-left: 4px solid #ff9800;
+  border-radius: 4px;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 1rem;
+  font-size: 14px;
+  color: #5d4037;
+}
+
 .toggle-container {
   display: flex;
   align-items: center;

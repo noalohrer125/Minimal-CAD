@@ -1,56 +1,88 @@
 <div class="main">
-    @if (isAuthenticated) {
-            @if (router.url.includes('/editor')) {
-            <div class="editor-menu">
-                <button matTooltip="Save project" mat-icon-button (click)="saveProjectToFirebase()">
-                    <mat-icon>save</mat-icon>
-                </button>
-                <hr>
-                <button matTooltip="Export to File" mat-icon-button [matMenuTriggerFor]="exportMenu">
-                    <mat-icon [class.spinning]="stepService.isDownloading$ | async">
-                        {{ (stepService.isDownloading$ | async) ? 'autorenew' : 'download' }}
-                    </mat-icon>
-                </button>
-                <mat-menu #exportMenu="matMenu">
-                    <button mat-menu-item (click)="exportAsJSON()">
-                        <mat-icon>code</mat-icon>
-                        <span>Export as JSON</span>
-                    </button>
-                    <button mat-menu-item (click)="exportAsSTEP()" [disabled]="stepService.isDownloading$ | async">
-                        <mat-icon [class.spinning]="stepService.isDownloading$ | async">
-                            {{ (stepService.isDownloading$ | async) ? 'autorenew' : 'precision_manufacturing' }}
-                        </mat-icon>
-                        <span>{{ (stepService.isDownloading$ | async) ? 'Exporting STEP...' : 'Export as STEP' }}</span>
-                    </button>
-                    <button mat-menu-item (click)="exportAsSTL()">
-                        <mat-icon>view_in_ar</mat-icon>
-                        <span>Export as STL</span>
-                    </button>
-                </mat-menu>
-                <button matTooltip="Open project from File" mat-icon-button (click)="uploadFromLocalFile()">
-                    <mat-icon>upload</mat-icon>
-                </button>
-                <hr>
-                <button matTooltip="add Square/Cube" mat-icon-button (click)="rectangle()">
-                    <mat-icon>square</mat-icon>
-                </button>
-                <button matTooltip="add Circle/Cylinder" mat-icon-button (click)="circle()">
-                    <mat-icon>circle</mat-icon>
-                </button>
-                <button matTooltip="add Freeform" mat-icon-button (click)="freeform()">
-                    <mat-icon>interests</mat-icon>
-                </button>
-                <hr>
-            </div>
-        }
+  @if (isAuthenticated) {
+  @if (router.url.includes('/editor')) {
+  <div class="editor-menu">
+    <button
+      matTooltip="{{
+        !isCurrentUserProjectOwner ? 'Save copy to edit' :
+        !autosave && hasUnsavedChanges ? 'Unsaved changes - save project' :
+        'No changes'}}"
+      mat-icon-button
+      (click)="saveProjectToFirebase()">
+      <mat-icon>{{!isCurrentUserProjectOwner ? 'save' :
+        !autosave && hasUnsavedChanges ? 'cloud_sync' :
+        'cloud_done'}}</mat-icon>
+    </button>
+    @if (isCurrentUserProjectOwner) {
+    <mat-slide-toggle [(ngModel)]="autosave" (change)="updateSettings($event)"
+      [disabled]="!authService.isPaidOrAdmin()"
+      matTooltip="{{ authService.isPaidOrAdmin() ? 'Autosave' : 'This feature is only available for paid users' }}"
+      color="primary">
+      Autosave
+    </mat-slide-toggle>
     }
-    <div class="right-align">
-        @if (isAuthenticated) {
-            <div class="user">
-                <span class="user-span">{{ authService.currentUserSignal()?.username }}</span>
-                <button matButton (click)="logout()">Logout</button>
-            </div>
-        }
-        <button matButton (click)="home()"><h1 id="title">Minimal CAD</h1></button>
+    <hr>
+    <button matTooltip="Export to File" mat-icon-button
+      [matMenuTriggerFor]="exportMenu">
+      <mat-icon [class.spinning]="stepService.isDownloading$ | async">
+        {{ (stepService.isDownloading$ | async) ? 'autorenew' : 'download' }}
+      </mat-icon>
+    </button>
+    <mat-menu #exportMenu="matMenu">
+      <button mat-menu-item (click)="exportAsJSON()">
+        <mat-icon>code</mat-icon>
+        <span>Export as JSON</span>
+      </button>
+      <button mat-menu-item (click)="exportAsSTEP()"
+        [disabled]="stepService.isDownloading$ | async">
+        <mat-icon [class.spinning]="stepService.isDownloading$ | async">
+          {{ (stepService.isDownloading$ | async) ? 'autorenew' :
+          'precision_manufacturing' }}
+        </mat-icon>
+        <span>{{ (stepService.isDownloading$ | async) ? 'Exporting STEP...' :
+          'Export as STEP' }}</span>
+      </button>
+      <button mat-menu-item (click)="exportAsSTL()">
+        <mat-icon>view_in_ar</mat-icon>
+        <span>Export as STL</span>
+      </button>
+    </mat-menu>
+    <button matTooltip="Open project from File" mat-icon-button
+      (click)="uploadFromLocalFile()">
+      <mat-icon>upload</mat-icon>
+    </button>
+    <hr>
+    <button matTooltip="add Square/Cube" mat-icon-button (click)="rectangle()">
+      <mat-icon>square</mat-icon>
+    </button>
+    <button matTooltip="add Circle/Cylinder" mat-icon-button (click)="circle()">
+      <mat-icon>circle</mat-icon>
+    </button>
+    <button matTooltip="add Freeform" mat-icon-button (click)="freeform()">
+      <mat-icon>interests</mat-icon>
+    </button>
+    @if (isCurrentUserProjectOwner && authService.isPaidOrAdmin()) {
+    <hr>
+    <button matTooltip="Undo" mat-icon-button (click)="undo()"
+      [disabled]="!(drawService.canUndo$ | async)">
+      <mat-icon>undo</mat-icon>
+    </button>
+    <button matTooltip="Redo" mat-icon-button (click)="redo()"
+      [disabled]="!(drawService.canRedo$ | async)">
+      <mat-icon>redo</mat-icon>
+    </button>
+    }
+  </div>
+  }
+  }
+  <div class="right-align">
+    @if (isAuthenticated) {
+    <div class="user">
+      <span class="user-span">{{ authService.currentUserSignal()?.username
+        }}</span>
+      <button matButton (click)="logout()">Logout</button>
     </div>
+    }
+    <button matButton (click)="home()"><h1 id="title">Minimal CAD</h1></button>
+  </div>
 </div>

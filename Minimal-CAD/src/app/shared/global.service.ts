@@ -9,6 +9,7 @@ export class GlobalService {
   private isSaveProjectPopupOpen$ = new BehaviorSubject<boolean>(false);
   private requestProjectData$ = new Subject<void>();
   private isNewProject: boolean = false;
+  private isFork: boolean = false;
 
   // Observable for components to subscribe to
   isSaveProjectPopupOpen = this.isSaveProjectPopupOpen$.asObservable();
@@ -26,8 +27,13 @@ export class GlobalService {
     return this.isNewProject;
   }
 
-  openSaveProjectPopup(isNewProject: boolean = false): void {
+  getIsFork(): boolean {
+    return this.isFork;
+  }
+
+  openSaveProjectPopup(isNewProject: boolean = false, isFork: boolean = false): void {
     this.isNewProject = isNewProject;
+    this.isFork = isFork;
     this.isSaveProjectPopupOpen$.next(true);
     this.drawService.reload$.next();
   }

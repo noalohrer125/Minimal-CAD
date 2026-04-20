@@ -1,10 +1,6 @@
 node_modules/
 secrets/
-
-# Environment files with sensitive data
-.env
-.env.local
-.env.*.local
+.vscode/
 
 # Firebase service account keys (NEVER commit these!)
 **/serviceAccountKey.json

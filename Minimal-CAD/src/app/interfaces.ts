@@ -3,11 +3,24 @@ import { Vector3 } from 'three';
 
 export type UserRole = 'admin' | 'paid-user' | 'user';
 
+export interface Settings {
+  theme: 'light' | 'dark';
+  units: 'metric' | 'imperial';
+  autosave: boolean;
+}
+
+export const DEFAULT_SETTINGS: Settings = {
+  theme: 'light',
+  units: 'metric',
+  autosave: false,
+};
+
 export interface User {
   uid?: string;
   email: string;
   username: string;
   role?: UserRole;
+  settings: Settings;
 }
 
 export interface Project {
@@ -18,6 +31,17 @@ export interface Project {
   createdAt: Timestamp;
   updatedAt?: Timestamp;
   thumbnailDataUrl?: string;
+
+  currentVersionId?: string;
+  versionCount?: number;
+}
+
+export interface ProjectVersionSnapshot {
+  id: string;
+  projectId: string; // wichtig!
+  projectName: string;
+  objects: (FormObject | FreeObject)[];
+  timestamp: Timestamp;
 }
 
 export interface projectSavingResult {

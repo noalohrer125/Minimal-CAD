@@ -63,6 +63,15 @@ service cloud.firestore {
                                  exists(/databases/$(database)/documents/projects/$(projectId)) &&
                                  isOwner(get(/databases/$(database)/documents/projects/$(projectId)).data);
       }
+
+      // Project version history subcollection
+      match /versions/{versionId} {
+        // Version history is a premium owner-only feature.
+        allow read, create, update, delete: if isAuthenticated() &&
+                                               isPaidOrAdmin() &&
+                                               exists(/databases/$(database)/documents/projects/$(projectId)) &&
+                                               isOwner(get(/databases/$(database)/documents/projects/$(projectId)).data);
+      }
     }
 
     // Users collection
