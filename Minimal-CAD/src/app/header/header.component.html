@@ -2,10 +2,19 @@
   @if (isAuthenticated) {
   @if (router.url.includes('/editor')) {
   <div class="editor-menu">
-    <button matTooltip="Save project" mat-icon-button
+    <button
+      matTooltip="{{!autosave && hasUnsavedChanges ? 'Unsaved changes - save project' : 'No changes'}}"
+      mat-icon-button
       (click)="saveProjectToFirebase()">
-      <mat-icon>save</mat-icon>
+      <mat-icon>{{!autosave && hasUnsavedChanges ? 'cloud_sync' :
+        'cloud_done'}}</mat-icon>
     </button>
+    @if (authService.isPaidOrAdmin()) {
+    <mat-slide-toggle [(ngModel)]="autosave" (change)="updateSettings($event)"
+      color="primary">
+      Autosave
+    </mat-slide-toggle>
+    }
     <hr>
     <button matTooltip="Export to File" mat-icon-button
       [matMenuTriggerFor]="exportMenu">
@@ -47,12 +56,6 @@
       <mat-icon>interests</mat-icon>
     </button>
     <hr>
-    @if (authService.isPaidOrAdmin()) {
-    <mat-slide-toggle [(ngModel)]="autosave" (change)="updateSettings($event)"
-      color="primary">
-      Autosave
-    </mat-slide-toggle>
-    }
   </div>
   }
   }

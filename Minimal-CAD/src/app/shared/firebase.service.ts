@@ -108,7 +108,7 @@ export class FirebaseService {
     const objectsCollection = this.getObjectsCollection(projectId);
     const docRef = setDoc(
       doc(objectsCollection, object.id),
-      object as any,
+      object as FormObject | FreeObject,
     ).then(() => object.id);
     return from(docRef);
   }

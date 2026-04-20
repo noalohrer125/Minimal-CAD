@@ -69,13 +69,14 @@ export class Draw {
     return new Observable<(FormObject | FreeObject)[]>((observer) => {
       this.firebaseService.getObjectsByProjectId(projectId).subscribe({
         next: (firebaseObjects: (FormObject | FreeObject)[]) => {
-          const normalized = firebaseObjects.map((obj) => ({
+          const normalizedObjects = firebaseObjects.map((obj) => ({
             ...obj,
             selected: false,
             ghost: false,
           }));
-          localStorage.setItem('model-data', JSON.stringify(normalized));
-          observer.next(normalized);
+          localStorage.setItem('model-data', JSON.stringify(normalizedObjects));
+          localStorage.setItem('model-data-old', JSON.stringify(normalizedObjects));
+          observer.next(normalizedObjects);
           observer.complete();
         },
         error: (err) => {
