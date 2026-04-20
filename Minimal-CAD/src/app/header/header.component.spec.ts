@@ -6,6 +6,8 @@ import { AuthService } from '../auth/auth.service';
 import { GlobalService } from '../shared/global.service';
 import { Router } from '@angular/router';
 import { FirebaseService } from '../shared/firebase.service';
+import { SettingsService } from '../shared/settings.service';
+import { StepService } from '../shared/step.service';
 import { of } from 'rxjs';
 
 describe('HeaderComponent', () => {
@@ -17,6 +19,8 @@ describe('HeaderComponent', () => {
   let mockGlobalService: jest.Mocked<GlobalService>;
   let mockRouter: jest.Mocked<Router>;
   let mockFirebaseService: jest.Mocked<FirebaseService>;
+  let mockSettingsService: jest.Mocked<SettingsService>;
+  let mockStepService: jest.Mocked<StepService>;
 
   beforeEach(async () => {
     // Create mock services
@@ -24,6 +28,9 @@ describe('HeaderComponent', () => {
       rectangle: jest.fn(),
       circle: jest.fn(),
       freeform: jest.fn(),
+      refreshVersionState: jest.fn().mockResolvedValue(undefined),
+      undoVersion: jest.fn().mockResolvedValue(undefined),
+      redoVersion: jest.fn().mockResolvedValue(undefined),
     } as any;
 
     mockFileService = {
@@ -57,6 +64,13 @@ describe('HeaderComponent', () => {
         .mockReturnValue(of('owner@example.com')),
     } as any;
 
+    mockSettingsService = {
+      settings: jest.fn().mockReturnValue({ autosave: false }),
+      updateSettings: jest.fn(),
+    } as any;
+
+    mockStepService = {} as any;
+
     await TestBed.configureTestingModule({
       imports: [HeaderComponent], // Standalone Component
       providers: [
@@ -66,12 +80,19 @@ describe('HeaderComponent', () => {
         { provide: GlobalService, useValue: mockGlobalService },
         { provide: Router, useValue: mockRouter },
         { provide: FirebaseService, useValue: mockFirebaseService },
+        { provide: SettingsService, useValue: mockSettingsService },
+        { provide: StepService, useValue: mockStepService },
       ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(HeaderComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    fixture?.destroy();
+    jest.restoreAllMocks();
   });
 
   it('should create the component', () => {
