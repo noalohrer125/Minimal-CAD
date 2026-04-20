@@ -31,6 +31,17 @@ export interface Project {
   createdAt: Timestamp;
   updatedAt?: Timestamp;
   thumbnailDataUrl?: string;
+
+  currentVersionId?: string;
+  versionCount?: number;
+}
+
+export interface ProjectVersionSnapshot {
+  id: string;
+  projectId: string; // wichtig!
+  projectName: string;
+  objects: (FormObject | FreeObject)[];
+  timestamp: Timestamp;
 }
 
 export interface projectSavingResult {

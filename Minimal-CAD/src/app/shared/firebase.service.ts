@@ -11,7 +11,14 @@ import {
   where,
 } from '@angular/fire/firestore';
 import { from, Observable } from 'rxjs';
-import { FormObject, FreeObject, Project, Settings, User } from '../interfaces';
+import {
+  FormObject,
+  FreeObject,
+  Project,
+  ProjectVersionSnapshot,
+  Settings,
+  User,
+} from '../interfaces';
 import { Auth } from '@angular/fire/auth';
 
 @Injectable({
@@ -60,6 +67,10 @@ export class FirebaseService {
   // Helper to get objects subcollection for a project
   private getObjectsCollection(projectId: string) {
     return collection(this.firestore, 'projects', projectId, 'objects');
+  }
+
+  private getProjectVersionsCollection(projectId: string) {
+    return collection(this.firestore, 'projects', projectId, 'versions');
   }
 
   getObjectsByProjectId(
@@ -237,6 +248,66 @@ export class FirebaseService {
       project,
     ).then(() => project.id);
     return from(docRef);
+  }
+
+  saveProjectVersionSnapshot(
+    projectId: string,
+    snapshot: ProjectVersionSnapshot,
+  ): Observable<string> {
+    const versionsCollection = this.getProjectVersionsCollection(projectId);
+    const snapshotDocRef = doc(versionsCollection, snapshot.id);
+    return from(setDoc(snapshotDocRef, snapshot).then(() => snapshot.id));
+  }
+
+  getProjectVersionSnapshots(
+    projectId: string,
+  ): Observable<ProjectVersionSnapshot[]> {
+    const versionsCollection = this.getProjectVersionsCollection(projectId);
+    return from(
+      getDocs(versionsCollection).then((snapshot) => {
+        return snapshot.docs.map(
+          (docSnapshot) =>
+            ({
+              id: docSnapshot.id,
+              ...docSnapshot.data(),
+            }) as ProjectVersionSnapshot,
+        );
+      }),
+    );
+  }
+
+  async deleteProjectVersionSnapshots(
+    projectId: string,
+    snapshotIds: string[],
+  ): Promise<void> {
+    if (!snapshotIds.length) {
+      return;
+    }
+
+    const versionsCollection = this.getProjectVersionsCollection(projectId);
+    await Promise.all(
+      snapshotIds.map((snapshotId) =>
+        deleteDoc(doc(versionsCollection, snapshotId)),
+      ),
+    );
+  }
+
+  updateProjectVersionState(
+    projectId: string,
+    currentVersionId: string,
+    versionCount: number,
+  ): Observable<string> {
+    const projectDocRef = doc(this.projectsCollection, projectId);
+    return from(
+      setDoc(
+        projectDocRef,
+        {
+          currentVersionId,
+          versionCount,
+        },
+        { merge: true },
+      ).then(() => projectId),
+    );
   }
 
   async deleteProject(projectId: string): Promise<Observable<void>> {

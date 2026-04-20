@@ -4,11 +4,12 @@ import {
   FormObject,
   FreeObject,
   Project,
+  ProjectVersionSnapshot,
   projectSavingResult,
   view,
 } from '../interfaces';
 import { FirebaseService } from './firebase.service';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, firstValueFrom, Observable } from 'rxjs';
 import { Timestamp } from '@angular/fire/firestore';
 import { ProjectThumbnailService } from './project-thumbnail.service';
 
@@ -75,7 +76,10 @@ export class Draw {
             ghost: false,
           }));
           localStorage.setItem('model-data', JSON.stringify(normalizedObjects));
-          localStorage.setItem('model-data-old', JSON.stringify(normalizedObjects));
+          localStorage.setItem(
+            'model-data-old',
+            JSON.stringify(normalizedObjects),
+          );
           observer.next(normalizedObjects);
           observer.complete();
         },
@@ -198,6 +202,55 @@ export class Draw {
         projectId: '',
         error: 'Error saving project. Please try again.',
       };
+    }
+  }
+
+  async saveVersionCommitToFirebase(projectName: string): Promise<void> {
+    try {
+      const projectId = localStorage.getItem('project-id');
+      if (!projectId || projectId === 'notExisting') {
+        return;
+      }
+
+      let modelData = this.loadObjects().filter((obj) => !obj.ghost);
+      modelData.forEach((obj) => (obj.selected = false));
+
+      const snapshot: ProjectVersionSnapshot = {
+        id: this.generateId(),
+        projectId,
+        projectName,
+        objects: modelData,
+        timestamp: Timestamp.now(),
+      };
+
+      await firstValueFrom(
+        this.firebaseService.saveProjectVersionSnapshot(projectId, snapshot),
+      );
+
+      const allSnapshots = await firstValueFrom(
+        this.firebaseService.getProjectVersionSnapshots(projectId),
+      );
+
+      const sortedByNewest = [...allSnapshots].sort(
+        (a, b) => b.timestamp.toMillis() - a.timestamp.toMillis(),
+      );
+
+      const snapshotsToDelete = sortedByNewest.slice(10).map((s) => s.id);
+      await this.firebaseService.deleteProjectVersionSnapshots(
+        projectId,
+        snapshotsToDelete,
+      );
+
+      const versionCount = sortedByNewest.length - snapshotsToDelete.length;
+      await firstValueFrom(
+        this.firebaseService.updateProjectVersionState(
+          projectId,
+          snapshot.id,
+          versionCount,
+        ),
+      );
+    } catch (error) {
+      console.error('Error saving version commit to Firebase:', error);
     }
   }
 

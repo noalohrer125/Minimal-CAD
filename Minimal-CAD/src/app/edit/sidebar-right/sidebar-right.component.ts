@@ -18,7 +18,7 @@ import {
 } from '@angular/forms';
 import { FormObject, FreeObject, FreeObjectCommand } from '../../interfaces';
 import { MatIconModule } from '@angular/material/icon';
-import { debounceTime, firstValueFrom } from 'rxjs';
+import { debounceTime } from 'rxjs';
 import { Draw } from '../../shared/draw.service';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -27,7 +27,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { DialogService } from '../../shared/dialog.service';
 import { SettingsService } from '../../shared/settings.service';
-import { FirebaseService } from '../../shared/firebase.service';
 
 @Component({
   selector: 'app-sidebar-right',
@@ -56,7 +55,6 @@ export class SidebarRightComponent implements OnInit {
     private drawService: Draw,
     private dialogService: DialogService,
     private settingsService: SettingsService,
-    private firebaseService: FirebaseService,
   ) {}
 
   public selectedObject: FormObject | FreeObject | any = {};
@@ -314,6 +312,9 @@ export class SidebarRightComponent implements OnInit {
           this.selectedObject.name,
           false,
           false,
+        );
+        void this.drawService.saveVersionCommitToFirebase(
+          this.selectedObject.name,
         );
       }
       // Load the updated object from localStorage (which has the current form values)
