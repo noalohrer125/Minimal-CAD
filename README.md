@@ -1,9 +1,5 @@
 # Minimal CAD
 
-**Preview der gesamten Applikation:** [GitHub Pages Version](https://ihre-github-pages-url.github.io/Minimal-CAD/) *(ohne Authentifizierung und Datenbank)*
-
----
-
 ## Produktive Version - Vollständige CAD-Anwendung
 
 Minimal CAD ist eine webbasierte 3D-CAD-Anwendung zum Erstellen, Bearbeiten und Verwalten von geometrischen 3D-Modellen. Die produktive Version bietet Benutzerverwaltung, Cloud-Speicherung und Projekt-Sharing.
