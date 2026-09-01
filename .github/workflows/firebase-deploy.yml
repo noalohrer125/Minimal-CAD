@@ -20,11 +20,11 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Detect API changes
         id: api_changes
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v4
         with:
           filters: |
             api:
@@ -33,14 +33,14 @@ jobs:
               - 'Minimal-CAD/src/app/shared/stl-to-step_api/requirements.txt'
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: "24"
           cache: "npm"
           cache-dependency-path: Minimal-CAD/package-lock.json
 
       - name: Cache Firebase Tools
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/firebase
           key: ${{ runner.os }}-firebase-tools
@@ -62,13 +62,13 @@ jobs:
 
       - name: Authenticate to Google Cloud (DEV)
         if: steps.api_changes.outputs.api == 'true'
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@v3
         with:
           credentials_json: "${{ secrets.GCP_SA_KEY_DEV }}"
 
       - name: Setup gcloud
         if: steps.api_changes.outputs.api == 'true'
-        uses: google-github-actions/setup-gcloud@v2
+        uses: google-github-actions/setup-gcloud@v3
         with:
           project_id: ${{ env.GCP_PROJECT_ID }}
 
