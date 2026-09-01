@@ -61,7 +61,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: ./Minimal-CAD
-        run: npm ci --legacy-peer-deps
+        run: npm ci
 
       - name: Build application (${{ steps.config.outputs.environment }} config)
         working-directory: ./Minimal-CAD
