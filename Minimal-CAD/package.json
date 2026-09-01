@@ -50,7 +50,7 @@
     "@angular/compiler-cli": "^21.2.22",
     "@types/jasmine": "6.0.0",
     "@types/jest": "^30.0.0",
-    "@types/node": "^25.0.10",
+    "@types/node": "^26.4.0",
     "@types/three": "0.183.1",
     "angular-cli-ghpages": "3.0.2",
     "jasmine-core": "6.1.0",
